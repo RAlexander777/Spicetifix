@@ -65,7 +65,7 @@ const I18N = {
     btn_uninstall_spotify: 'DESINSTALAR SPOTIFY Y SPICETIFY',
     btn_save_options: 'GUARDAR Y APLICAR OPCIONES',
     modal_about_title: 'ACERCA DE AUTOMATIFY',
-    about_desc: 'Automatify es un centro de control terminal de diseño minimalista e instalador automatizado para Spotify y Spicetify en Windows.',
+    about_desc: 'Spicetifix es un centro de control terminal de diseño minimalista e instalador automatizado para Spotify y Spicetify en Windows.',
     about_author_lbl: 'Autor / Creador:',
     about_license_lbl: 'Licencia:',
     about_engine_lbl: 'Motor:',
@@ -143,7 +143,7 @@ const I18N = {
     btn_uninstall_spotify: 'UNINSTALL SPOTIFY & SPICETIFY',
     btn_save_options: 'SAVE & APPLY OPTIONS',
     modal_about_title: 'ABOUT AUTOMATIFY',
-    about_desc: 'Automatify is a minimalist terminal-styled control center and automated installer for Spotify and Spicetify on Windows.',
+    about_desc: 'Spicetifix is a minimalist terminal-styled control center and automated installer for Spotify and Spicetify on Windows.',
     about_author_lbl: 'Author / Creator:',
     about_license_lbl: 'License:',
     about_engine_lbl: 'Engine:',
@@ -634,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnClearLogs = document.getElementById('btn-clear-logs');
   if (btnClearLogs) {
     btnClearLogs.addEventListener('click', () => {
-      document.getElementById('console-output').textContent = 'root@automatify:~$ consola limpiada.';
+      document.getElementById('console-output').textContent = 'root@spicetifix:~$ consola limpiada.';
     });
   }
 

@@ -3,7 +3,7 @@ import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
-from automatify.core.config import (
+from spicetifix.core.config import (
     load_user_config,
     save_user_config,
     check_config_health,
@@ -11,10 +11,10 @@ from automatify.core.config import (
     get_installed_custom_apps,
     read_spicetify_config,
 )
-from automatify.core.installer import Installer
-from automatify.core.themer import list_available_themes, set_theme
-from automatify.core.ui_theme import list_ui_theme_names, get_ui_theme, THEMES
-from automatify.core import spotify_control
+from spicetifix.core.installer import Installer
+from spicetifix.core.themer import list_available_themes, set_theme
+from spicetifix.core.ui_theme import list_ui_theme_names, get_ui_theme, THEMES
+from spicetifix.core import spotify_control
 
 
 _install_logs = []
@@ -32,7 +32,7 @@ def _set_progress(pct: float):
     _install_progress = pct
 
 
-class AutomatifyAPIHandler(BaseHTTPRequestHandler):
+class SpicetifixAPIHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Suppress standard HTTP server console spam
         pass
@@ -216,7 +216,7 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             target = body.get("target", "")
             try:
                 import os
-                from automatify.core.utils import get_spicetify_dir, get_spicetify_themes_dir
+                from spicetifix.core.utils import get_spicetify_dir, get_spicetify_themes_dir
                 if target == "spicetify":
                     folder = get_spicetify_dir()
                 elif target == "themes":
@@ -240,7 +240,7 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             def run():
                 global _is_working
                 try:
-                    from automatify.core.backup import export_backup_zip
+                    from spicetifix.core.backup import export_backup_zip
                     export_backup_zip(progress_callback=_set_progress, log_callback=_append_log)
                 finally:
                     _is_working = False
@@ -257,7 +257,7 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             def run():
                 global _is_working
                 try:
-                    from automatify.core.backup import import_backup_zip, pick_and_import_backup
+                    from spicetifix.core.backup import import_backup_zip, pick_and_import_backup
                     from pathlib import Path
                     if zip_path_str:
                         import_backup_zip(Path(zip_path_str), progress_callback=_set_progress, log_callback=_append_log)
@@ -272,7 +272,7 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
         elif path == "/api/themes/schemes":
             theme_name = body.get("theme", "")
             try:
-                from automatify.core.themer import get_theme_color_schemes
+                from spicetifix.core.themer import get_theme_color_schemes
                 schemes = get_theme_color_schemes(theme_name)
                 self._send_json({"status": "ok", "schemes": schemes})
             except Exception as e:
@@ -286,7 +286,7 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             def run():
                 global _is_working
                 try:
-                    from automatify.core.utils import run_spicetify
+                    from spicetifix.core.utils import run_spicetify
                     _append_log("Running spicetify apply...")
                     code, out, err = run_spicetify(["apply"])
                     if out: _append_log(out)
@@ -370,8 +370,8 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
 
 
 def run_api_server(port: int = 8765):
-    server = HTTPServer(("127.0.0.1", port), AutomatifyAPIHandler)
-    print(f"> Automatify Python Sidecar API running on http://127.0.0.1:{port}")
+    server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
+    print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
     server.serve_forever()
 
 

@@ -2,7 +2,7 @@ from configparser import ConfigParser
 
 import yaml
 
-from automatify.core.utils import (
+from spicetifix.core.utils import (
     get_spotify_path,
     get_prefs_path,
     get_spicetify_config_path,
@@ -29,7 +29,7 @@ DEFAULT_OPTIONS = {
 
 def get_installed_extensions() -> list[str]:
     """Scans Spicetify Extensions directory and config-xpui.ini for all installed extensions."""
-    from automatify.core.utils import get_spicetify_extensions_dir
+    from spicetifix.core.utils import get_spicetify_extensions_dir
     ext_dir = get_spicetify_extensions_dir()
     extensions = set()
 
@@ -55,7 +55,7 @@ def get_installed_extensions() -> list[str]:
 
 def get_installed_custom_apps() -> list[str]:
     """Scans Spicetify CustomApps directory and config-xpui.ini for custom apps."""
-    from automatify.core.utils import get_spicetify_custom_apps_dir
+    from spicetifix.core.utils import get_spicetify_custom_apps_dir
     apps_dir = get_spicetify_custom_apps_dir()
     apps = set()
 
@@ -218,7 +218,7 @@ def init_spicetify_config() -> bool:
 
 def check_config_health() -> list[dict]:
     from pathlib import Path
-    from automatify.core.utils import (
+    from spicetifix.core.utils import (
         get_spotify_path,
         get_prefs_path,
         get_spicetify_config_path,

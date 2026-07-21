@@ -1,5 +1,5 @@
 import sys
-from automatify.api import run_api_server
+from spicetifix.api import run_api_server
 
 
 def start():

@@ -56,8 +56,8 @@ ENV/
 env.bak/
 venv.bak/
 
-# Local User Config (Automatify user settings)
-automatify.yaml
+# Local User Config (Spicetifix user settings)
+spicetifix.yaml
 backups/
 
 # IDEs and Editors

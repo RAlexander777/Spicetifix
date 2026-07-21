@@ -4,20 +4,20 @@ import zipfile
 from datetime import datetime
 from pathlib import Path
 
-from automatify.core.utils import (
+from spicetifix.core.utils import (
     get_spicetify_dir,
     get_spicetify_config_path,
     get_spicetify_themes_dir,
     get_spicetify_extensions_dir,
     get_spicetify_custom_apps_dir,
 )
-from automatify.core.config import get_user_config_path
+from spicetifix.core.config import get_user_config_path
 
 
 def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callback=None) -> tuple[bool, str]:
     """
     Creates a .zip archive containing Spicetify configuration, themes, extensions,
-    custom apps, and Automatify user settings inside the project's backups/ directory.
+    custom apps, and Spicetifix user settings inside the project's backups/ directory.
     """
     try:
         def _log(msg):
@@ -35,14 +35,14 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
         dest_dir.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        zip_name = f"automatify_backup_{timestamp}.zip"
+        zip_name = f"spicetifix_backup_{timestamp}.zip"
         zip_path = dest_dir / zip_name
 
         config_ini = get_spicetify_config_path()
         themes_dir = get_spicetify_themes_dir()
         extensions_dir = get_spicetify_extensions_dir()
         custom_apps_dir = get_spicetify_custom_apps_dir()
-        automatify_cfg = get_user_config_path()
+        spicetifix_cfg = get_user_config_path()
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             _log("Comprimiendo archivos de configuración...")
@@ -50,8 +50,8 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
             if config_ini and config_ini.exists():
                 zf.write(config_ini, arcname="config-xpui.ini")
 
-            if automatify_cfg and automatify_cfg.exists():
-                zf.write(automatify_cfg, arcname="automatify_config.json")
+            if spicetifix_cfg and spicetifix_cfg.exists():
+                zf.write(spicetifix_cfg, arcname="spicetifix_config.json")
 
             _log("Comprimiendo carpeta de Temas...")
             _prog(0.5)
@@ -88,7 +88,7 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
 def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None) -> tuple[bool, str]:
     """
     Extracts a backup .zip archive and restores Spicetify configuration, themes,
-    extensions, custom apps, and Automatify user settings.
+    extensions, custom apps, and Spicetifix user settings.
     """
     try:
         def _log(msg):
@@ -107,7 +107,7 @@ def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None)
         themes_dir = get_spicetify_themes_dir()
         extensions_dir = get_spicetify_extensions_dir()
         custom_apps_dir = get_spicetify_custom_apps_dir()
-        automatify_cfg = get_user_config_path()
+        spicetifix_cfg = get_user_config_path()
 
         with zipfile.ZipFile(zip_path, "r") as zf:
             members = zf.infolist()
@@ -121,9 +121,9 @@ def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None)
                     with zf.open(member) as src, open(config_ini, "wb") as dst:
                         shutil.copyfileobj(src, dst)
 
-                elif name == "automatify_config.json" and automatify_cfg:
-                    automatify_cfg.parent.mkdir(parents=True, exist_ok=True)
-                    with zf.open(member) as src, open(automatify_cfg, "wb") as dst:
+                elif name == "spicetifix_config.json" and spicetifix_cfg:
+                    spicetifix_cfg.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, open(spicetifix_cfg, "wb") as dst:
                         shutil.copyfileobj(src, dst)
 
                 elif name.startswith("Themes/") and themes_dir:
@@ -180,7 +180,7 @@ def pick_and_import_backup(progress_callback=None, log_callback=None) -> tuple[b
         initial_dir = str(backups_dir) if backups_dir.exists() else None
 
         zip_file = filedialog.askopenfilename(
-            title="Seleccionar respaldo de Automatify / Spicetify (.zip)",
+            title="Seleccionar respaldo de Spicetifix / Spicetify (.zip)",
             initialdir=initial_dir,
             filetypes=[("Archivos ZIP", "*.zip"), ("Todos los archivos", "*.*")]
         )

@@ -6,14 +6,14 @@ from pathlib import Path
 
 def build_standalone_exe():
     print("=" * 50)
-    print("   AUTOMATIFY BUILDER (PyInstaller + ZIP)")
+    print("   SPICETIFIX BUILDER (PyInstaller + ZIP)")
     print("=" * 50)
 
     project_root = Path(__file__).resolve().parent.parent
     main_script = project_root / "main.py"
     web_dir = project_root / "web"
     dist_dir = project_root / "dist"
-    app_name = "Automatify"
+    app_name = "Spicetifix"
 
     try:
         subprocess.run(["pyinstaller", "--version"], capture_output=True, check=True)
@@ -29,7 +29,7 @@ def build_standalone_exe():
         "--clean",
         f"--name={app_name}",
         f"--add-data={web_dir}{os.pathsep}web",
-        "--add-data", f"{project_root / 'automatify'}{os.pathsep}automatify",
+        "--add-data", f"{project_root / 'spicetifix'}{os.pathsep}spicetifix",
         str(main_script),
     ]
 
@@ -67,7 +67,7 @@ def build_standalone_exe():
 def build_zip_only():
     project_root = Path(__file__).resolve().parent.parent
     dist_dir = project_root / "dist"
-    app_name = "Automatify"
+    app_name = "Spicetifix"
     app_dir = dist_dir / app_name
 
     if not app_dir.exists():

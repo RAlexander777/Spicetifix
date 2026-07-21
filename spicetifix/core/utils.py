@@ -87,7 +87,7 @@ def get_spicetify_custom_apps_dir() -> Path:
 
 
 def get_user_config_path() -> Path:
-    return Path(__file__).parent.parent.parent / "automatify.yaml"
+    return Path(__file__).parent.parent.parent / "spicetifix.yaml"
 
 
 def find_executable(name: str) -> str | None:

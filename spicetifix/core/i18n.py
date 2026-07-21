@@ -1,6 +1,6 @@
 STRINGS = {
     "en": {
-        "app_title": "automatify",
+        "app_title": "Spicetifix",
         "settings": "Settings",
         "status": "STATUS",
         "config_health": "CONFIG HEALTH",
@@ -69,7 +69,7 @@ STRINGS = {
         "no_theme": "No theme configured, skipping...",
     },
     "es": {
-        "app_title": "automatify",
+        "app_title": "Spicetifix",
         "settings": "Configuración",
         "status": "ESTADO",
         "config_health": "SALUD CONFIG",
@@ -145,6 +145,6 @@ def t(lang: str, key: str) -> str:
 
 
 def get_lang() -> str:
-    from automatify.core.config import load_user_config
+    from spicetifix.core.config import load_user_config
     cfg = load_user_config()
     return cfg.get("language", "en")

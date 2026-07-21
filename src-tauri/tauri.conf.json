@@ -6,7 +6,7 @@
     "distDir": "../web"
   },
   "package": {
-    "productName": "Automatify",
+    "productName": "Spicetifix",
     "version": "0.2.0"
   },
   "tauri": {
@@ -21,7 +21,7 @@
     "bundle": {
       "active": true,
       "targets": "all",
-      "identifier": "com.automatify.app",
+      "identifier": "com.spicetifix.app",
       "icon": []
     },
     "security": {
@@ -29,7 +29,7 @@
     },
     "windows": [
       {
-        "title": "AUTOMATIFY // TAURI SHELL",
+        "title": "SPICETIFIX // TAURI SHELL",
         "width": 780,
         "height": 720,
         "resizable": true,

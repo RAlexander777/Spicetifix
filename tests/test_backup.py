@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 from pathlib import Path
-from automatify.core.backup import export_backup_zip, import_backup_zip
+from spicetifix.core.backup import export_backup_zip, import_backup_zip
 
 
 class TestBackupModule(unittest.TestCase):

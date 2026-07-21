@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from automatify.core.utils import (
+from spicetifix.core.utils import (
     SPICETIFY_THEMES_REPO,
     get_spicetify_themes_dir,
     run_cmd,
@@ -152,7 +152,7 @@ def list_available_themes() -> list[str]:
 
     # Include current active themes from config files so they are never hidden
     try:
-        from automatify.core.config import read_spicetify_config, load_user_config
+        from spicetifix.core.config import read_spicetify_config, load_user_config
         sc = read_spicetify_config()
         if sc and "Setting" in sc:
             cur = sc["Setting"].get("current_theme", "").strip()

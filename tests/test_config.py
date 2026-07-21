@@ -2,7 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from pathlib import Path
 
-from automatify.core.config import (
+from spicetifix.core.config import (
     get_installed_extensions,
     get_installed_custom_apps,
     load_user_config,
@@ -11,8 +11,8 @@ from automatify.core.config import (
 
 
 class TestConfigExtensionDetection(unittest.TestCase):
-    @patch("automatify.core.config.read_spicetify_config")
-    @patch("automatify.core.utils.get_spicetify_extensions_dir")
+    @patch("spicetifix.core.config.read_spicetify_config")
+    @patch("spicetifix.core.utils.get_spicetify_extensions_dir")
     def test_get_installed_extensions(self, mock_ext_dir, mock_read_config):
         mock_dir = MagicMock(spec=Path)
         mock_dir.exists.return_value = True
@@ -40,9 +40,9 @@ class TestConfigExtensionDetection(unittest.TestCase):
         self.assertIn("trashbin.mjs", exts)
         self.assertIn("bookmark.js", exts)
 
-    @patch("automatify.core.config.read_spicetify_config")
-    @patch("automatify.core.config.get_installed_extensions")
-    @patch("automatify.core.config.get_user_config_path")
+    @patch("spicetifix.core.config.read_spicetify_config")
+    @patch("spicetifix.core.config.get_installed_extensions")
+    @patch("spicetifix.core.config.get_user_config_path")
     def test_load_user_config_auto_detects(self, mock_path, mock_get_installed, mock_read_config):
         mock_file = MagicMock(spec=Path)
         mock_file.exists.return_value = False

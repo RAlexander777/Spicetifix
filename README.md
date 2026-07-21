@@ -1,8 +1,8 @@
-# ❯ AUTOMATIFY
+# ❯ SPICETIFIX
 
 > **Automated Spotify & Spicetify Setup, Extension Manager & Terminal Control Center for Windows.**
 
-Automatify is a minimal, terminal-styled desktop application for installing, configuring, and managing **Spotify** and **Spicetify** on Windows. It uses a **Tauri web frontend** with a **Python sidecar API backend**.
+Spicetifix is a minimal, terminal-styled desktop application for installing, configuring, and managing **Spotify** and **Spicetify** on Windows. It uses a **Tauri web frontend** with a **Python sidecar API backend**.
 
 ---
 
@@ -24,8 +24,8 @@ Automatify is a minimal, terminal-styled desktop application for installing, con
 ### Option 1: Run from Source
 
 ```bash
-git clone https://github.com/RAlexander777/automatify.git
-cd automatify
+git clone https://github.com/RAlexander777/Spicetifix.git
+cd Spicetifix
 python -m venv venv
 .\venv\Scripts\activate
 pip install -r requirements.txt
@@ -36,7 +36,7 @@ Then open the Tauri shell (needs Rust + Node.js) or just visit `http://127.0.0.1
 
 ### Option 2: Download Portable EXE
 
-Download the latest `Automatify.zip` from [Releases](https://github.com/RAlexander777/automatify/releases), extract, and run `Automatify.exe`.
+Download the latest `Spicetifix.zip` from [Releases](https://github.com/RAlexander777/Spicetifix/releases), extract, and run `Spicetifix.exe`.
 
 ---
 
@@ -56,15 +56,15 @@ pip install pyinstaller
 python scripts/build_exe.py
 ```
 
-Output: `dist/Automatify/` (onedir) + `dist/Automatify.zip` (compressed archive).
+Output: `dist/Spicetifix/` (onedir) + `dist/Spicetifix.zip` (compressed archive).
 
 ---
 
 ## 🛠 Project Structure
 
 ```
-automatify/
-├── automatify/
+spicetifix/
+├── spicetifix/
 │   ├── api.py                 # Python HTTP API server (sidecar)
 │   ├── core/
 │   │   ├── config.py          # Spicetify INI & YAML config handling

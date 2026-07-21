@@ -4,7 +4,7 @@ from pathlib import Path
 
 import requests
 
-from automatify.core.utils import (
+from spicetifix.core.utils import (
     SPOTIFY_DOWNLOAD_URL,
     SPICETIFY_INSTALL_PS1,
     MARKETPLACE_INSTALL_PS1,
@@ -17,9 +17,9 @@ from automatify.core.utils import (
     run_spicetify,
     strip_ansi,
 )
-from automatify.core.config import init_spicetify_config
-from automatify.core.themer import install_themes, set_theme
-from automatify.core.i18n import t
+from spicetifix.core.config import init_spicetify_config
+from spicetifix.core.themer import install_themes, set_theme
+from spicetifix.core.i18n import t
 
 
 class Installer:

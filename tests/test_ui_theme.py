@@ -1,6 +1,6 @@
 import unittest
-from automatify.core.ui_theme import get_ui_theme, list_ui_theme_names, THEMES
-from automatify.core.spotify_control import get_spotify_now_playing
+from spicetifix.core.ui_theme import get_ui_theme, list_ui_theme_names, THEMES
+from spicetifix.core.spotify_control import get_spotify_now_playing
 
 
 class TestUITheme(unittest.TestCase):
