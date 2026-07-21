@@ -6,6 +6,7 @@
   <title>AUTOMATIFY // TAURI SHELL</title>
   <link rel="stylesheet" href="style.css">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body class="theme-emerald">
   <div class="app-container">
@@ -18,15 +19,26 @@
       </div>
 
       <div class="header-actions">
-        <button class="btn btn-small btn-outline" id="btn-refresh-status">↻ REFRESCAR</button>
-        <button class="btn btn-small btn-outline" id="btn-open-options">⚙ OPCIONES</button>
-        <button class="btn btn-small btn-outline" id="btn-open-about">ℹ ACERCA DE</button>
+        <button class="btn btn-small btn-outline" id="btn-open-spotify" title="Abrir App Spotify">
+          <i data-lucide="play-circle"></i> ABRIR SPOTIFY
+        </button>
+        <button class="btn btn-small btn-outline" id="btn-refresh-status" title="Refrescar Estados">
+          <i data-lucide="refresh-cw" class="icon-spin"></i> REFRESCAR
+        </button>
+        <button class="btn btn-small btn-outline" id="btn-open-options">
+          <i data-lucide="settings"></i> OPCIONES
+        </button>
+        <button class="btn btn-small btn-outline" id="btn-open-about">
+          <i data-lucide="info"></i> ACERCA DE
+        </button>
       </div>
 
       <div class="header-theme-picker">
-        <label for="ui-theme-select">Tema UI:</label>
+        <label for="ui-theme-select"><i data-lucide="palette"></i> Tema UI:</label>
         <select id="ui-theme-select" class="theme-dropdown">
           <option value="emerald">Cyber Emerald (Verde Neón)</option>
+          <option value="synthwave">Synthwave '84 (Magenta & Amarillo)</option>
+          <option value="tokyo_night">Tokyo Night (Zafiro & Lavanda)</option>
           <option value="dracula">Dracula (Púrpura Neón)</option>
           <option value="amber">Amber CRT (Ámbar Retro)</option>
           <option value="nord">Nordic Frost (Azul Hielo)</option>
@@ -37,15 +49,26 @@
       </div>
     </header>
 
+    <!-- Quick Access & Links Bar -->
+    <div class="quick-access-bar">
+      <span class="bar-label"><i data-lucide="compass"></i> ACCESOS RÁPIDOS:</span>
+      <div class="quick-links">
+        <a href="https://spicetify.app" target="_blank" class="link-chip"><i data-lucide="globe"></i> Web Spicetify</a>
+        <a href="https://github.com/spicetify/spicetify-themes" target="_blank" class="link-chip"><i data-lucide="github"></i> Temas Spicetify</a>
+        <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> Carpeta Spicetify</button>
+        <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> Carpeta Temas</button>
+      </div>
+    </div>
+
     <!-- Spotify Now Playing Widget -->
     <section class="panel player-panel">
-      <div class="panel-header">// REPRODUCIENDO EN SPOTIFY</div>
+      <div class="panel-header"><i data-lucide="disc" class="icon-pulse"></i> // REPRODUCIENDO EN SPOTIFY</div>
       <div class="player-content">
         <div class="track-info" id="track-info">🎵 Cargando estado de Spotify...</div>
         <div class="player-controls">
-          <button class="btn btn-control" id="btn-prev">⏮ ANTERIOR</button>
-          <button class="btn btn-control btn-accent" id="btn-play">⏯ REPRODUCIR / PAUSAR</button>
-          <button class="btn btn-control" id="btn-next">⏭ SIGUIENTE</button>
+          <button class="btn btn-control" id="btn-prev"><i data-lucide="skip-back"></i> ANTERIOR</button>
+          <button class="btn btn-control btn-accent" id="btn-play"><i data-lucide="play"></i> REPRODUCIR / PAUSAR</button>
+          <button class="btn btn-control" id="btn-next"><i data-lucide="skip-forward"></i> SIGUIENTE</button>
         </div>
       </div>
     </section>
@@ -55,7 +78,7 @@
     <div class="status-cards-grid">
       <div class="card card-interactive" id="card-spotify">
         <div class="card-header">
-          <span class="card-title">❯ 1. Spotify</span>
+          <span class="card-title"><i data-lucide="music"></i> 1. Spotify</span>
           <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
@@ -64,7 +87,7 @@
 
       <div class="card card-interactive" id="card-spicetify">
         <div class="card-header">
-          <span class="card-title">❯ 2. Spicetify CLI</span>
+          <span class="card-title"><i data-lucide="code"></i> 2. Spicetify CLI</span>
           <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
@@ -73,7 +96,7 @@
 
       <div class="card card-interactive" id="card-theme">
         <div class="card-header">
-          <span class="card-title">❯ 3. Tema Activo</span>
+          <span class="card-title"><i data-lucide="paint-brush"></i> 3. Tema Activo</span>
           <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-theme">Verificando tema...</div>
@@ -84,8 +107,12 @@
     <!-- Actions Section -->
     <section class="section-title" id="sec-title-actions">// ACCIONES GENERALES</section>
     <div class="actions-grid">
-      <button class="btn btn-action btn-accent" id="btn-install">▶ INSTALACIÓN / ACTUALIZACIÓN COMPLETA</button>
-      <button class="btn btn-action btn-outline" id="btn-recover">↺ RECUPERAR SISTEMA (POST-UPDATE)</button>
+      <button class="btn btn-action btn-accent" id="btn-install">
+        <i data-lucide="download-cloud"></i> INSTALACIÓN / ACTUALIZACIÓN COMPLETA
+      </button>
+      <button class="btn btn-action btn-outline" id="btn-recover">
+        <i data-lucide="rotate-ccw"></i> RECUPERAR SISTEMA (POST-UPDATE)
+      </button>
     </div>
 
     <!-- Extension Manager -->
@@ -93,7 +120,7 @@
     <div class="panel ext-panel">
       <div class="ext-header">
         <span id="lbl-exts-header">Extensiones y Apps Detectadas:</span>
-        <button class="btn btn-small" id="btn-refresh-exts">↻ RECARGAR</button>
+        <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> RECARGAR</button>
       </div>
       <div class="ext-grid" id="ext-grid">
         <div class="empty-msg">Cargando extensiones...</div>
@@ -116,7 +143,7 @@
   <div class="modal-overlay" id="options-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="modal-opt-title">⚙ OPCIONES Y CONFIGURACIÓN DEL SISTEMA</h2>
+        <h2 id="modal-opt-title"><i data-lucide="sliders"></i> OPCIONES Y CONFIGURACIÓN DEL SISTEMA</h2>
         <button class="modal-close" id="btn-close-options">✕</button>
       </div>
 
@@ -156,9 +183,9 @@
         <div class="modal-section danger-zone">
           <h3 id="opt-sec-danger">🚨 ZONA DE PELIGRO (DESINSTALACIÓN Y RECUPERACIÓN)</h3>
           <div class="danger-actions">
-            <button class="btn btn-outline" id="btn-spicetify-apply">⚡ APLICAR CAMBIOS DE SPICETIFY</button>
-            <button class="btn btn-danger" id="btn-uninstall-spicetify">🗑 DESINSTALAR SPICETIFY</button>
-            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify">🔥 DESINSTALAR SPOTIFY Y SPICETIFY</button>
+            <button class="btn btn-outline" id="btn-spicetify-apply"><i data-lucide="zap"></i> APLICAR CAMBIOS DE SPICETIFY</button>
+            <button class="btn btn-danger" id="btn-uninstall-spicetify"><i data-lucide="trash-2"></i> DESINSTALAR SPICETIFY</button>
+            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify"><i data-lucide="flame"></i> DESINSTALAR SPOTIFY Y SPICETIFY</button>
           </div>
         </div>
       </div>
@@ -173,7 +200,7 @@
   <div class="modal-overlay" id="about-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>ℹ ACERCA DE AUTOMATIFY</h2>
+        <h2><i data-lucide="info"></i> ACERCA DE AUTOMATIFY</h2>
         <button class="modal-close" id="btn-close-about">✕</button>
       </div>
 

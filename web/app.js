@@ -497,11 +497,40 @@ document.addEventListener('DOMContentLoaded', () => {
   pollStatus();
   setInterval(pollStatus, 1500);
 
+  // Render Lucide SVG Icons
+  if (typeof lucide !== 'undefined') {
+    lucide.createIcons();
+  }
+
+  // Open Spotify App button
+  const btnOpenSpotify = document.getElementById('btn-open-spotify');
+  if (btnOpenSpotify) {
+    btnOpenSpotify.addEventListener('click', async () => {
+      await apiFetch('/api/open/spotify', 'POST');
+    });
+  }
+
+  // Open Folder buttons
+  const btnOpenSpicetifyDir = document.getElementById('btn-open-spicetify-dir');
+  if (btnOpenSpicetifyDir) {
+    btnOpenSpicetifyDir.addEventListener('click', async () => {
+      await apiFetch('/api/open/folder', 'POST', { target: 'spicetify' });
+    });
+  }
+
+  const btnOpenThemesDir = document.getElementById('btn-open-themes-dir');
+  if (btnOpenThemesDir) {
+    btnOpenThemesDir.addEventListener('click', async () => {
+      await apiFetch('/api/open/folder', 'POST', { target: 'themes' });
+    });
+  }
+
   // Refresh Status button
   document.getElementById('btn-refresh-status').addEventListener('click', () => {
     pollStatus();
     loadExtensions();
     loadThemes();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
   });
 
   // Card clicks: Spotify
