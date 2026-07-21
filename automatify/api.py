@@ -200,6 +200,71 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
 
+        elif path == "/api/spicetify/apply":
+            _is_working = True
+            _install_logs.clear()
+            _install_progress = 0.0
+
+            def run():
+                global _is_working
+                try:
+                    from automatify.core.utils import run_spicetify
+                    _append_log("Running spicetify apply...")
+                    code, out, err = run_spicetify(["apply"])
+                    if out: _append_log(out)
+                    if err: _append_log(err)
+                    _append_log(f"Finished with exit code {code}")
+                finally:
+                    _is_working = False
+
+            threading.Thread(target=run, daemon=True).start()
+            self._send_json({"status": "started"})
+
+        elif path == "/api/uninstall/spicetify":
+            if _is_working:
+                self._send_json({"error": "Already working"}, 400)
+                return
+
+            _is_working = True
+            _install_logs.clear()
+            _install_progress = 0.0
+
+            def run():
+                global _is_working
+                try:
+                    installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
+                    cfg = load_user_config()
+                    installer.set_lang(cfg.get("language", "en"))
+                    installer.uninstall_spicetify()
+                finally:
+                    _is_working = False
+
+            threading.Thread(target=run, daemon=True).start()
+            self._send_json({"status": "started"})
+
+        elif path == "/api/uninstall/spotify":
+            if _is_working:
+                self._send_json({"error": "Already working"}, 400)
+                return
+
+            _is_working = True
+            _install_logs.clear()
+            _install_progress = 0.0
+
+            def run():
+                global _is_working
+                try:
+                    installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
+                    cfg = load_user_config()
+                    installer.set_lang(cfg.get("language", "en"))
+                    installer.uninstall_spicetify()
+                    installer.uninstall_spotify()
+                finally:
+                    _is_working = False
+
+            threading.Thread(target=run, daemon=True).start()
+            self._send_json({"status": "started"})
+
         elif path == "/api/recover":
             if _is_working:
                 self._send_json({"error": "Already working"}, 400)

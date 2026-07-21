@@ -17,6 +17,7 @@
       </div>
 
       <div class="header-controls">
+        <button class="btn btn-small btn-outline" id="btn-open-options">⚙ OPTIONS</button>
         <label for="ui-theme-select">UI Theme:</label>
         <select id="ui-theme-select" class="theme-dropdown">
           <option value="emerald">Cyber Emerald (Neon Green)</option>
@@ -99,6 +100,63 @@
     <!-- Progress Bar -->
     <div class="progress-container">
       <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+    </div>
+  </div>
+
+  <!-- OPTIONS MODAL -->
+  <div class="modal-overlay" id="options-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>⚙ SYSTEM OPTIONS & CONFIGURATION</h2>
+        <button class="modal-close" id="btn-close-options">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Section: General -->
+        <div class="modal-section">
+          <h3>🌐 GENERAL SETTINGS</h3>
+          <div class="form-row">
+            <label for="select-lang">Language / Idioma:</label>
+            <select id="select-lang" class="theme-dropdown">
+              <option value="en">English</option>
+              <option value="es">Español (Rioplatense)</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <label for="select-spicetify-theme">Spicetify Theme:</label>
+            <select id="select-spicetify-theme" class="theme-dropdown">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Section: Advanced Spicetify Flags -->
+        <div class="modal-section">
+          <h3>⚡ ADVANCED SPICETIFY FLAGS</h3>
+          <div class="flags-grid">
+            <label class="checkbox-label"><input type="checkbox" id="chk-inject-css" checked> Inject CSS</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-replace-colors" checked> Replace Colors</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-overwrite-assets"> Overwrite Assets</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-devtools"> Always Enable DevTools</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-sentry"> Enable Sentry Telemetry</label>
+          </div>
+        </div>
+
+        <!-- Section: Danger Zone -->
+        <div class="modal-section danger-zone">
+          <h3>🚨 DANGER ZONE (UNINSTALL & RECOVERY)</h3>
+          <div class="danger-actions">
+            <button class="btn btn-outline" id="btn-spicetify-apply">⚡ APPLY SPICETIFY CHANGES</button>
+            <button class="btn btn-danger" id="btn-uninstall-spicetify">🗑 UNINSTALL SPICETIFY</button>
+            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify">🔥 UNINSTALL SPOTIFY & SPICETIFY</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-accent" id="btn-save-options">SAVE & APPLY OPTIONS</button>
+      </div>
     </div>
   </div>
 

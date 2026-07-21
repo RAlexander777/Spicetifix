@@ -1,6 +1,7 @@
 const API_BASE = 'http://127.0.0.1:8765';
 
 let currentUITheme = 'emerald';
+let systemConfig = {};
 
 async function apiFetch(endpoint, method = 'GET', body = null) {
   const options = {
@@ -34,6 +35,10 @@ function applyUITheme(themeKey) {
 async function pollStatus() {
   const data = await apiFetch('/api/status');
   if (!data) return;
+
+  if (data.config) {
+    systemConfig = data.config;
+  }
 
   // Now Playing
   const trackInfo = document.getElementById('track-info');
@@ -135,12 +140,71 @@ async function loadExtensions() {
   });
 }
 
-// Load themes info
+// Load themes info & populate options modal
 async function loadThemes() {
   const data = await apiFetch('/api/themes');
-  if (data && data.current_ui_theme) {
+  if (!data) return;
+
+  if (data.current_ui_theme) {
     applyUITheme(data.current_ui_theme);
   }
+
+  const spicetifySelect = document.getElementById('select-spicetify-theme');
+  if (spicetifySelect && data.spicetify_themes) {
+    spicetifySelect.innerHTML = '';
+    data.spicetify_themes.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t;
+      spicetifySelect.appendChild(opt);
+    });
+    if (systemConfig && systemConfig.spicetify && systemConfig.spicetify.theme) {
+      spicetifySelect.value = systemConfig.spicetify.theme;
+    }
+  }
+}
+
+// Open Options Modal
+function openOptionsModal() {
+  const modal = document.getElementById('options-modal');
+  if (modal) {
+    // Populate form values from config
+    const selectLang = document.getElementById('select-lang');
+    if (selectLang && systemConfig.language) {
+      selectLang.value = systemConfig.language;
+    }
+
+    const spicetifySelect = document.getElementById('select-spicetify-theme');
+    if (spicetifySelect && systemConfig.spicetify && systemConfig.spicetify.theme) {
+      spicetifySelect.value = systemConfig.spicetify.theme;
+    }
+
+    modal.classList.add('active');
+  }
+}
+
+// Close Options Modal
+function closeOptionsModal() {
+  const modal = document.getElementById('options-modal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
+
+// Save Options Modal
+async function saveOptions() {
+  const selectLang = document.getElementById('select-lang');
+  const selectSpicetifyTheme = document.getElementById('select-spicetify-theme');
+
+  const body = {
+    language: selectLang ? selectLang.value : 'en',
+    spicetify_theme: selectSpicetifyTheme ? selectSpicetifyTheme.value : 'SpicetifyDefault',
+    ui_theme: currentUITheme,
+  };
+
+  await apiFetch('/api/config/save', 'POST', body);
+  closeOptionsModal();
+  pollStatus();
 }
 
 // Initialize UI
@@ -181,5 +245,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedTheme = e.target.value;
     applyUITheme(selectedTheme);
     await apiFetch('/api/config/save', 'POST', { ui_theme: selectedTheme });
+  });
+
+  // Options Modal Handlers
+  document.getElementById('btn-open-options').addEventListener('click', openOptionsModal);
+  document.getElementById('btn-close-options').addEventListener('click', closeOptionsModal);
+  document.getElementById('btn-save-options').addEventListener('click', saveOptions);
+
+  document.getElementById('options-modal').addEventListener('click', (e) => {
+    if (e.target.id === 'options-modal') closeOptionsModal();
+  });
+
+  // Danger Zone Actions
+  document.getElementById('btn-spicetify-apply').addEventListener('click', async () => {
+    closeOptionsModal();
+    await apiFetch('/api/spicetify/apply', 'POST');
+    pollStatus();
+  });
+
+  document.getElementById('btn-uninstall-spicetify').addEventListener('click', async () => {
+    if (confirm('¿Desinstalar Spicetify y restaurar el parche de Spotify?')) {
+      closeOptionsModal();
+      await apiFetch('/api/uninstall/spicetify', 'POST');
+      pollStatus();
+    }
+  });
+
+  document.getElementById('btn-uninstall-spotify').addEventListener('click', async () => {
+    if (confirm('⚠️ ATENCIÓN: Esto desinstalará completamente Spotify y Spicetify del sistema. ¿Deseas continuar?')) {
+      closeOptionsModal();
+      await apiFetch('/api/uninstall/spotify', 'POST');
+      pollStatus();
+    }
   });
 });
