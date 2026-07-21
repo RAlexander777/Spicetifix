@@ -3,7 +3,7 @@ import subprocess
 import threading
 import time
 import webbrowser
-from spicetifix.api import run_api_server
+from spicetifix.api import make_server
 
 
 def launch_web_ui(url: str = "http://127.0.0.1:8765"):
@@ -18,21 +18,30 @@ def launch_web_ui(url: str = "http://127.0.0.1:8765"):
     for browser_path in browser_candidates:
         if os.path.exists(browser_path):
             try:
-                subprocess.Popen([browser_path, f"--app={url}"])
-                return
+                return subprocess.Popen([browser_path, f"--app={url}"])
             except Exception:
                 pass
 
     webbrowser.open(url)
+    return None
 
 
 def start():
-    def run_launcher():
-        time.sleep(0.6)
-        launch_web_ui("http://127.0.0.1:8765")
+    server = make_server(port=8765)
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
 
-    threading.Thread(target=run_launcher, daemon=True).start()
-    run_api_server(port=8765)
+    time.sleep(0.6)
+    proc = launch_web_ui("http://127.0.0.1:8765")
+
+    try:
+        if proc:
+            proc.wait()
+        else:
+            thread.join()
+    finally:
+        server.shutdown()
+        print("Spicetifix server stopped.")
 
 
 if __name__ == "__main__":

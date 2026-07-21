@@ -375,5 +375,11 @@ def run_api_server(port: int = 8765):
     server.serve_forever()
 
 
+def make_server(port: int = 8765) -> HTTPServer:
+    server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
+    print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
+    return server
+
+
 if __name__ == "__main__":
     run_api_server()
