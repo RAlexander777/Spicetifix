@@ -28,7 +28,7 @@ DEFAULT_OPTIONS = {
 
 
 def get_installed_extensions() -> list[str]:
-    """Scans Spicetify Extensions directory and config-xpui.ini for all installed extensions."""
+    """Scans Spicetify Extensions directory for .js/.mjs files only."""
     from spicetifix.core.utils import get_spicetify_extensions_dir
     ext_dir = get_spicetify_extensions_dir()
     extensions = set()
@@ -42,19 +42,11 @@ def get_installed_extensions() -> list[str]:
                     if subitem.is_file() and subitem.suffix in (".js", ".mjs"):
                         extensions.add(f"{item.name}/{subitem.name}")
 
-    sc = read_spicetify_config()
-    if sc and "AdditionalOptions" in sc:
-        ext_str = sc["AdditionalOptions"].get("extensions", "")
-        for e in ext_str.split("|"):
-            e = e.strip()
-            if e:
-                extensions.add(e)
-
     return sorted(list(extensions))
 
 
 def get_installed_custom_apps() -> list[str]:
-    """Scans Spicetify CustomApps directory and config-xpui.ini for custom apps."""
+    """Scans Spicetify CustomApps directory for installed custom apps only."""
     from spicetifix.core.utils import get_spicetify_custom_apps_dir
     apps_dir = get_spicetify_custom_apps_dir()
     apps = set()
@@ -63,14 +55,6 @@ def get_installed_custom_apps() -> list[str]:
         for item in apps_dir.iterdir():
             if item.is_dir():
                 apps.add(item.name)
-
-    sc = read_spicetify_config()
-    if sc and "AdditionalOptions" in sc:
-        apps_str = sc["AdditionalOptions"].get("custom_apps", "")
-        for a in apps_str.split("|"):
-            a = a.strip()
-            if a:
-                apps.add(a)
 
     return sorted(list(apps))
 
@@ -86,24 +70,17 @@ def load_user_config() -> dict:
     # Auto-detect installed extensions if user config extensions is missing or empty
     installed_exts = get_installed_extensions()
     if installed_exts and not cfg.get("extensions"):
-        sc = read_spicetify_config()
-        if sc and "AdditionalOptions" in sc:
-            active_str = sc["AdditionalOptions"].get("extensions", "")
-            active = [e.strip() for e in active_str.split("|") if e.strip()]
-            cfg["extensions"] = active if active else installed_exts
-        else:
-            cfg["extensions"] = installed_exts
+        cfg["extensions"] = installed_exts
+    elif cfg.get("extensions"):
+        # filter out extensions that no longer exist on disk
+        cfg["extensions"] = [e for e in cfg["extensions"] if e in installed_exts]
 
     # Auto-detect installed custom apps if empty
     installed_apps = get_installed_custom_apps()
     if installed_apps and not cfg.get("custom_apps"):
-        sc = read_spicetify_config()
-        if sc and "AdditionalOptions" in sc:
-            active_str = sc["AdditionalOptions"].get("custom_apps", "")
-            active = [a.strip() for a in active_str.split("|") if a.strip()]
-            cfg["custom_apps"] = active if active else installed_apps
-        else:
-            cfg["custom_apps"] = installed_apps
+        cfg["custom_apps"] = installed_apps
+    elif cfg.get("custom_apps"):
+        cfg["custom_apps"] = [a for a in cfg["custom_apps"] if a in installed_apps]
 
     return cfg
 
