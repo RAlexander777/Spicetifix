@@ -1,5 +1,7 @@
+import io
 import shutil
 import tempfile
+import zipfile
 from pathlib import Path
 
 import requests
@@ -11,6 +13,7 @@ from spicetifix.core.utils import (
     find_executable,
     get_spotify_path,
     get_spicetify_dir,
+    get_spicetify_themes_dir,
     parse_progress,
     run_cmd,
     run_ps1,
@@ -272,11 +275,64 @@ class Installer:
         return True
 
     def _install_marketplace(self) -> bool:
-        code, out, err = run_ps1(MARKETPLACE_INSTALL_PS1)
+        sp_dir = get_spicetify_dir()
+        apps_dir = sp_dir / "CustomApps" / "marketplace"
+        themes_dir = get_spicetify_themes_dir() / "marketplace"
+
+        apps_dir.mkdir(parents=True, exist_ok=True)
+        themes_dir.mkdir(parents=True, exist_ok=True)
+
+        self.log("Downloading Marketplace...")
+        zip_url = "https://github.com/spicetify/marketplace/releases/latest/download/marketplace.zip"
+        try:
+            resp = requests.get(zip_url, stream=True, timeout=120)
+            resp.raise_for_status()
+            with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+                zf.extractall(apps_dir)
+            self.log("Marketplace downloaded and extracted.")
+        except Exception as e:
+            self.log(f"Failed to download Marketplace: {e}")
+            return False
+
+        # Move files from nested dist folder to apps root
+        dist_dir = apps_dir / "marketplace-dist"
+        if dist_dir.exists():
+            for item in dist_dir.iterdir():
+                target = apps_dir / item.name
+                if not target.exists():
+                    shutil.move(str(item), str(target))
+            shutil.rmtree(dist_dir, ignore_errors=True)
+
+        self.log("Downloading Marketplace placeholder theme...")
+        color_url = "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/color.ini"
+        try:
+            resp = requests.get(color_url, timeout=30)
+            resp.raise_for_status()
+            (themes_dir / "color.ini").write_bytes(resp.content)
+            self.log("Theme placeholder downloaded.")
+        except Exception as e:
+            self.log(f"Failed to download theme placeholder: {e}")
+
+        self.log("Configuring Spicetify for Marketplace...")
+        run_spicetify(["config", "custom_apps", "marketplace"])
+        run_spicetify(["config", "inject_css", "1", "replace_colors", "1"])
+
+        self._close_spotify()
+
+        self.log("Running spicetify backup...")
+        run_spicetify(["backup"])
+
+        self.log("Running spicetify apply...")
+        code, out, err = run_spicetify(["apply"])
         self._clean_log(out)
         if err:
             self._clean_log(err)
-        return code == 0
+
+        if code != 0:
+            self.log(f"spicetify apply exited with code {code}, you may need to restart Spotify")
+        else:
+            self.log("Marketplace installed successfully! Restart Spotify to see it.")
+        return True
 
     def _run_apply(self) -> bool:
         self._close_spotify()
