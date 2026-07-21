@@ -15,9 +15,11 @@ const I18N = {
     about_btn: 'ACERCA DE',
     options_btn: 'OPCIONES',
     ui_theme_lbl: 'Tema UI:',
-    quick_access: 'EXPLORADOR DE ARCHIVOS:',
+    quick_access: 'ACCESOS Y RESPALDOS:',
     spicetify_dir: 'Carpeta Spicetify',
     themes_dir: 'Carpeta Temas',
+    export_backup: 'Exportar Respaldo (.zip)',
+    import_backup: 'Importar Respaldo (.zip)',
     now_playing_title: '// REPRODUCIENDO EN SPOTIFY',
     loading_spotify: 'Cargando estado de Spotify...',
     prev_btn: 'ANTERIOR',
@@ -43,11 +45,14 @@ const I18N = {
     sec_exts: '// GESTOR DE EXTENSIONES SPICETIFY',
     lbl_exts_header: 'Extensiones y Apps Detectadas:',
     btn_refresh: 'RECARGAR',
-    sec_logs: '// CONSOLA DE LOGS',
+    sec_logs: '// CONSOLA DE LOGS DEL SISTEMA',
+    lbl_copy_logs: 'COPIAR LOGS',
+    lbl_clear_logs: 'LIMPIAR',
     modal_opt_title: 'OPCIONES Y CONFIGURACIÓN DEL SISTEMA',
     opt_sec_gen: 'AJUSTES GENERALES',
     lbl_lang: 'Idioma / Language:',
     lbl_spicetify_theme: 'Tema de Spicetify:',
+    lbl_color_scheme: 'Esquema de Color (Color Scheme):',
     opt_sec_flags: 'BANDERAS AVANZADAS DE SPICETIFY',
     lbl_flag_css: 'Inyectar CSS',
     lbl_flag_colors: 'Reemplazar Colores',
@@ -72,7 +77,7 @@ const I18N = {
     about_feat_2: 'Gestor visual de extensiones con interruptores en vivo.',
     about_feat_3: 'Reproductor integrado de Spotify mediante llamadas nativas Win32 API.',
     about_feat_4: 'Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).',
-    about_feat_5: '12 Temas estéticos estilo cyberpunk y cálidos retro (Gruvbox, Everforest, etc.).',
+    about_feat_5: 'Respaldo e Importación completa de configuraciones y temas (.zip).',
     btn_close: 'CERRAR',
     confirm_spicetify_title: 'Desinstalar Spicetify?',
     confirm_spicetify: 'Esto desinstalará Spicetify y restaurará los archivos originales de Spotify.',
@@ -88,9 +93,11 @@ const I18N = {
     about_btn: 'ABOUT',
     options_btn: 'OPTIONS',
     ui_theme_lbl: 'UI Theme:',
-    quick_access: 'FILE EXPLORER:',
+    quick_access: 'QUICK ACCESS & BACKUPS:',
     spicetify_dir: 'Spicetify Folder',
     themes_dir: 'Themes Folder',
+    export_backup: 'Export Backup (.zip)',
+    import_backup: 'Import Backup (.zip)',
     now_playing_title: '// SPOTIFY NOW PLAYING',
     loading_spotify: 'Loading Spotify Status...',
     prev_btn: 'PREV',
@@ -117,10 +124,13 @@ const I18N = {
     lbl_exts_header: 'Detected Extensions & Custom Apps:',
     btn_refresh: 'REFRESH',
     sec_logs: '// SYSTEM LOGS',
+    lbl_copy_logs: 'COPY LOGS',
+    lbl_clear_logs: 'CLEAR',
     modal_opt_title: 'SYSTEM OPTIONS & CONFIGURATION',
     opt_sec_gen: 'GENERAL SETTINGS',
     lbl_lang: 'Language / Idioma:',
     lbl_spicetify_theme: 'Spicetify Theme:',
+    lbl_color_scheme: 'Color Scheme:',
     opt_sec_flags: 'ADVANCED SPICETIFY FLAGS',
     lbl_flag_css: 'Inject CSS',
     lbl_flag_colors: 'Replace Colors',
@@ -145,7 +155,7 @@ const I18N = {
     about_feat_2: 'Visual extension manager with live toggles.',
     about_feat_3: 'Integrated Spotify player using native Win32 API calls.',
     about_feat_4: 'Automated post-update recovery for Spotify.',
-    about_feat_5: '12 Cyberpunk & warm retro aesthetic themes (Gruvbox, Everforest, etc.).',
+    about_feat_5: 'Full backup export and import (.zip).',
     btn_close: 'CLOSE',
     confirm_spicetify_title: 'Uninstall Spicetify?',
     confirm_spicetify: 'This will uninstall Spicetify and restore stock Spotify files.',
@@ -222,6 +232,8 @@ function applyLanguage(lang) {
   setTxt('lbl-quick-access', t.quick_access);
   setTxt('lbl-spicetify-dir', t.spicetify_dir);
   setTxt('lbl-themes-dir', t.themes_dir);
+  setTxt('lbl-export-backup', t.export_backup);
+  setTxt('lbl-import-backup', t.import_backup);
   setTxt('lbl-player-header', t.now_playing_title);
   setTxt('lbl-prev', t.prev_btn);
   setTxt('lbl-play', t.play_btn);
@@ -235,10 +247,13 @@ function applyLanguage(lang) {
   setTxt('lbl-exts-header', t.lbl_exts_header);
   setTxt('lbl-btn-refresh-exts', t.btn_refresh);
   setTxt('sec-title-logs', t.sec_logs);
+  setTxt('lbl-copy-logs', t.lbl_copy_logs);
+  setTxt('lbl-clear-logs', t.lbl_clear_logs);
   setTxt('modal-opt-title', t.modal_opt_title);
   setTxt('opt-sec-gen', t.opt_sec_gen);
   setTxt('lbl-lang', t.lbl_lang);
   setTxt('lbl-spicetify-theme', t.lbl_spicetify_theme);
+  setTxt('lbl-color-scheme', t.lbl_color_scheme);
   setTxt('opt-sec-flags', t.opt_sec_flags);
   setTxt('lbl-flag-css', t.lbl_flag_css);
   setTxt('lbl-flag-colors', t.lbl_flag_colors);
@@ -384,6 +399,25 @@ async function pollStatus() {
   }
 }
 
+// Load color schemes for a theme
+async function loadColorSchemes(themeName) {
+  const schemeSelect = document.getElementById('select-color-scheme');
+  if (!schemeSelect) return;
+
+  schemeSelect.innerHTML = '<option value="">Default</option>';
+  if (!themeName) return;
+
+  const data = await apiFetch('/api/themes/schemes', 'POST', { theme: themeName });
+  if (data && data.schemes && data.schemes.length > 0) {
+    data.schemes.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s;
+      opt.textContent = s;
+      schemeSelect.appendChild(opt);
+    });
+  }
+}
+
 // Load extensions
 async function loadExtensions() {
   const data = await apiFetch('/api/extensions');
@@ -447,6 +481,7 @@ async function loadThemes() {
     });
     if (systemConfig && systemConfig.spicetify && systemConfig.spicetify.theme) {
       spicetifySelect.value = systemConfig.spicetify.theme;
+      loadColorSchemes(systemConfig.spicetify.theme);
     }
   }
 }
@@ -463,6 +498,7 @@ function openOptionsModal() {
     const spicetifySelect = document.getElementById('select-spicetify-theme');
     if (spicetifySelect && systemConfig.spicetify && systemConfig.spicetify.theme) {
       spicetifySelect.value = systemConfig.spicetify.theme;
+      loadColorSchemes(systemConfig.spicetify.theme);
     }
 
     modal.classList.add('active');
@@ -525,6 +561,14 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
   }
 
+  // Spicetify theme selection change -> load schemes
+  const selectSpicetifyTheme = document.getElementById('select-spicetify-theme');
+  if (selectSpicetifyTheme) {
+    selectSpicetifyTheme.addEventListener('change', (e) => {
+      loadColorSchemes(e.target.value);
+    });
+  }
+
   // Open Spotify App button
   const btnOpenSpotify = document.getElementById('btn-open-spotify');
   if (btnOpenSpotify) {
@@ -555,6 +599,29 @@ document.addEventListener('DOMContentLoaded', () => {
       const res = await apiFetch('/api/backup/export', 'POST');
       if (res && res.status === 'ok') {
         pollStatus();
+      }
+    });
+  }
+
+  // Import Backup ZIP button
+  const btnImportBackup = document.getElementById('btn-import-backup');
+  if (btnImportBackup) {
+    btnImportBackup.addEventListener('click', async () => {
+      const zipPath = prompt(
+        currentLang === 'es' 
+          ? 'Ingresa la ruta completa del archivo .zip a restaurar:' 
+          : 'Enter the full path of the .zip backup file to restore:'
+      );
+      if (zipPath) {
+        const res = await apiFetch('/api/backup/import', 'POST', { zip_path: zipPath });
+        if (res && res.status === 'ok') {
+          alert(currentLang === 'es' ? '¡Respaldo restaurado con éxito!' : 'Backup restored successfully!');
+          pollStatus();
+          loadExtensions();
+          loadThemes();
+        } else if (res && res.error) {
+          alert(`Error: ${res.error}`);
+        }
       }
     });
   }

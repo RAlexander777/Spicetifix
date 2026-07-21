@@ -245,6 +245,30 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
 
+        elif path == "/api/backup/import":
+            zip_path_str = body.get("zip_path", "")
+            try:
+                from automatify.core.backup import import_backup_zip
+                from pathlib import Path
+                ok, msg = import_backup_zip(Path(zip_path_str))
+                if ok:
+                    _append_log(f"Respaldo restaurado: {msg}")
+                    self._send_json({"status": "ok", "message": msg})
+                else:
+                    _append_log(f"Error al importar respaldo: {msg}")
+                    self._send_json({"error": msg}, 400)
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
+        elif path == "/api/themes/schemes":
+            theme_name = body.get("theme", "")
+            try:
+                from automatify.core.themer import get_theme_color_schemes
+                schemes = get_theme_color_schemes(theme_name)
+                self._send_json({"status": "ok", "schemes": schemes})
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
         elif path == "/api/spicetify/apply":
             _is_working = True
             _install_logs.clear()

@@ -86,6 +86,32 @@ def set_theme(name: str) -> bool:
     return code == 0
 
 
+def get_theme_color_schemes(theme_name: str) -> list[str]:
+    """Reads color.ini for the specified theme and returns all section names (schemes)."""
+    schemes = []
+    if not theme_name:
+        return schemes
+    for themes_dir in get_all_theme_dirs():
+        color_ini = themes_dir / theme_name / "color.ini"
+        if color_ini.exists():
+            try:
+                import configparser
+                parser = configparser.ConfigParser(strict=False)
+                parser.read(color_ini, encoding="utf-8")
+                schemes.extend(parser.sections())
+            except Exception:
+                pass
+    return list(dict.fromkeys(schemes))
+
+
+def set_color_scheme(scheme_name: str) -> bool:
+    """Sets current color_scheme in Spicetify configuration."""
+    if not scheme_name:
+        return True
+    code, out, err = run_spicetify(["config", "color_scheme", scheme_name])
+    return code == 0
+
+
 def list_available_themes() -> list[str]:
     """Scans all theme directories and config files to return all available Spicetify themes."""
     themes = set()

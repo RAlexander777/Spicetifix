@@ -61,6 +61,7 @@
         <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> <span id="lbl-spicetify-dir">Carpeta Spicetify</span></button>
         <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> <span id="lbl-themes-dir">Carpeta Temas</span></button>
         <button class="btn-chip btn-chip-accent" id="btn-export-backup"><i data-lucide="archive"></i> <span id="lbl-export-backup">Exportar Respaldo (.zip)</span></button>
+        <button class="btn-chip btn-chip-accent" id="btn-import-backup"><i data-lucide="upload-cloud"></i> <span id="lbl-import-backup">Importar Respaldo (.zip)</span></button>
       </div>
     </div>
 
@@ -175,6 +176,13 @@
               <!-- Dynamically populated -->
             </select>
           </div>
+
+          <div class="form-row">
+            <label for="select-color-scheme" id="lbl-color-scheme">Esquema de Color (Color Scheme):</label>
+            <select id="select-color-scheme" class="theme-dropdown">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
         </div>
 
         <!-- Section: Advanced Spicetify Flags -->
@@ -241,7 +249,7 @@
             <li>Gestor visual de extensiones con interruptores en vivo.</li>
             <li>Reproductor integrado de Spotify mediante llamadas nativas Win32 API.</li>
             <li>Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).</li>
-            <li>Respaldo completo exportable a comprimido ZIP.</li>
+            <li>Respaldo e Importación completa de configuraciones y temas (.zip).</li>
           </ul>
         </div>
       </div>

@@ -70,3 +70,67 @@ def export_backup_zip(dest_dir: Path = None) -> tuple[bool, str]:
 
     except Exception as e:
         return False, str(e)
+
+
+def import_backup_zip(zip_path: Path) -> tuple[bool, str]:
+    """
+    Extracts a backup .zip archive and restores Spicetify configuration, themes,
+    extensions, custom apps, and Automatify user settings.
+    """
+    try:
+        zip_path = Path(zip_path)
+        if not zip_path.exists():
+            return False, "El archivo de respaldo ZIP no existe."
+
+        config_ini = get_spicetify_config_path()
+        themes_dir = get_spicetify_themes_dir()
+        extensions_dir = get_spicetify_extensions_dir()
+        custom_apps_dir = get_spicetify_custom_apps_dir()
+        automatify_cfg = get_user_config_path()
+
+        with zipfile.ZipFile(zip_path, "r") as zf:
+            for member in zf.infolist():
+                name = member.filename
+                if name == "config-xpui.ini" and config_ini:
+                    config_ini.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, open(config_ini, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+
+                elif name == "automatify_config.json" and automatify_cfg:
+                    automatify_cfg.parent.mkdir(parents=True, exist_ok=True)
+                    with zf.open(member) as src, open(automatify_cfg, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+
+                elif name.startswith("Themes/") and themes_dir:
+                    rel = Path(name).relative_to("Themes")
+                    dest = themes_dir / rel
+                    if member.is_dir():
+                        dest.mkdir(parents=True, exist_ok=True)
+                    else:
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        with zf.open(member) as src, open(dest, "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+
+                elif name.startswith("Extensions/") and extensions_dir:
+                    rel = Path(name).relative_to("Extensions")
+                    dest = extensions_dir / rel
+                    if member.is_dir():
+                        dest.mkdir(parents=True, exist_ok=True)
+                    else:
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        with zf.open(member) as src, open(dest, "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+
+                elif name.startswith("CustomApps/") and custom_apps_dir:
+                    rel = Path(name).relative_to("CustomApps")
+                    dest = custom_apps_dir / rel
+                    if member.is_dir():
+                        dest.mkdir(parents=True, exist_ok=True)
+                    else:
+                        dest.parent.mkdir(parents=True, exist_ok=True)
+                        with zf.open(member) as src, open(dest, "wb") as dst:
+                            shutil.copyfileobj(src, dst)
+
+        return True, "Respaldo importado correctamente."
+    except Exception as e:
+        return False, str(e)
