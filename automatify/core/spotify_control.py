@@ -1,6 +1,5 @@
 import ctypes
 import sys
-import subprocess
 
 # Correct Win32 Virtual-Key Codes for Media Control
 VK_MEDIA_NEXT_TRACK = 0xB0  # 176
@@ -36,8 +35,30 @@ def prev_track() -> None:
     _send_key(VK_MEDIA_PREV_TRACK)
 
 
+def _get_process_name(hwnd: int) -> str:
+    """Retrieves executable name of process owning the window handle."""
+    pid = ctypes.c_ulong()
+    ctypes.windll.user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+    if not pid.value:
+        return ""
+    # QUERY_LIMITED_INFORMATION = 0x1000
+    h_process = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid.value)
+    if h_process:
+        try:
+            buf = ctypes.create_unicode_buffer(1024)
+            size = ctypes.c_ulong(1024)
+            if ctypes.windll.kernel32.QueryFullProcessImageNameW(h_process, 0, buf, ctypes.byref(size)):
+                path = buf.value
+                return path.split("\\")[-1].lower()
+        except Exception:
+            pass
+        finally:
+            ctypes.windll.kernel32.CloseHandle(h_process)
+    return ""
+
+
 def get_spotify_now_playing() -> dict:
-    """Queries Spotify window title on Windows to extract current track and artist."""
+    """Queries Spotify window title on Windows to extract current track and artist strictly from Spotify.exe."""
     if sys.platform != "win32":
         return {"playing": False, "artist": "Spotify", "title": "Not active", "raw": ""}
 
@@ -48,35 +69,20 @@ def get_spotify_now_playing() -> dict:
         user32 = ctypes.windll.user32
         length = user32.GetWindowTextLengthW(hwnd)
         if length > 0:
-            buff = ctypes.create_unicode_buffer(length + 1)
-            user32.GetWindowTextW(hwnd, buff, length + 1)
-            title = buff.value
-            if " - " in title and not title.endswith(".exe") and not title.startswith("automatify"):
-                cls_buff = ctypes.create_unicode_buffer(256)
-                user32.GetClassNameW(hwnd, cls_buff, 256)
-                if cls_buff.value in ("Chrome_WidgetWin_0", "Chrome_WidgetWin_1") or "spotify" in title.lower():
+            # Check process name to ONLY accept Spotify.exe
+            pname = _get_process_name(hwnd)
+            if pname == "spotify.exe":
+                buff = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(hwnd, buff, length + 1)
+                title = buff.value
+                if " - " in title:
                     spotify_title = title
-            elif title.strip() == "Spotify" and not spotify_title:
-                spotify_title = "Spotify"
+                elif title.strip() == "Spotify" and not spotify_title:
+                    spotify_title = "Spotify"
         return True
 
     WNDENUMPROC = ctypes.WINFUNCTYPE(ctypes.c_bool, ctypes.c_int, ctypes.c_int)
     ctypes.windll.user32.EnumWindows(WNDENUMPROC(enum_proc), 0)
-
-    # Fallback to PowerShell Get-Process if EnumWindows didn't catch a title with ' - '
-    if not spotify_title or " - " not in spotify_title:
-        try:
-            cmd = ["powershell", "-NoProfile", "-Command", "Get-Process Spotify -ErrorAction SilentlyContinue | Select-Object -ExpandProperty MainWindowTitle"]
-            proc = subprocess.run(cmd, capture_output=True, text=True, timeout=2)
-            for line in proc.stdout.splitlines():
-                line = line.strip()
-                if " - " in line:
-                    spotify_title = line
-                    break
-                elif line and not spotify_title:
-                    spotify_title = line
-        except Exception:
-            pass
 
     if spotify_title and " - " in spotify_title:
         parts = spotify_title.split(" - ", 1)
