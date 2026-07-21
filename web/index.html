@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AUTOMATIFY // TAURI SHELL</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-emerald">
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <span class="prompt-icon">❯</span>
+        <h1 class="title">AUTOMATIFY</h1>
+        <span class="badge badge-online" id="system-badge">[ SYSTEM_READY ]</span>
+      </div>
+
+      <div class="header-controls">
+        <label for="ui-theme-select">UI Theme:</label>
+        <select id="ui-theme-select" class="theme-dropdown">
+          <option value="emerald">Cyber Emerald (Neon Green)</option>
+          <option value="dracula">Dracula (Neon Purple)</option>
+          <option value="amber">Amber CRT (Retro Amber)</option>
+          <option value="nord">Nordic Frost (Ice Blue)</option>
+          <option value="matrix">Matrix Void (Deep Green)</option>
+          <option value="light_clean">Light Clean (White & Cyan)</option>
+          <option value="light_emerald">Light Emerald (White & Green)</option>
+        </select>
+      </div>
+    </header>
+
+    <!-- Spotify Now Playing Widget -->
+    <section class="panel player-panel">
+      <div class="panel-header">// SPOTIFY NOW PLAYING</div>
+      <div class="player-content">
+        <div class="track-info" id="track-info">🎵 Loading Spotify Status...</div>
+        <div class="player-controls">
+          <button class="btn btn-control" id="btn-prev">⏮ PREV</button>
+          <button class="btn btn-control btn-accent" id="btn-play">⏯ PLAY / PAUSE</button>
+          <button class="btn btn-control" id="btn-next">⏭ NEXT</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Status Cards -->
+    <section class="section-title">// SYSTEM STATUS</section>
+    <div class="status-cards-grid">
+      <div class="card" id="card-spotify">
+        <div class="card-header">
+          <span class="card-title">❯ Spotify</span>
+          <span class="card-tag" id="tag-spotify">[ CHECKING ]</span>
+        </div>
+        <div class="card-sub" id="sub-spotify">Detecting installation...</div>
+      </div>
+
+      <div class="card" id="card-spicetify">
+        <div class="card-header">
+          <span class="card-title">❯ Spicetify</span>
+          <span class="card-tag" id="tag-spicetify">[ CHECKING ]</span>
+        </div>
+        <div class="card-sub" id="sub-spicetify">Checking config-xpui.ini...</div>
+      </div>
+
+      <div class="card" id="card-theme">
+        <div class="card-header">
+          <span class="card-title">❯ Active Theme</span>
+          <span class="card-tag" id="tag-theme">[ CHECKING ]</span>
+        </div>
+        <div class="card-sub" id="sub-theme">Checking theme...</div>
+      </div>
+    </div>
+
+    <!-- Actions Section -->
+    <section class="section-title">// SYSTEM ACTIONS</section>
+    <div class="actions-grid">
+      <button class="btn btn-action btn-accent" id="btn-install">▶ RUN FULL INSTALL / UPDATE</button>
+      <button class="btn btn-action btn-outline" id="btn-recover">↺ RECOVER SYSTEM</button>
+    </div>
+
+    <!-- Extension Manager -->
+    <section class="section-title">// SPICETIFY EXTENSION MANAGER</section>
+    <div class="panel ext-panel">
+      <div class="ext-header">
+        <span>Detected Extensions & Custom Apps:</span>
+        <button class="btn btn-small" id="btn-refresh-exts">↻ REFRESH</button>
+      </div>
+      <div class="ext-grid" id="ext-grid">
+        <div class="empty-msg">Loading extensions...</div>
+      </div>
+    </div>
+
+    <!-- Terminal Console Output -->
+    <section class="section-title">// SYSTEM LOGS</section>
+    <div class="console-box">
+      <pre id="console-output">root@automatify:~$ system initialized. Ready.</pre>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
