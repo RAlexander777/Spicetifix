@@ -7,6 +7,7 @@ let systemConfig = {};
 const I18N = {
   es: {
     system_ready: '[ SISTEMA_LISTO ]',
+    refresh_btn: '↻ REFRESCAR',
     about_btn: 'ℹ ACERCA DE',
     options_btn: '⚙ OPCIONES',
     ui_theme_lbl: 'Tema UI:',
@@ -15,7 +16,7 @@ const I18N = {
     prev_btn: '⏮ ANTERIOR',
     play_btn: '⏯ REPRODUCIR / PAUSAR',
     next_btn: '⏭ SIGUIENTE',
-    sec_status: '// ESTADO DEL SISTEMA',
+    sec_status: '// ESTADO DEL SISTEMA (CLIC EN UNA TARJETA PARA INSTALAR)',
     card_spotify_sub_ok: 'Instalado y detectado',
     card_spotify_sub_err: 'Spotify no encontrado',
     card_spicetify_sub_ok: 'Configurado (config-xpui.ini)',
@@ -23,9 +24,14 @@ const I18N = {
     tag_online: '[ ONLINE ]',
     tag_missing: '[ FALTA ]',
     tag_active: '[ ACTIVO ]',
-    sec_actions: '// ACCIONES DEL SISTEMA',
-    btn_install: '▶ EJECUTAR INSTALACIÓN COMPLETA',
-    btn_recover: '↺ RECUPERAR SISTEMA',
+    act_install_spotify: '▶ Haz clic para instalar Spotify',
+    act_spotify_installed: '✓ Spotify instalado',
+    act_install_spicetify: '▶ Haz clic para instalar Spicetify',
+    act_spicetify_installed: '✓ Spicetify instalado',
+    act_change_theme: '🎨 Haz clic para cambiar tema',
+    sec_actions: '// ACCIONES GENERALES',
+    btn_install: '▶ INSTALACIÓN / ACTUALIZACIÓN COMPLETA',
+    btn_recover: '↺ RECUPERAR SISTEMA (POST-UPDATE)',
     sec_exts: '// GESTOR DE EXTENSIONES SPICETIFY',
     lbl_exts_header: 'Extensiones y Apps Detectadas:',
     btn_refresh: '↻ RECARGAR',
@@ -52,7 +58,7 @@ const I18N = {
     about_engine_lbl: 'Motor:',
     about_repo_lbl: 'Repositorio GitHub:',
     about_features_title: '🚀 Funcionalidades Principales:',
-    about_feat_1: 'Instalación en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.',
+    about_feat_1: 'Instalación paso a paso o en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.',
     about_feat_2: 'Gestor visual de extensiones con interruptores en vivo.',
     about_feat_3: 'Reproductor integrado de Spotify mediante llamadas nativas Win32 API.',
     about_feat_4: 'Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).',
@@ -63,6 +69,7 @@ const I18N = {
   },
   en: {
     system_ready: '[ SYSTEM_READY ]',
+    refresh_btn: '↻ REFRESH',
     about_btn: 'ℹ ABOUT',
     options_btn: '⚙ OPTIONS',
     ui_theme_lbl: 'UI Theme:',
@@ -71,7 +78,7 @@ const I18N = {
     prev_btn: '⏮ PREV',
     play_btn: '⏯ PLAY / PAUSE',
     next_btn: '⏭ NEXT',
-    sec_status: '// SYSTEM STATUS',
+    sec_status: '// SYSTEM STATUS (CLICK CARD TO INSTALL STEP-BY-STEP)',
     card_spotify_sub_ok: 'Installed and detected',
     card_spotify_sub_err: 'Spotify not found',
     card_spicetify_sub_ok: 'Configured (config-xpui.ini)',
@@ -79,9 +86,14 @@ const I18N = {
     tag_online: '[ ONLINE ]',
     tag_missing: '[ MISSING ]',
     tag_active: '[ ACTIVE ]',
-    sec_actions: '// SYSTEM ACTIONS',
-    btn_install: '▶ RUN FULL INSTALL / UPDATE',
-    btn_recover: '↺ RECOVER SYSTEM',
+    act_install_spotify: '▶ Click to install Spotify',
+    act_spotify_installed: '✓ Spotify installed',
+    act_install_spicetify: '▶ Click to install Spicetify',
+    act_spicetify_installed: '✓ Spicetify installed',
+    act_change_theme: '🎨 Click to change theme',
+    sec_actions: '// GENERAL ACTIONS',
+    btn_install: '▶ FULL INSTALL / UPDATE',
+    btn_recover: '↺ RECOVER SYSTEM (POST-UPDATE)',
     sec_exts: '// SPICETIFY EXTENSION MANAGER',
     lbl_exts_header: 'Detected Extensions & Custom Apps:',
     btn_refresh: '↻ REFRESH',
@@ -108,7 +120,7 @@ const I18N = {
     about_engine_lbl: 'Engine:',
     about_repo_lbl: 'GitHub Repository:',
     about_features_title: '🚀 Key Features:',
-    about_feat_1: '1-Click installation for Spotify, Spicetify CLI, Marketplace & Themes.',
+    about_feat_1: 'Step-by-step or 1-Click installation for Spotify, Spicetify CLI, Marketplace & Themes.',
     about_feat_2: 'Visual extension manager with live toggles.',
     about_feat_3: 'Integrated Spotify player using native Win32 API calls.',
     about_feat_4: 'Automated post-update recovery for Spotify.',
@@ -148,6 +160,7 @@ function applyLanguage(lang) {
   };
 
   setTxt('system-badge', t.system_ready);
+  setTxt('btn-refresh-status', t.refresh_btn);
   setTxt('btn-open-about', t.about_btn);
   setTxt('btn-open-options', t.options_btn);
   setTxt('btn-prev', t.prev_btn);
@@ -247,37 +260,47 @@ async function pollStatus() {
 
   // Health / Cards
   const spotifyOk = data.health.some(h => h.label === 'spotify_path' && h.ok);
-  const spicetifyOk = data.health.some(h => h.label === 'config_file' && h.ok);
+  const spicetifyOk = data.health.some(h => (h.label === 'config_file' || h.label === 'spicetify_exe') && h.ok);
 
   const tagSpotify = document.getElementById('tag-spotify');
   const subSpotify = document.getElementById('sub-spotify');
+  const actSpotify = document.getElementById('action-spotify');
+
   if (spotifyOk) {
     tagSpotify.textContent = t.tag_online;
     tagSpotify.style.color = 'var(--accent-color)';
     subSpotify.textContent = t.card_spotify_sub_ok;
+    if (actSpotify) actSpotify.textContent = t.act_spotify_installed;
   } else {
     tagSpotify.textContent = t.tag_missing;
     tagSpotify.style.color = 'var(--danger-color)';
     subSpotify.textContent = t.card_spotify_sub_err;
+    if (actSpotify) actSpotify.textContent = t.act_install_spotify;
   }
 
   const tagSpicetify = document.getElementById('tag-spicetify');
   const subSpicetify = document.getElementById('sub-spicetify');
+  const actSpicetify = document.getElementById('action-spicetify');
+
   if (spicetifyOk) {
     tagSpicetify.textContent = t.tag_online;
     tagSpicetify.style.color = 'var(--accent-color)';
     subSpicetify.textContent = t.card_spicetify_sub_ok;
+    if (actSpicetify) actSpicetify.textContent = t.act_spicetify_installed;
   } else {
     tagSpicetify.textContent = t.tag_missing;
     tagSpicetify.style.color = 'var(--danger-color)';
     subSpicetify.textContent = t.card_spicetify_sub_err;
+    if (actSpicetify) actSpicetify.textContent = t.act_install_spicetify;
   }
 
   const tagTheme = document.getElementById('tag-theme');
   const subTheme = document.getElementById('sub-theme');
+  const actTheme = document.getElementById('action-theme');
   tagTheme.textContent = t.tag_active;
   tagTheme.style.color = 'var(--contrast-color)';
   subTheme.textContent = data.current_theme || 'None';
+  if (actTheme) actTheme.textContent = t.act_change_theme;
 
   // Console Output & Progress
   if (data.logs && data.logs.length > 0) {
@@ -427,6 +450,26 @@ document.addEventListener('DOMContentLoaded', () => {
   loadExtensions();
   pollStatus();
   setInterval(pollStatus, 1500);
+
+  // Refresh Status button
+  document.getElementById('btn-refresh-status').addEventListener('click', () => {
+    pollStatus();
+    loadExtensions();
+    loadThemes();
+  });
+
+  // Card clicks (Step-by-step installation)
+  document.getElementById('card-spotify').addEventListener('click', async () => {
+    await apiFetch('/api/install', 'POST');
+    pollStatus();
+  });
+
+  document.getElementById('card-spicetify').addEventListener('click', async () => {
+    await apiFetch('/api/install', 'POST');
+    pollStatus();
+  });
+
+  document.getElementById('card-theme').addEventListener('click', openOptionsModal);
 
   // Player buttons
   document.getElementById('btn-prev').addEventListener('click', () => {

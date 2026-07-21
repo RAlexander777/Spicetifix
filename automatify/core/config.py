@@ -221,18 +221,34 @@ def check_config_health() -> list[dict]:
     from automatify.core.utils import (
         get_spotify_path,
         get_prefs_path,
+        get_spicetify_config_path,
+        find_executable,
         get_spicetify_themes_dir,
         get_spicetify_extensions_dir,
         get_spicetify_custom_apps_dir,
     )
 
+    checks = []
+
+    cfg_file = get_spicetify_config_path()
+    spicetify_exe = find_executable("spicetify")
+    checks.append({
+        "label": "config_file",
+        "ok": bool(cfg_file and cfg_file.exists()),
+        "detail": str(cfg_file) if cfg_file else "Not found",
+    })
+    checks.append({
+        "label": "spicetify_exe",
+        "ok": bool(spicetify_exe),
+        "detail": spicetify_exe or "Not found",
+    })
+
     sc = read_spicetify_config()
     if not sc:
-        return [{"label": "config_file", "ok": False, "detail": "config-xpui.ini not found"}]
+        return checks
 
     setting = sc.get("Setting", {})
     extras = sc.get("AdditionalOptions", {})
-    checks = []
 
     sp_path = setting.get("spotify_path", "")
     if sp_path and (Path(sp_path) / "Apps").is_dir():

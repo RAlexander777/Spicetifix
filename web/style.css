@@ -248,6 +248,28 @@ body {
   color: var(--text-muted);
 }
 
+.card-interactive {
+  cursor: pointer;
+  transition: all 0.25s ease;
+  position: relative;
+}
+
+.card-interactive:hover {
+  border-color: var(--accent-color);
+  box-shadow: 0 4px 14px rgba(0, 255, 157, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-action {
+  margin-top: 8px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--accent-color);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 /* Actions */
 .actions-grid {
   display: grid;

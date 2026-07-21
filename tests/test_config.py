@@ -40,12 +40,14 @@ class TestConfigExtensionDetection(unittest.TestCase):
         self.assertIn("trashbin.mjs", exts)
         self.assertIn("bookmark.js", exts)
 
+    @patch("automatify.core.config.read_spicetify_config")
     @patch("automatify.core.config.get_installed_extensions")
     @patch("automatify.core.config.get_user_config_path")
-    def test_load_user_config_auto_detects(self, mock_path, mock_get_installed):
+    def test_load_user_config_auto_detects(self, mock_path, mock_get_installed, mock_read_config):
         mock_file = MagicMock(spec=Path)
         mock_file.exists.return_value = False
         mock_path.return_value = mock_file
+        mock_read_config.return_value = None
 
         mock_get_installed.return_value = ["marketplace.js", "bookmark.js"]
 

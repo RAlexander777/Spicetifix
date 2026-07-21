@@ -17,6 +17,7 @@
       </div>
 
       <div class="header-controls">
+        <button class="btn btn-small btn-outline" id="btn-refresh-status">↻ REFRESCAR</button>
         <button class="btn btn-small btn-outline" id="btn-open-about">ℹ ACERCA DE</button>
         <button class="btn btn-small btn-outline" id="btn-open-options">⚙ OPCIONES</button>
         <label for="ui-theme-select">Tema UI:</label>
@@ -46,38 +47,41 @@
     </section>
 
     <!-- Status Cards -->
-    <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA</section>
+    <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA (HAZ CLIC EN UNA TARJETA PARA INSTALAR PASO A PASO)</section>
     <div class="status-cards-grid">
-      <div class="card" id="card-spotify">
+      <div class="card card-interactive" id="card-spotify">
         <div class="card-header">
-          <span class="card-title">❯ Spotify</span>
+          <span class="card-title">❯ 1. Spotify</span>
           <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
+        <div class="card-action" id="action-spotify">Haz clic para instalar Spotify</div>
       </div>
 
-      <div class="card" id="card-spicetify">
+      <div class="card card-interactive" id="card-spicetify">
         <div class="card-header">
-          <span class="card-title">❯ Spicetify</span>
+          <span class="card-title">❯ 2. Spicetify CLI</span>
           <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
+        <div class="card-action" id="action-spicetify">Haz clic para instalar Spicetify</div>
       </div>
 
-      <div class="card" id="card-theme">
+      <div class="card card-interactive" id="card-theme">
         <div class="card-header">
-          <span class="card-title">❯ Tema Activo</span>
+          <span class="card-title">❯ 3. Tema Activo</span>
           <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-theme">Verificando tema...</div>
+        <div class="card-action" id="action-theme">Haz clic para cambiar tema</div>
       </div>
     </div>
 
     <!-- Actions Section -->
-    <section class="section-title" id="sec-title-actions">// ACCIONES DEL SISTEMA</section>
+    <section class="section-title" id="sec-title-actions">// ACCIONES GENERALES</section>
     <div class="actions-grid">
-      <button class="btn btn-action btn-accent" id="btn-install">▶ EJECUTAR INSTALACIÓN COMPLETA</button>
-      <button class="btn btn-action btn-outline" id="btn-recover">↺ RECUPERAR SISTEMA</button>
+      <button class="btn btn-action btn-accent" id="btn-install">▶ INSTALACIÓN / ACTUALIZACIÓN COMPLETA</button>
+      <button class="btn btn-action btn-outline" id="btn-recover">↺ RECUPERAR SISTEMA (POST-UPDATE)</button>
     </div>
 
     <!-- Extension Manager -->
@@ -190,7 +194,7 @@
         <div class="about-features">
           <h4>🚀 Funcionalidades Principales:</h4>
           <ul>
-            <li>Instalación en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.</li>
+            <li>Instalación paso a paso o en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.</li>
             <li>Gestor visual de extensiones con interruptores en vivo.</li>
             <li>Reproductor integrado de Spotify mediante llamadas nativas Win32 API.</li>
             <li>Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).</li>
