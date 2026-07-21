@@ -4,6 +4,9 @@ let currentUITheme = 'emerald';
 let currentLang = 'es';
 let systemConfig = {};
 
+let isSpotifyInstalled = false;
+let isSpicetifyInstalled = false;
+
 const I18N = {
   es: {
     system_ready: '[ SISTEMA_LISTO ]',
@@ -16,18 +19,18 @@ const I18N = {
     prev_btn: '⏮ ANTERIOR',
     play_btn: '⏯ REPRODUCIR / PAUSAR',
     next_btn: '⏭ SIGUIENTE',
-    sec_status: '// ESTADO DEL SISTEMA (CLIC EN UNA TARJETA PARA INSTALAR)',
-    card_spotify_sub_ok: 'Instalado y detectado',
-    card_spotify_sub_err: 'Spotify no encontrado',
-    card_spicetify_sub_ok: 'Configurado (config-xpui.ini)',
-    card_spicetify_sub_err: 'Spicetify no configurado',
+    sec_status: '// ESTADO DEL SISTEMA (CLIC PARA INSTALAR O DESINSTALAR)',
+    card_spotify_sub_ok: 'Instalado y detectado (clic para desinstalar)',
+    card_spotify_sub_err: 'Spotify no encontrado (clic para instalar)',
+    card_spicetify_sub_ok: 'Configurado y activo (clic para desinstalar)',
+    card_spicetify_sub_err: 'Spicetify no configurado (clic para instalar)',
     tag_online: '[ ONLINE ]',
     tag_missing: '[ FALTA ]',
     tag_active: '[ ACTIVO ]',
     act_install_spotify: '▶ Haz clic para instalar Spotify',
-    act_spotify_installed: '✓ Spotify instalado',
+    act_uninstall_spotify: '🗑 Haz clic para desinstalar Spotify',
     act_install_spicetify: '▶ Haz clic para instalar Spicetify',
-    act_spicetify_installed: '✓ Spicetify instalado',
+    act_uninstall_spicetify: '🗑 Haz clic para desinstalar Spicetify',
     act_change_theme: '🎨 Haz clic para cambiar tema',
     sec_actions: '// ACCIONES GENERALES',
     btn_install: '▶ INSTALACIÓN / ACTUALIZACIÓN COMPLETA',
@@ -64,8 +67,12 @@ const I18N = {
     about_feat_4: 'Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).',
     about_feat_5: '7 Temas estéticos estilo cyberpunk con soporte para modo claro y oscuro.',
     btn_close: 'CERRAR',
-    confirm_spicetify: '¿Desinstalar Spicetify y restaurar el parche de Spotify?',
-    confirm_spotify: '⚠️ ATENCIÓN: Esto desinstalará completamente Spotify y Spicetify del sistema. ¿Deseas continuar?'
+    confirm_spicetify_title: '🗑 ¿Desinstalar Spicetify?',
+    confirm_spicetify: 'Esto desinstalará Spicetify y restaurará los archivos originales de Spotify.',
+    confirm_spotify_title: '🔥 ¿Desinstalar Spotify y Spicetify?',
+    confirm_spotify: '⚠️ ATENCIÓN: Esto desinstalará completamente Spotify y Spicetify del sistema.',
+    btn_yes_uninstall: 'Sí, Desinstalar',
+    btn_cancel: 'Cancelar'
   },
   en: {
     system_ready: '[ SYSTEM_READY ]',
@@ -78,18 +85,18 @@ const I18N = {
     prev_btn: '⏮ PREV',
     play_btn: '⏯ PLAY / PAUSE',
     next_btn: '⏭ NEXT',
-    sec_status: '// SYSTEM STATUS (CLICK CARD TO INSTALL STEP-BY-STEP)',
-    card_spotify_sub_ok: 'Installed and detected',
-    card_spotify_sub_err: 'Spotify not found',
-    card_spicetify_sub_ok: 'Configured (config-xpui.ini)',
-    card_spicetify_sub_err: 'Spicetify not configured',
+    sec_status: '// SYSTEM STATUS (CLICK CARD TO INSTALL / UNINSTALL)',
+    card_spotify_sub_ok: 'Installed and detected (click to uninstall)',
+    card_spotify_sub_err: 'Spotify not found (click to install)',
+    card_spicetify_sub_ok: 'Configured and active (click to uninstall)',
+    card_spicetify_sub_err: 'Spicetify not configured (click to install)',
     tag_online: '[ ONLINE ]',
     tag_missing: '[ MISSING ]',
     tag_active: '[ ACTIVE ]',
     act_install_spotify: '▶ Click to install Spotify',
-    act_spotify_installed: '✓ Spotify installed',
+    act_uninstall_spotify: '🗑 Click to uninstall Spotify',
     act_install_spicetify: '▶ Click to install Spicetify',
-    act_spicetify_installed: '✓ Spicetify installed',
+    act_uninstall_spicetify: '🗑 Click to uninstall Spicetify',
     act_change_theme: '🎨 Click to change theme',
     sec_actions: '// GENERAL ACTIONS',
     btn_install: '▶ FULL INSTALL / UPDATE',
@@ -126,8 +133,12 @@ const I18N = {
     about_feat_4: 'Automated post-update recovery for Spotify.',
     about_feat_5: '7 Cyberpunk aesthetic themes with light & dark mode support.',
     btn_close: 'CLOSE',
-    confirm_spicetify: 'Uninstall Spicetify and restore Spotify patch?',
-    confirm_spotify: '⚠️ WARNING: This will completely uninstall Spotify and Spicetify from your system. Continue?'
+    confirm_spicetify_title: '🗑 Uninstall Spicetify?',
+    confirm_spicetify: 'This will uninstall Spicetify and restore stock Spotify files.',
+    confirm_spotify_title: '🔥 Uninstall Spotify & Spicetify?',
+    confirm_spotify: '⚠️ WARNING: This will completely uninstall Spotify and Spicetify from your system.',
+    btn_yes_uninstall: 'Yes, Uninstall',
+    btn_cancel: 'Cancel'
   }
 };
 
@@ -146,6 +157,35 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
   } catch (err) {
     console.warn(`API error (${endpoint}):`, err);
     return null;
+  }
+}
+
+// Show SweetAlert Cyberpunk Dialog
+function showCyberAlert(title, text, confirmText, cancelText, onConfirm) {
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title,
+      text,
+      showCancelButton: true,
+      confirmButtonText: confirmText,
+      cancelButtonText: cancelText,
+      buttonsStyling: false,
+      customClass: {
+        popup: 'cyber-swal-popup',
+        title: 'cyber-swal-title',
+        htmlContainer: 'cyber-swal-html',
+        confirmButton: 'btn btn-danger-heavy',
+        cancelButton: 'btn btn-outline',
+      },
+    }).then((result) => {
+      if (result.isConfirmed && onConfirm) {
+        onConfirm();
+      }
+    });
+  } else {
+    if (confirm(`${title}\n\n${text}`)) {
+      if (onConfirm) onConfirm();
+    }
   }
 }
 
@@ -259,39 +299,45 @@ async function pollStatus() {
   }
 
   // Health / Cards
-  const spotifyOk = data.health.some(h => h.label === 'spotify_path' && h.ok);
-  const spicetifyOk = data.health.some(h => (h.label === 'config_file' || h.label === 'spicetify_exe') && h.ok);
+  isSpotifyInstalled = data.health.some(h => h.label === 'spotify_path' && h.ok);
+  isSpicetifyInstalled = data.health.some(h => (h.label === 'config_file' || h.label === 'spicetify_exe') && h.ok);
 
+  const cardSpotify = document.getElementById('card-spotify');
   const tagSpotify = document.getElementById('tag-spotify');
   const subSpotify = document.getElementById('sub-spotify');
   const actSpotify = document.getElementById('action-spotify');
 
-  if (spotifyOk) {
+  if (isSpotifyInstalled) {
     tagSpotify.textContent = t.tag_online;
     tagSpotify.style.color = 'var(--accent-color)';
     subSpotify.textContent = t.card_spotify_sub_ok;
-    if (actSpotify) actSpotify.textContent = t.act_spotify_installed;
+    if (actSpotify) actSpotify.textContent = t.act_uninstall_spotify;
+    if (cardSpotify) cardSpotify.classList.add('card-danger-hover');
   } else {
     tagSpotify.textContent = t.tag_missing;
     tagSpotify.style.color = 'var(--danger-color)';
     subSpotify.textContent = t.card_spotify_sub_err;
     if (actSpotify) actSpotify.textContent = t.act_install_spotify;
+    if (cardSpotify) cardSpotify.classList.remove('card-danger-hover');
   }
 
+  const cardSpicetify = document.getElementById('card-spicetify');
   const tagSpicetify = document.getElementById('tag-spicetify');
   const subSpicetify = document.getElementById('sub-spicetify');
   const actSpicetify = document.getElementById('action-spicetify');
 
-  if (spicetifyOk) {
+  if (isSpicetifyInstalled) {
     tagSpicetify.textContent = t.tag_online;
     tagSpicetify.style.color = 'var(--accent-color)';
     subSpicetify.textContent = t.card_spicetify_sub_ok;
-    if (actSpicetify) actSpicetify.textContent = t.act_spicetify_installed;
+    if (actSpicetify) actSpicetify.textContent = t.act_uninstall_spicetify;
+    if (cardSpicetify) cardSpicetify.classList.add('card-danger-hover');
   } else {
     tagSpicetify.textContent = t.tag_missing;
     tagSpicetify.style.color = 'var(--danger-color)';
     subSpicetify.textContent = t.card_spicetify_sub_err;
     if (actSpicetify) actSpicetify.textContent = t.act_install_spicetify;
+    if (cardSpicetify) cardSpicetify.classList.remove('card-danger-hover');
   }
 
   const tagTheme = document.getElementById('tag-theme');
@@ -458,15 +504,44 @@ document.addEventListener('DOMContentLoaded', () => {
     loadThemes();
   });
 
-  // Card clicks (Step-by-step installation)
+  // Card clicks: Spotify
   document.getElementById('card-spotify').addEventListener('click', async () => {
-    await apiFetch('/api/install', 'POST');
-    pollStatus();
+    const t = I18N[currentLang];
+    if (isSpotifyInstalled) {
+      showCyberAlert(
+        t.confirm_spotify_title,
+        t.confirm_spotify,
+        t.btn_yes_uninstall,
+        t.btn_cancel,
+        async () => {
+          await apiFetch('/api/uninstall/spotify', 'POST');
+          pollStatus();
+        }
+      );
+    } else {
+      await apiFetch('/api/install', 'POST');
+      pollStatus();
+    }
   });
 
+  // Card clicks: Spicetify
   document.getElementById('card-spicetify').addEventListener('click', async () => {
-    await apiFetch('/api/install', 'POST');
-    pollStatus();
+    const t = I18N[currentLang];
+    if (isSpicetifyInstalled) {
+      showCyberAlert(
+        t.confirm_spicetify_title,
+        t.confirm_spicetify,
+        t.btn_yes_uninstall,
+        t.btn_cancel,
+        async () => {
+          await apiFetch('/api/uninstall/spicetify', 'POST');
+          pollStatus();
+        }
+      );
+    } else {
+      await apiFetch('/api/install', 'POST');
+      pollStatus();
+    }
   });
 
   document.getElementById('card-theme').addEventListener('click', openOptionsModal);
@@ -531,19 +606,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.getElementById('btn-uninstall-spicetify').addEventListener('click', async () => {
     const t = I18N[currentLang];
-    if (confirm(t.confirm_spicetify)) {
-      closeOptionsModal();
-      await apiFetch('/api/uninstall/spicetify', 'POST');
-      pollStatus();
-    }
+    showCyberAlert(
+      t.confirm_spicetify_title,
+      t.confirm_spicetify,
+      t.btn_yes_uninstall,
+      t.btn_cancel,
+      async () => {
+        closeOptionsModal();
+        await apiFetch('/api/uninstall/spicetify', 'POST');
+        pollStatus();
+      }
+    );
   });
 
   document.getElementById('btn-uninstall-spotify').addEventListener('click', async () => {
     const t = I18N[currentLang];
-    if (confirm(t.confirm_spotify)) {
-      closeOptionsModal();
-      await apiFetch('/api/uninstall/spotify', 'POST');
-      pollStatus();
-    }
+    showCyberAlert(
+      t.confirm_spotify_title,
+      t.confirm_spotify,
+      t.btn_yes_uninstall,
+      t.btn_cancel,
+      async () => {
+        closeOptionsModal();
+        await apiFetch('/api/uninstall/spotify', 'POST');
+        pollStatus();
+      }
+    );
   });
 });

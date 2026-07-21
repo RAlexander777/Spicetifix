@@ -590,3 +590,36 @@ body {
   content: "❯ ";
   color: var(--accent-color);
 }
+
+/* DANGER HOVER CARD STATE */
+.card-danger-hover:hover {
+  border-color: var(--danger-color) !important;
+  box-shadow: 0 4px 16px rgba(255, 71, 87, 0.25) !important;
+}
+
+.card-danger-hover:hover .card-action {
+  color: var(--danger-color) !important;
+}
+
+/* SWEETALERT2 CYBERPUNK THEME */
+.cyber-swal-popup {
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-radius: 10px !important;
+  color: var(--text-main) !important;
+  font-family: var(--font-mono) !important;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7) !important;
+}
+
+.cyber-swal-title {
+  color: var(--danger-color) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 1.1rem !important;
+  font-weight: bold !important;
+}
+
+.cyber-swal-html {
+  color: var(--text-main) !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.88rem !important;
+}

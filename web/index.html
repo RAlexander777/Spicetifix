@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AUTOMATIFY // TAURI SHELL</title>
   <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="theme-emerald">
   <div class="app-container">
@@ -50,7 +51,7 @@
     </section>
 
     <!-- Status Cards -->
-    <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA (CLIC EN UNA TARJETA PARA INSTALAR PASO A PASO)</section>
+    <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA (CLIC PARA INSTALAR / DESINSTALAR)</section>
     <div class="status-cards-grid">
       <div class="card card-interactive" id="card-spotify">
         <div class="card-header">
@@ -58,7 +59,7 @@
           <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
-        <div class="card-action" id="action-spotify">Haz clic para instalar Spotify</div>
+        <div class="card-action" id="action-spotify">▶ Haz clic para instalar Spotify</div>
       </div>
 
       <div class="card card-interactive" id="card-spicetify">
@@ -67,7 +68,7 @@
           <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
-        <div class="card-action" id="action-spicetify">Haz clic para instalar Spicetify</div>
+        <div class="card-action" id="action-spicetify">▶ Haz clic para instalar Spicetify</div>
       </div>
 
       <div class="card card-interactive" id="card-theme">
@@ -76,7 +77,7 @@
           <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-theme">Verificando tema...</div>
-        <div class="card-action" id="action-theme">Haz clic para cambiar tema</div>
+        <div class="card-action" id="action-theme">🎨 Haz clic para cambiar tema</div>
       </div>
     </div>
 
