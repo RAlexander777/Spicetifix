@@ -10,16 +10,21 @@ let isSpicetifyInstalled = false;
 const I18N = {
   es: {
     system_ready: '[ SISTEMA_LISTO ]',
+    open_spotify: 'ABRIR SPOTIFY',
     refresh_btn: 'REFRESCAR',
     about_btn: 'ACERCA DE',
     options_btn: 'OPCIONES',
     ui_theme_lbl: 'Tema UI:',
+    quick_access: 'EXPLORADOR DE ARCHIVOS:',
+    spicetify_dir: 'Carpeta Spicetify',
+    themes_dir: 'Carpeta Temas',
     now_playing_title: '// REPRODUCIENDO EN SPOTIFY',
     loading_spotify: 'Cargando estado de Spotify...',
     prev_btn: 'ANTERIOR',
     play_btn: 'REPRODUCIR / PAUSAR',
     next_btn: 'SIGUIENTE',
     sec_status: '// ESTADO DEL SISTEMA (CLIC PARA INSTALAR O DESINSTALAR)',
+    card_theme_title: '3. Tema Activo',
     card_spotify_sub_ok: 'Instalado y detectado (clic para desinstalar)',
     card_spotify_sub_err: 'Spotify no encontrado (clic para instalar)',
     card_spicetify_sub_ok: 'Configurado y activo (clic para desinstalar)',
@@ -60,12 +65,14 @@ const I18N = {
     about_license_lbl: 'Licencia:',
     about_engine_lbl: 'Motor:',
     about_repo_lbl: 'Repositorio GitHub:',
+    about_spicetify_web: 'Web de Spicetify:',
+    about_spotify_web: 'Web de Spotify:',
     about_features_title: 'Funcionalidades Principales:',
     about_feat_1: 'Instalación paso a paso o en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.',
     about_feat_2: 'Gestor visual de extensiones con interruptores en vivo.',
     about_feat_3: 'Reproductor integrado de Spotify mediante llamadas nativas Win32 API.',
     about_feat_4: 'Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).',
-    about_feat_5: '7 Temas estéticos estilo cyberpunk con soporte para modo claro y oscuro.',
+    about_feat_5: '12 Temas estéticos estilo cyberpunk y cálidos retro (Gruvbox, Everforest, etc.).',
     btn_close: 'CERRAR',
     confirm_spicetify_title: 'Desinstalar Spicetify?',
     confirm_spicetify: 'Esto desinstalará Spicetify y restaurará los archivos originales de Spotify.',
@@ -76,16 +83,21 @@ const I18N = {
   },
   en: {
     system_ready: '[ SYSTEM_READY ]',
+    open_spotify: 'OPEN SPOTIFY',
     refresh_btn: 'REFRESH',
     about_btn: 'ABOUT',
     options_btn: 'OPTIONS',
     ui_theme_lbl: 'UI Theme:',
+    quick_access: 'FILE EXPLORER:',
+    spicetify_dir: 'Spicetify Folder',
+    themes_dir: 'Themes Folder',
     now_playing_title: '// SPOTIFY NOW PLAYING',
     loading_spotify: 'Loading Spotify Status...',
     prev_btn: 'PREV',
     play_btn: 'PLAY / PAUSE',
     next_btn: 'NEXT',
     sec_status: '// SYSTEM STATUS (CLICK CARD TO INSTALL / UNINSTALL)',
+    card_theme_title: '3. Active Theme',
     card_spotify_sub_ok: 'Installed and detected (click to uninstall)',
     card_spotify_sub_err: 'Spotify not found (click to install)',
     card_spicetify_sub_ok: 'Configured and active (click to uninstall)',
@@ -126,12 +138,14 @@ const I18N = {
     about_license_lbl: 'License:',
     about_engine_lbl: 'Engine:',
     about_repo_lbl: 'GitHub Repository:',
+    about_spicetify_web: 'Spicetify Website:',
+    about_spotify_web: 'Spotify Website:',
     about_features_title: 'Key Features:',
     about_feat_1: 'Step-by-step or 1-Click installation for Spotify, Spicetify CLI, Marketplace & Themes.',
     about_feat_2: 'Visual extension manager with live toggles.',
     about_feat_3: 'Integrated Spotify player using native Win32 API calls.',
     about_feat_4: 'Automated post-update recovery for Spotify.',
-    about_feat_5: '7 Cyberpunk aesthetic themes with light & dark mode support.',
+    about_feat_5: '12 Cyberpunk & warm retro aesthetic themes (Gruvbox, Everforest, etc.).',
     btn_close: 'CLOSE',
     confirm_spicetify_title: 'Uninstall Spicetify?',
     confirm_spicetify: 'This will uninstall Spicetify and restore stock Spotify files.',
@@ -200,11 +214,72 @@ function applyLanguage(lang) {
   };
 
   setTxt('system-badge', t.system_ready);
+  setTxt('lbl-open-spotify', t.open_spotify);
+  setTxt('lbl-refresh-status', t.refresh_btn);
+  setTxt('lbl-open-options', t.options_btn);
+  setTxt('lbl-open-about', t.about_btn);
+  setTxt('lbl-ui-theme', t.ui_theme_lbl);
+  setTxt('lbl-quick-access', t.quick_access);
+  setTxt('lbl-spicetify-dir', t.spicetify_dir);
+  setTxt('lbl-themes-dir', t.themes_dir);
+  setTxt('lbl-player-header', t.now_playing_title);
+  setTxt('lbl-prev', t.prev_btn);
+  setTxt('lbl-play', t.play_btn);
+  setTxt('lbl-next', t.next_btn);
   setTxt('sec-title-status', t.sec_status);
+  setTxt('lbl-card-theme-title', t.card_theme_title);
   setTxt('sec-title-actions', t.sec_actions);
+  setTxt('lbl-btn-install', t.btn_install);
+  setTxt('lbl-btn-recover', t.btn_recover);
   setTxt('sec-title-exts', t.sec_exts);
   setTxt('lbl-exts-header', t.lbl_exts_header);
+  setTxt('lbl-btn-refresh-exts', t.btn_refresh);
   setTxt('sec-title-logs', t.sec_logs);
+  setTxt('modal-opt-title', t.modal_opt_title);
+  setTxt('opt-sec-gen', t.opt_sec_gen);
+  setTxt('lbl-lang', t.lbl_lang);
+  setTxt('lbl-spicetify-theme', t.lbl_spicetify_theme);
+  setTxt('opt-sec-flags', t.opt_sec_flags);
+  setTxt('lbl-flag-css', t.lbl_flag_css);
+  setTxt('lbl-flag-colors', t.lbl_flag_colors);
+  setTxt('lbl-flag-assets', t.lbl_flag_assets);
+  setTxt('lbl-flag-devtools', t.lbl_flag_devtools);
+  setTxt('lbl-flag-sentry', t.lbl_flag_sentry);
+  setTxt('opt-sec-danger', t.opt_sec_danger);
+  setTxt('lbl-btn-spicetify-apply', t.btn_spicetify_apply);
+  setTxt('lbl-btn-uninstall-spicetify', t.btn_uninstall_spicetify);
+  setTxt('lbl-btn-uninstall-spotify', t.btn_uninstall_spotify);
+  setTxt('btn-save-options', t.btn_save_options);
+  setTxt('btn-close-about-footer', t.btn_close);
+
+  // About modal texts
+  const modalAboutTitle = document.querySelector('#about-modal h2');
+  if (modalAboutTitle) modalAboutTitle.textContent = t.modal_about_title;
+
+  const aboutDesc = document.querySelector('.about-desc');
+  if (aboutDesc) aboutDesc.textContent = t.about_desc;
+
+  const details = document.querySelectorAll('.detail-item strong');
+  if (details.length >= 6) {
+    details[0].textContent = t.about_author_lbl;
+    details[1].textContent = t.about_license_lbl;
+    details[2].textContent = t.about_engine_lbl;
+    details[3].textContent = t.about_repo_lbl;
+    details[4].textContent = t.about_spicetify_web;
+    details[5].textContent = t.about_spotify_web;
+  }
+
+  const featH4 = document.querySelector('.about-features h4');
+  if (featH4) featH4.textContent = t.about_features_title;
+
+  const featLis = document.querySelectorAll('.about-features li');
+  if (featLis.length >= 5) {
+    featLis[0].textContent = t.about_feat_1;
+    featLis[1].textContent = t.about_feat_2;
+    featLis[2].textContent = t.about_feat_3;
+    featLis[3].textContent = t.about_feat_4;
+    featLis[4].textContent = t.about_feat_5;
+  }
 
   const langSelect = document.getElementById('select-lang');
   if (langSelect && langSelect.value !== currentLang) {

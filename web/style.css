@@ -43,6 +43,48 @@ body.theme-gruvbox {
   --danger-color: #fb4934;
 }
 
+body.theme-everforest {
+  --bg-color: #2d353b;
+  --card-bg: #232a2e;
+  --card-border: #475258;
+  --accent-color: #a7c080;
+  --accent-hover: #839c5b;
+  --contrast-color: #dbbc7f;
+  --text-main: #d3c6aa;
+  --text-muted: #859289;
+  --console-bg: #1e2326;
+  --console-fg: #a7c080;
+  --danger-color: #e67e80;
+}
+
+body.theme-rose_pine {
+  --bg-color: #232136;
+  --card-bg: #2a273f;
+  --card-border: #393552;
+  --accent-color: #ea9a97;
+  --accent-hover: #eb6f92;
+  --contrast-color: #f6c177;
+  --text-main: #e0def4;
+  --text-muted: #908caa;
+  --console-bg: #191724;
+  --console-fg: #ea9a97;
+  --danger-color: #eb6f92;
+}
+
+body.theme-kanagawa {
+  --bg-color: #1f1f28;
+  --card-bg: #2a2a37;
+  --card-border: #363646;
+  --accent-color: #e6c384;
+  --accent-hover: #dcaa56;
+  --contrast-color: #7e9cd8;
+  --text-main: #dcd7ba;
+  --text-muted: #717c7c;
+  --console-bg: #16161d;
+  --console-fg: #e6c384;
+  --danger-color: #c34043;
+}
+
 body.theme-synthwave {
   --bg-color: #120b1d;
   --card-bg: #1f1235;

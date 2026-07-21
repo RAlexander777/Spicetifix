@@ -20,25 +20,28 @@
 
       <div class="header-actions">
         <button class="btn btn-small btn-outline" id="btn-open-spotify" title="Abrir App Spotify">
-          <i data-lucide="play-circle"></i> ABRIR SPOTIFY
+          <i data-lucide="play-circle"></i> <span id="lbl-open-spotify">ABRIR SPOTIFY</span>
         </button>
         <button class="btn btn-small btn-outline" id="btn-refresh-status" title="Refrescar Estados">
-          <i data-lucide="refresh-cw" class="icon-spin"></i> REFRESCAR
+          <i data-lucide="refresh-cw" class="icon-spin"></i> <span id="lbl-refresh-status">REFRESCAR</span>
         </button>
         <button class="btn btn-small btn-outline" id="btn-open-options">
-          <i data-lucide="settings"></i> OPCIONES
+          <i data-lucide="settings"></i> <span id="lbl-open-options">OPCIONES</span>
         </button>
         <button class="btn btn-small btn-outline" id="btn-open-about">
-          <i data-lucide="info"></i> ACERCA DE
+          <i data-lucide="info"></i> <span id="lbl-open-about">ACERCA DE</span>
         </button>
       </div>
 
       <div class="header-theme-picker">
-        <label for="ui-theme-select"><i data-lucide="palette"></i> Tema UI:</label>
+        <label for="ui-theme-select"><i data-lucide="palette"></i> <span id="lbl-ui-theme">Tema UI:</span></label>
         <select id="ui-theme-select" class="theme-dropdown">
           <option value="emerald">Cyber Emerald (Verde Neón)</option>
-          <option value="catppuccin">Catppuccin Mocha (Púrpura Pastel)</option>
           <option value="gruvbox">Gruvbox Dark (Naranja Retro)</option>
+          <option value="everforest">Everforest Dark (Verde Bosque)</option>
+          <option value="rose_pine">Rosé Pine Moon (Púrpura Suave)</option>
+          <option value="kanagawa">Kanagawa Wave (Arte Japonés)</option>
+          <option value="catppuccin">Catppuccin Mocha (Púrpura Pastel)</option>
           <option value="synthwave">Synthwave '84 (Magenta & Amarillo)</option>
           <option value="tokyo_night">Tokyo Night (Zafiro & Lavanda)</option>
           <option value="dracula">Dracula (Púrpura Neón)</option>
@@ -53,22 +56,22 @@
 
     <!-- Quick Access Folder Bar -->
     <div class="quick-access-bar">
-      <span class="bar-label"><i data-lucide="folder-open"></i> EXPLORADOR DE ARCHIVOS:</span>
+      <span class="bar-label"><i data-lucide="folder-open"></i> <span id="lbl-quick-access">EXPLORADOR DE ARCHIVOS:</span></span>
       <div class="quick-links">
-        <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> Carpeta Spicetify</button>
-        <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> Carpeta Temas</button>
+        <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> <span id="lbl-spicetify-dir">Carpeta Spicetify</span></button>
+        <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> <span id="lbl-themes-dir">Carpeta Temas</span></button>
       </div>
     </div>
 
     <!-- Spotify Now Playing Widget -->
     <section class="panel player-panel">
-      <div class="panel-header"><i data-lucide="disc" class="icon-pulse"></i> // REPRODUCIENDO EN SPOTIFY</div>
+      <div class="panel-header"><i data-lucide="disc" class="icon-pulse"></i> <span id="lbl-player-header">// REPRODUCIENDO EN SPOTIFY</span></div>
       <div class="player-content">
         <div class="track-info" id="track-info">Cargando estado de Spotify...</div>
         <div class="player-controls">
-          <button class="btn btn-control" id="btn-prev"><i data-lucide="skip-back"></i> ANTERIOR</button>
-          <button class="btn btn-control btn-accent" id="btn-play"><i data-lucide="play"></i> REPRODUCIR / PAUSAR</button>
-          <button class="btn btn-control" id="btn-next"><i data-lucide="skip-forward"></i> SIGUIENTE</button>
+          <button class="btn btn-control" id="btn-prev"><i data-lucide="skip-back"></i> <span id="lbl-prev">ANTERIOR</span></button>
+          <button class="btn btn-control btn-accent" id="btn-play"><i data-lucide="play"></i> <span id="lbl-play">REPRODUCIR / PAUSAR</span></button>
+          <button class="btn btn-control" id="btn-next"><i data-lucide="skip-forward"></i> <span id="lbl-next">SIGUIENTE</span></button>
         </div>
       </div>
     </section>
@@ -96,7 +99,7 @@
 
       <div class="card card-interactive" id="card-theme">
         <div class="card-header">
-          <span class="card-title"><i data-lucide="palette"></i> 3. Tema Activo</span>
+          <span class="card-title"><i data-lucide="palette"></i> <span id="lbl-card-theme-title">3. Tema Activo</span></span>
           <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-theme">Verificando tema...</div>
@@ -108,10 +111,10 @@
     <section class="section-title" id="sec-title-actions">// ACCIONES GENERALES</section>
     <div class="actions-grid">
       <button class="btn btn-action btn-accent" id="btn-install">
-        <i data-lucide="download-cloud"></i> INSTALACIÓN / ACTUALIZACIÓN COMPLETA
+        <i data-lucide="download-cloud"></i> <span id="lbl-btn-install">INSTALACIÓN / ACTUALIZACIÓN COMPLETA</span>
       </button>
       <button class="btn btn-action btn-outline" id="btn-recover">
-        <i data-lucide="rotate-ccw"></i> RECUPERAR SISTEMA (POST-UPDATE)
+        <i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">RECUPERAR SISTEMA (POST-UPDATE)</span>
       </button>
     </div>
 
@@ -120,7 +123,7 @@
     <div class="panel ext-panel">
       <div class="ext-header">
         <span id="lbl-exts-header">Extensiones y Apps Detectadas:</span>
-        <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> RECARGAR</button>
+        <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> <span id="lbl-btn-refresh-exts">RECARGAR</span></button>
       </div>
       <div class="ext-grid" id="ext-grid">
         <div class="empty-msg">Cargando extensiones...</div>
@@ -183,9 +186,9 @@
         <div class="modal-section danger-zone">
           <h3 id="opt-sec-danger">ZONA DE PELIGRO (DESINSTALACIÓN Y RECUPERACIÓN)</h3>
           <div class="danger-actions">
-            <button class="btn btn-outline" id="btn-spicetify-apply"><i data-lucide="zap"></i> APLICAR CAMBIOS DE SPICETIFY</button>
-            <button class="btn btn-danger" id="btn-uninstall-spicetify"><i data-lucide="trash-2"></i> DESINSTALAR SPICETIFY</button>
-            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify"><i data-lucide="flame"></i> DESINSTALAR SPOTIFY Y SPICETIFY</button>
+            <button class="btn btn-outline" id="btn-spicetify-apply"><i data-lucide="zap"></i> <span id="lbl-btn-spicetify-apply">APLICAR CAMBIOS DE SPICETIFY</span></button>
+            <button class="btn btn-danger" id="btn-uninstall-spicetify"><i data-lucide="trash-2"></i> <span id="lbl-btn-uninstall-spicetify">DESINSTALAR SPICETIFY</span></button>
+            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify"><i data-lucide="flame"></i> <span id="lbl-btn-uninstall-spotify">DESINSTALAR SPOTIFY Y SPICETIFY</span></button>
           </div>
         </div>
       </div>
