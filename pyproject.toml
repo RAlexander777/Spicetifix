@@ -1,0 +1,17 @@
+[project]
+name = "automatify"
+version = "0.1.0"
+description = "Spotify + Spicetify automated installer — GUI app with CustomTkinter"
+requires-python = ">=3.11"
+dependencies = [
+    "customtkinter>=5.2.0",
+    "requests>=2.31.0",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+automatify = "automatify.__main__:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
