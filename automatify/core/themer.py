@@ -1,3 +1,4 @@
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -20,6 +21,20 @@ def _git_available() -> bool:
         return True
     except FileNotFoundError:
         return False
+
+
+def get_all_theme_dirs() -> list[Path]:
+    """Returns all potential Spicetify Themes directories (LOCALAPPDATA and APPDATA)."""
+    dirs = []
+    local_dir = get_spicetify_themes_dir()
+    if local_dir.exists():
+        dirs.append(local_dir)
+
+    appdata_themes = Path(os.environ.get("APPDATA", "")) / "spicetify" / "Themes"
+    if appdata_themes.exists() and appdata_themes not in dirs:
+        dirs.append(appdata_themes)
+
+    return dirs
 
 
 def install_themes() -> bool:
@@ -45,21 +60,36 @@ def install_themes() -> bool:
 
 
 def set_theme(name: str) -> bool:
-    target = get_spicetify_themes_dir() / name
-    if target.is_dir():
-        code, out, err = run_spicetify(["config", "current_theme", name])
-        return code == 0
-    return False
+    """Sets current theme in Spicetify configuration."""
+    if not name:
+        return True
+    code, out, err = run_spicetify(["config", "current_theme", name])
+    return code == 0
 
 
 def list_available_themes() -> list[str]:
-    themes_dir = get_spicetify_themes_dir()
-    if not themes_dir.exists():
-        return []
-    return sorted(
-        d.name
-        for d in themes_dir.iterdir()
-        if d.is_dir()
-        and (d / "color.ini").exists()
-        and (d / "user.css").exists()
-    )
+    """Scans all theme directories and config files to return all available Spicetify themes."""
+    themes = set()
+    for themes_dir in get_all_theme_dirs():
+        if themes_dir.exists() and themes_dir.is_dir():
+            for d in themes_dir.iterdir():
+                if d.is_dir() and not d.name.startswith("."):
+                    themes.add(d.name)
+
+    # Include current active themes from config files so they are never hidden
+    try:
+        from automatify.core.config import read_spicetify_config, load_user_config
+        sc = read_spicetify_config()
+        if sc and "Setting" in sc:
+            cur = sc["Setting"].get("current_theme", "").strip()
+            if cur:
+                themes.add(cur)
+
+        cfg = load_user_config()
+        user_theme = cfg.get("spicetify", {}).get("theme", "").strip()
+        if user_theme:
+            themes.add(user_theme)
+    except Exception:
+        pass
+
+    return sorted(list(themes))
