@@ -15,6 +15,34 @@
   --danger-border: #4d1c24;
 }
 
+body.theme-catppuccin {
+  --bg-color: #1e1e2e;
+  --card-bg: #181825;
+  --card-border: #313244;
+  --accent-color: #cba6f7;
+  --accent-hover: #b4befe;
+  --contrast-color: #89b4fa;
+  --text-main: #cdd6f4;
+  --text-muted: #a6adc8;
+  --console-bg: #11111b;
+  --console-fg: #cba6f7;
+  --danger-color: #f38ba8;
+}
+
+body.theme-gruvbox {
+  --bg-color: #282828;
+  --card-bg: #1d2021;
+  --card-border: #3c3836;
+  --accent-color: #fe8019;
+  --accent-hover: #d65d0e;
+  --contrast-color: #fabd2f;
+  --text-main: #ebdbb2;
+  --text-muted: #a89984;
+  --console-bg: #1d2021;
+  --console-fg: #fe8019;
+  --danger-color: #fb4934;
+}
+
 body.theme-synthwave {
   --bg-color: #120b1d;
   --card-bg: #1f1235;

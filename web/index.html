@@ -37,6 +37,8 @@
         <label for="ui-theme-select"><i data-lucide="palette"></i> Tema UI:</label>
         <select id="ui-theme-select" class="theme-dropdown">
           <option value="emerald">Cyber Emerald (Verde Neón)</option>
+          <option value="catppuccin">Catppuccin Mocha (Púrpura Pastel)</option>
+          <option value="gruvbox">Gruvbox Dark (Naranja Retro)</option>
           <option value="synthwave">Synthwave '84 (Magenta & Amarillo)</option>
           <option value="tokyo_night">Tokyo Night (Zafiro & Lavanda)</option>
           <option value="dracula">Dracula (Púrpura Neón)</option>
@@ -49,12 +51,10 @@
       </div>
     </header>
 
-    <!-- Quick Access & Links Bar -->
+    <!-- Quick Access Folder Bar -->
     <div class="quick-access-bar">
-      <span class="bar-label"><i data-lucide="compass"></i> ACCESOS RÁPIDOS:</span>
+      <span class="bar-label"><i data-lucide="folder-open"></i> EXPLORADOR DE ARCHIVOS:</span>
       <div class="quick-links">
-        <a href="https://spicetify.app" target="_blank" class="link-chip"><i data-lucide="globe"></i> Web Spicetify</a>
-        <a href="https://github.com/spicetify/spicetify-themes" target="_blank" class="link-chip"><i data-lucide="github"></i> Temas Spicetify</a>
         <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> Carpeta Spicetify</button>
         <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> Carpeta Temas</button>
       </div>
@@ -64,7 +64,7 @@
     <section class="panel player-panel">
       <div class="panel-header"><i data-lucide="disc" class="icon-pulse"></i> // REPRODUCIENDO EN SPOTIFY</div>
       <div class="player-content">
-        <div class="track-info" id="track-info">🎵 Cargando estado de Spotify...</div>
+        <div class="track-info" id="track-info">Cargando estado de Spotify...</div>
         <div class="player-controls">
           <button class="btn btn-control" id="btn-prev"><i data-lucide="skip-back"></i> ANTERIOR</button>
           <button class="btn btn-control btn-accent" id="btn-play"><i data-lucide="play"></i> REPRODUCIR / PAUSAR</button>
@@ -82,7 +82,7 @@
           <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
-        <div class="card-action" id="action-spotify">▶ Haz clic para instalar Spotify</div>
+        <div class="card-action" id="action-spotify">Haz clic para instalar Spotify</div>
       </div>
 
       <div class="card card-interactive" id="card-spicetify">
@@ -91,16 +91,16 @@
           <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
-        <div class="card-action" id="action-spicetify">▶ Haz clic para instalar Spicetify</div>
+        <div class="card-action" id="action-spicetify">Haz clic para instalar Spicetify</div>
       </div>
 
       <div class="card card-interactive" id="card-theme">
         <div class="card-header">
-          <span class="card-title"><i data-lucide="paint-brush"></i> 3. Tema Activo</span>
+          <span class="card-title"><i data-lucide="palette"></i> 3. Tema Activo</span>
           <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
         </div>
         <div class="card-sub" id="sub-theme">Verificando tema...</div>
-        <div class="card-action" id="action-theme">🎨 Haz clic para cambiar tema</div>
+        <div class="card-action" id="action-theme">Haz clic para cambiar tema</div>
       </div>
     </div>
 
@@ -150,7 +150,7 @@
       <div class="modal-body">
         <!-- Section: General -->
         <div class="modal-section">
-          <h3 id="opt-sec-gen">🌐 AJUSTES GENERALES</h3>
+          <h3 id="opt-sec-gen">AJUSTES GENERALES</h3>
           <div class="form-row">
             <label for="select-lang" id="lbl-lang">Idioma / Language:</label>
             <select id="select-lang" class="theme-dropdown">
@@ -169,7 +169,7 @@
 
         <!-- Section: Advanced Spicetify Flags -->
         <div class="modal-section">
-          <h3 id="opt-sec-flags">⚡ BANDERAS AVANZADAS DE SPICETIFY</h3>
+          <h3 id="opt-sec-flags">BANDERAS AVANZADAS DE SPICETIFY</h3>
           <div class="flags-grid">
             <label class="checkbox-label"><input type="checkbox" id="chk-inject-css" checked> <span id="lbl-flag-css">Inyectar CSS</span></label>
             <label class="checkbox-label"><input type="checkbox" id="chk-replace-colors" checked> <span id="lbl-flag-colors">Reemplazar Colores</span></label>
@@ -181,7 +181,7 @@
 
         <!-- Section: Danger Zone -->
         <div class="modal-section danger-zone">
-          <h3 id="opt-sec-danger">🚨 ZONA DE PELIGRO (DESINSTALACIÓN Y RECUPERACIÓN)</h3>
+          <h3 id="opt-sec-danger">ZONA DE PELIGRO (DESINSTALACIÓN Y RECUPERACIÓN)</h3>
           <div class="danger-actions">
             <button class="btn btn-outline" id="btn-spicetify-apply"><i data-lucide="zap"></i> APLICAR CAMBIOS DE SPICETIFY</button>
             <button class="btn btn-danger" id="btn-uninstall-spicetify"><i data-lucide="trash-2"></i> DESINSTALAR SPICETIFY</button>
@@ -219,11 +219,13 @@
           <div class="detail-item"><strong>Autor / Creador:</strong> RAlexander777</div>
           <div class="detail-item"><strong>Licencia:</strong> MIT Open Source License</div>
           <div class="detail-item"><strong>Motor:</strong> Python 3.11 + Win32 Media API + Web Engine</div>
-          <div class="detail-item"><strong>Repositorio GitHub:</strong> <a href="https://github.com/RAlexander777/Automatify.git" target="_blank" class="about-link">RAlexander777/Automatify</a></div>
+          <div class="detail-item"><strong>Repositorio GitHub:</strong> <a href="https://github.com/RAlexander777/Automatify.git" target="_blank" class="about-link"><i data-lucide="github"></i> RAlexander777/Automatify</a></div>
+          <div class="detail-item"><strong>Web de Spicetify:</strong> <a href="https://spicetify.app" target="_blank" class="about-link"><i data-lucide="globe"></i> spicetify.app</a></div>
+          <div class="detail-item"><strong>Web de Spotify:</strong> <a href="https://www.spotify.com" target="_blank" class="about-link"><i data-lucide="globe"></i> spotify.com</a></div>
         </div>
 
         <div class="about-features">
-          <h4>🚀 Funcionalidades Principales:</h4>
+          <h4>Funcionalidades Principales:</h4>
           <ul>
             <li>Instalación paso a paso o en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.</li>
             <li>Gestor visual de extensiones con interruptores en vivo.</li>

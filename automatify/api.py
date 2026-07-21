@@ -202,12 +202,12 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/open/spotify":
             try:
-                import os, subprocess
+                import os
                 spotify_exe = os.path.expanduser(r"~\AppData\Roaming\Spotify\Spotify.exe")
                 if os.path.exists(spotify_exe):
-                    subprocess.Popen([spotify_exe])
+                    os.startfile(spotify_exe)
                 else:
-                    subprocess.Popen(["cmd", "/c", "start", "spotify:"])
+                    os.startfile("spotify:")
                 self._send_json({"status": "ok"})
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
@@ -215,7 +215,7 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
         elif path == "/api/open/folder":
             target = body.get("target", "")
             try:
-                import os, subprocess
+                import os
                 from automatify.core.utils import get_spicetify_dir, get_spicetify_themes_dir
                 if target == "spicetify":
                     folder = get_spicetify_dir()
@@ -225,7 +225,7 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
                     folder = None
 
                 if folder and folder.exists():
-                    subprocess.Popen(["explorer", str(folder)])
+                    os.startfile(str(folder))
                     self._send_json({"status": "ok"})
                 else:
                     self._send_json({"error": "Folder not found"}, 404)
