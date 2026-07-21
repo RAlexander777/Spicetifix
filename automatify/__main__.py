@@ -1,4 +1,4 @@
-from automatify.ui.app import main
+from automatify.api import run_api_server
 
 if __name__ == "__main__":
-    main()
+    run_api_server(port=8765)
