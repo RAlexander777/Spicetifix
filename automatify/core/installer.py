@@ -90,9 +90,17 @@ class Installer:
 
         return True
 
+    def _close_spotify(self) -> None:
+        """Closes any running Spotify processes so Spicetify can patch files without file locks."""
+        try:
+            run_cmd(["taskkill", "/f", "/im", "Spotify.exe"])
+        except Exception:
+            pass
+
     def recover(self) -> bool:
         l = self._lang
         label = "spicetify restore backup apply"
+        self._close_spotify()
         self.log(f"[{label}] {t(l, 'step_start')}")
         code, out, err = run_spicetify(["restore", "backup", "apply"])
         self._clean_log(out)
@@ -225,6 +233,7 @@ class Installer:
         return init_spicetify_config()
 
     def _run_backup(self) -> bool:
+        self._close_spotify()
         code, out, err = run_spicetify(["restore", "backup"])
         self._clean_log(out)
         if err:
@@ -258,6 +267,7 @@ class Installer:
         return code == 0
 
     def _run_apply(self) -> bool:
+        self._close_spotify()
         code, out, err = run_spicetify(["apply"])
         self._clean_log(out)
         if err:

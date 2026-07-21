@@ -111,13 +111,13 @@ body {
 }
 
 .app-container {
-  max-width: 860px;
+  max-width: 960px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 24px;
 
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 /* Header */
@@ -125,10 +125,12 @@ body {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 12px 18px;
+  padding: 16px 20px;
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
+  gap: 16px;
 }
 
 .brand {
@@ -144,7 +146,7 @@ body {
 }
 
 .title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: bold;
   letter-spacing: 1px;
   color: var(--accent-color);
@@ -153,15 +155,22 @@ body {
 .badge {
   font-size: 0.8rem;
   font-weight: bold;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
   color: var(--contrast-color);
 }
 
-.header-controls {
+.header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.header-theme-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.85rem;
   color: var(--text-muted);
 }
@@ -181,27 +190,28 @@ body {
 .panel {
   background-color: var(--bg-color);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
-  padding: 14px 16px;
+  border-radius: 8px;
+  padding: 16px 20px;
 }
 
 .panel-header {
   font-size: 0.85rem;
   font-weight: bold;
   color: var(--contrast-color);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .track-info {
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: bold;
   color: var(--accent-color);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .player-controls {
   display: flex;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .section-title {
@@ -214,22 +224,25 @@ body {
 /* Cards */
 .status-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
 }
 
 .card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
-  padding: 12px 14px;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .card-title {
@@ -244,7 +257,7 @@ body {
 }
 
 .card-sub {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
 }
 
@@ -256,13 +269,13 @@ body {
 
 .card-interactive:hover {
   border-color: var(--accent-color);
-  box-shadow: 0 4px 14px rgba(0, 255, 157, 0.15);
+  box-shadow: 0 4px 16px rgba(0, 255, 157, 0.15);
   transform: translateY(-2px);
 }
 
 .card-action {
-  margin-top: 8px;
-  font-size: 0.75rem;
+  margin-top: 10px;
+  font-size: 0.78rem;
   font-weight: bold;
   color: var(--accent-color);
   display: flex;
@@ -273,16 +286,16 @@ body {
 /* Actions */
 .actions-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
 }
 
 .btn {
   font-family: var(--font-mono);
   font-size: 0.85rem;
   font-weight: bold;
-  padding: 10px 16px;
-  border-radius: 4px;
+  padding: 12px 18px;
+  border-radius: 6px;
   border: 1px solid var(--card-border);
   background-color: var(--card-bg);
   color: var(--text-main);
@@ -311,8 +324,8 @@ body {
 }
 
 .btn-small {
-  padding: 4px 8px;
-  font-size: 0.75rem;
+  padding: 6px 12px;
+  font-size: 0.8rem;
   color: var(--accent-color);
 }
 
@@ -335,14 +348,14 @@ body {
   align-items: center;
   font-size: 0.85rem;
   color: var(--text-muted);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .ext-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 8px;
-  max-height: 160px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+  max-height: 180px;
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -352,10 +365,10 @@ body {
   justify-content: space-between;
   align-items: center;
   background-color: var(--card-bg);
-  padding: 6px 10px;
-  border-radius: 4px;
+  padding: 8px 12px;
+  border-radius: 6px;
   border: 1px solid var(--card-border);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
 }
 
 .ext-item input[type="checkbox"] {
@@ -367,23 +380,23 @@ body {
 .console-box {
   background-color: var(--console-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
-  padding: 12px;
-  height: 140px;
+  border-radius: 8px;
+  padding: 14px;
+  height: 160px;
   overflow-y: auto;
 }
 
 .console-box pre {
   color: var(--console-fg);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   white-space: pre-wrap;
 }
 
 /* Progress */
 .progress-container {
-  height: 4px;
+  height: 5px;
   background-color: var(--card-bg);
-  border-radius: 2px;
+  border-radius: 3px;
   overflow: hidden;
 }
 
@@ -401,7 +414,7 @@ body {
   width: 100vw;
   height: 100vh;
   background-color: rgba(8, 9, 13, 0.85);
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -419,18 +432,18 @@ body {
 .modal-content {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
+  border-radius: 10px;
   width: 90%;
-  max-width: 620px;
+  max-width: 640px;
   max-height: 85vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
 
 .modal-header {
-  padding: 16px 20px;
+  padding: 16px 22px;
   border-bottom: 1px solid var(--card-border);
   display: flex;
   justify-content: space-between;
@@ -446,7 +459,7 @@ body {
   background: transparent;
   border: none;
   color: var(--text-muted);
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   cursor: pointer;
 }
 
@@ -455,31 +468,31 @@ body {
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 22px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 20px;
 }
 
 .modal-section h3 {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--contrast-color);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .form-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   font-size: 0.85rem;
 }
 
 .flags-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 12px;
   font-size: 0.85rem;
 }
 
@@ -496,17 +509,17 @@ body {
 
 .danger-zone {
   border-top: 1px dashed var(--card-border);
-  padding-top: 14px;
+  padding-top: 16px;
 }
 
 .danger-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .modal-footer {
-  padding: 14px 20px;
+  padding: 16px 22px;
   border-top: 1px solid var(--card-border);
   display: flex;
   justify-content: flex-end;
@@ -518,11 +531,11 @@ body {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--card-border);
-  padding-bottom: 10px;
+  padding-bottom: 12px;
 }
 
 .about-logo {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: bold;
   color: var(--accent-color);
 }
@@ -533,20 +546,20 @@ body {
 }
 
 .about-desc {
-  font-size: 0.85rem;
-  line-height: 1.5;
+  font-size: 0.88rem;
+  line-height: 1.6;
   color: var(--text-main);
 }
 
 .about-details {
   background-color: var(--bg-color);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
-  padding: 12px;
+  border-radius: 8px;
+  padding: 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  font-size: 0.8rem;
+  gap: 8px;
+  font-size: 0.82rem;
 }
 
 .about-link {
@@ -559,18 +572,18 @@ body {
 }
 
 .about-features h4 {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   color: var(--contrast-color);
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 
 .about-features ul {
   list-style-type: none;
   padding-left: 0;
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .about-features li::before {
