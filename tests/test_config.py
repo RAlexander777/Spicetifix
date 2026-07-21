@@ -11,9 +11,8 @@ from spicetifix.core.config import (
 
 
 class TestConfigExtensionDetection(unittest.TestCase):
-    @patch("spicetifix.core.config.read_spicetify_config")
     @patch("spicetifix.core.utils.get_spicetify_extensions_dir")
-    def test_get_installed_extensions(self, mock_ext_dir, mock_read_config):
+    def test_get_installed_extensions(self, mock_ext_dir):
         mock_dir = MagicMock(spec=Path)
         mock_dir.exists.return_value = True
         mock_dir.is_dir.return_value = True
@@ -31,23 +30,17 @@ class TestConfigExtensionDetection(unittest.TestCase):
         mock_dir.iterdir.return_value = [file1, file2]
         mock_ext_dir.return_value = mock_dir
 
-        mock_read_config.return_value = {
-            "AdditionalOptions": {"extensions": "bookmark.js|marketplace.js"}
-        }
-
         exts = get_installed_extensions()
         self.assertIn("marketplace.js", exts)
         self.assertIn("trashbin.mjs", exts)
-        self.assertIn("bookmark.js", exts)
+        self.assertEqual(len(exts), 2)
 
-    @patch("spicetifix.core.config.read_spicetify_config")
     @patch("spicetifix.core.config.get_installed_extensions")
     @patch("spicetifix.core.config.get_user_config_path")
-    def test_load_user_config_auto_detects(self, mock_path, mock_get_installed, mock_read_config):
+    def test_load_user_config_auto_detects(self, mock_path, mock_get_installed):
         mock_file = MagicMock(spec=Path)
         mock_file.exists.return_value = False
         mock_path.return_value = mock_file
-        mock_read_config.return_value = None
 
         mock_get_installed.return_value = ["marketplace.js", "bookmark.js"]
 
