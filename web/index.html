@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,88 +13,89 @@
       <div class="brand">
         <span class="prompt-icon">❯</span>
         <h1 class="title">AUTOMATIFY</h1>
-        <span class="badge badge-online" id="system-badge">[ SYSTEM_READY ]</span>
+        <span class="badge badge-online" id="system-badge">[ SISTEMA_LISTO ]</span>
       </div>
 
       <div class="header-controls">
-        <button class="btn btn-small btn-outline" id="btn-open-options">⚙ OPTIONS</button>
-        <label for="ui-theme-select">UI Theme:</label>
+        <button class="btn btn-small btn-outline" id="btn-open-about">ℹ ACERCA DE</button>
+        <button class="btn btn-small btn-outline" id="btn-open-options">⚙ OPCIONES</button>
+        <label for="ui-theme-select">Tema UI:</label>
         <select id="ui-theme-select" class="theme-dropdown">
-          <option value="emerald">Cyber Emerald (Neon Green)</option>
-          <option value="dracula">Dracula (Neon Purple)</option>
-          <option value="amber">Amber CRT (Retro Amber)</option>
-          <option value="nord">Nordic Frost (Ice Blue)</option>
-          <option value="matrix">Matrix Void (Deep Green)</option>
-          <option value="light_clean">Light Clean (White & Cyan)</option>
-          <option value="light_emerald">Light Emerald (White & Green)</option>
+          <option value="emerald">Cyber Emerald (Verde Neón)</option>
+          <option value="dracula">Dracula (Púrpura Neón)</option>
+          <option value="amber">Amber CRT (Ámbar Retro)</option>
+          <option value="nord">Nordic Frost (Azul Hielo)</option>
+          <option value="matrix">Matrix Void (Verde Profundo)</option>
+          <option value="light_clean">Light Clean (Blanco y Cyan)</option>
+          <option value="light_emerald">Light Emerald (Blanco y Verde)</option>
         </select>
       </div>
     </header>
 
     <!-- Spotify Now Playing Widget -->
     <section class="panel player-panel">
-      <div class="panel-header">// SPOTIFY NOW PLAYING</div>
+      <div class="panel-header">// REPRODUCIENDO EN SPOTIFY</div>
       <div class="player-content">
-        <div class="track-info" id="track-info">🎵 Loading Spotify Status...</div>
+        <div class="track-info" id="track-info">🎵 Cargando estado de Spotify...</div>
         <div class="player-controls">
-          <button class="btn btn-control" id="btn-prev">⏮ PREV</button>
-          <button class="btn btn-control btn-accent" id="btn-play">⏯ PLAY / PAUSE</button>
-          <button class="btn btn-control" id="btn-next">⏭ NEXT</button>
+          <button class="btn btn-control" id="btn-prev">⏮ ANTERIOR</button>
+          <button class="btn btn-control btn-accent" id="btn-play">⏯ REPRODUCIR / PAUSAR</button>
+          <button class="btn btn-control" id="btn-next">⏭ SIGUIENTE</button>
         </div>
       </div>
     </section>
 
     <!-- Status Cards -->
-    <section class="section-title">// SYSTEM STATUS</section>
+    <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA</section>
     <div class="status-cards-grid">
       <div class="card" id="card-spotify">
         <div class="card-header">
           <span class="card-title">❯ Spotify</span>
-          <span class="card-tag" id="tag-spotify">[ CHECKING ]</span>
+          <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
         </div>
-        <div class="card-sub" id="sub-spotify">Detecting installation...</div>
+        <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
       </div>
 
       <div class="card" id="card-spicetify">
         <div class="card-header">
           <span class="card-title">❯ Spicetify</span>
-          <span class="card-tag" id="tag-spicetify">[ CHECKING ]</span>
+          <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
         </div>
-        <div class="card-sub" id="sub-spicetify">Checking config-xpui.ini...</div>
+        <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
       </div>
 
       <div class="card" id="card-theme">
         <div class="card-header">
-          <span class="card-title">❯ Active Theme</span>
-          <span class="card-tag" id="tag-theme">[ CHECKING ]</span>
+          <span class="card-title">❯ Tema Activo</span>
+          <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
         </div>
-        <div class="card-sub" id="sub-theme">Checking theme...</div>
+        <div class="card-sub" id="sub-theme">Verificando tema...</div>
       </div>
     </div>
 
     <!-- Actions Section -->
-    <section class="section-title">// SYSTEM ACTIONS</section>
+    <section class="section-title" id="sec-title-actions">// ACCIONES DEL SISTEMA</section>
     <div class="actions-grid">
-      <button class="btn btn-action btn-accent" id="btn-install">▶ RUN FULL INSTALL / UPDATE</button>
-      <button class="btn btn-action btn-outline" id="btn-recover">↺ RECOVER SYSTEM</button>
+      <button class="btn btn-action btn-accent" id="btn-install">▶ EJECUTAR INSTALACIÓN COMPLETA</button>
+      <button class="btn btn-action btn-outline" id="btn-recover">↺ RECUPERAR SISTEMA</button>
     </div>
 
     <!-- Extension Manager -->
-    <section class="section-title">// SPICETIFY EXTENSION MANAGER</section>
+    <section class="section-title" id="sec-title-exts">// GESTOR DE EXTENSIONES SPICETIFY</section>
     <div class="panel ext-panel">
       <div class="ext-header">
-        <span>Detected Extensions & Custom Apps:</span>
-        <button class="btn btn-small" id="btn-refresh-exts">↻ REFRESH</button>
+        <span id="lbl-exts-header">Extensiones y Apps Detectadas:</span>
+        <button class="btn btn-small" id="btn-refresh-exts">↻ RECARGAR</button>
       </div>
       <div class="ext-grid" id="ext-grid">
-        <div class="empty-msg">Loading extensions...</div>
+        <div class="empty-msg">Cargando extensiones...</div>
       </div>
     </div>
 
     <!-- Terminal Console Output -->
-    <section class="section-title">// SYSTEM LOGS</section>
+    <section class="section-title" id="sec-title-logs">// CONSOLA DE LOGS</section>
     <div class="console-box">
-      <pre id="console-output">root@automatify:~$ system initialized. Ready.</pre>
+      <pre id="console-output">root@automatify:~$ sistema inicializado. Listo.</pre>
     </div>
 
     <!-- Progress Bar -->
@@ -107,24 +108,24 @@
   <div class="modal-overlay" id="options-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>⚙ SYSTEM OPTIONS & CONFIGURATION</h2>
+        <h2 id="modal-opt-title">⚙ OPCIONES Y CONFIGURACIÓN DEL SISTEMA</h2>
         <button class="modal-close" id="btn-close-options">✕</button>
       </div>
 
       <div class="modal-body">
         <!-- Section: General -->
         <div class="modal-section">
-          <h3>🌐 GENERAL SETTINGS</h3>
+          <h3 id="opt-sec-gen">🌐 AJUSTES GENERALES</h3>
           <div class="form-row">
-            <label for="select-lang">Language / Idioma:</label>
+            <label for="select-lang" id="lbl-lang">Idioma / Language:</label>
             <select id="select-lang" class="theme-dropdown">
+              <option value="es">Español</option>
               <option value="en">English</option>
-              <option value="es">Español (Rioplatense)</option>
             </select>
           </div>
 
           <div class="form-row">
-            <label for="select-spicetify-theme">Spicetify Theme:</label>
+            <label for="select-spicetify-theme" id="lbl-spicetify-theme">Tema de Spicetify:</label>
             <select id="select-spicetify-theme" class="theme-dropdown">
               <!-- Dynamically populated -->
             </select>
@@ -133,29 +134,73 @@
 
         <!-- Section: Advanced Spicetify Flags -->
         <div class="modal-section">
-          <h3>⚡ ADVANCED SPICETIFY FLAGS</h3>
+          <h3 id="opt-sec-flags">⚡ BANDERAS AVANZADAS DE SPICETIFY</h3>
           <div class="flags-grid">
-            <label class="checkbox-label"><input type="checkbox" id="chk-inject-css" checked> Inject CSS</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-replace-colors" checked> Replace Colors</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-overwrite-assets"> Overwrite Assets</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-devtools"> Always Enable DevTools</label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-sentry"> Enable Sentry Telemetry</label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-inject-css" checked> <span id="lbl-flag-css">Inyectar CSS</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-replace-colors" checked> <span id="lbl-flag-colors">Reemplazar Colores</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-overwrite-assets"> <span id="lbl-flag-assets">Sobrescribir Assets</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-devtools"> <span id="lbl-flag-devtools">DevTools Siempre Activo</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-sentry"> <span id="lbl-flag-sentry">Telemetría Sentry</span></label>
           </div>
         </div>
 
         <!-- Section: Danger Zone -->
         <div class="modal-section danger-zone">
-          <h3>🚨 DANGER ZONE (UNINSTALL & RECOVERY)</h3>
+          <h3 id="opt-sec-danger">🚨 ZONA DE PELIGRO (DESINSTALACIÓN Y RECUPERACIÓN)</h3>
           <div class="danger-actions">
-            <button class="btn btn-outline" id="btn-spicetify-apply">⚡ APPLY SPICETIFY CHANGES</button>
-            <button class="btn btn-danger" id="btn-uninstall-spicetify">🗑 UNINSTALL SPICETIFY</button>
-            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify">🔥 UNINSTALL SPOTIFY & SPICETIFY</button>
+            <button class="btn btn-outline" id="btn-spicetify-apply">⚡ APLICAR CAMBIOS DE SPICETIFY</button>
+            <button class="btn btn-danger" id="btn-uninstall-spicetify">🗑 DESINSTALAR SPICETIFY</button>
+            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify">🔥 DESINSTALAR SPOTIFY Y SPICETIFY</button>
           </div>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-accent" id="btn-save-options">SAVE & APPLY OPTIONS</button>
+        <button class="btn btn-accent" id="btn-save-options">GUARDAR Y APLICAR OPCIONES</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ABOUT MODAL -->
+  <div class="modal-overlay" id="about-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>ℹ ACERCA DE AUTOMATIFY</h2>
+        <button class="modal-close" id="btn-close-about">✕</button>
+      </div>
+
+      <div class="modal-body about-body">
+        <div class="about-hero">
+          <span class="about-logo">❯ AUTOMATIFY</span>
+          <span class="about-version">v0.2.0 (Tauri Web Engine)</span>
+        </div>
+
+        <p class="about-desc">
+          Automatify es un centro de control terminal de diseño minimalista e instalador automatizado para 
+          <strong>Spotify</strong> y <strong>Spicetify</strong> en Windows.
+        </p>
+
+        <div class="about-details">
+          <div class="detail-item"><strong>Autor / Creador:</strong> RAlexander777</div>
+          <div class="detail-item"><strong>Licencia:</strong> MIT Open Source License</div>
+          <div class="detail-item"><strong>Motor:</strong> Python 3.11 + Win32 Media API + Web Engine</div>
+          <div class="detail-item"><strong>Repositorio GitHub:</strong> <a href="https://github.com/RAlexander777/Automatify.git" target="_blank" class="about-link">RAlexander777/Automatify</a></div>
+        </div>
+
+        <div class="about-features">
+          <h4>🚀 Funcionalidades Principales:</h4>
+          <ul>
+            <li>Instalación en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.</li>
+            <li>Gestor visual de extensiones con interruptores en vivo.</li>
+            <li>Reproductor integrado de Spotify mediante llamadas nativas Win32 API.</li>
+            <li>Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).</li>
+            <li>7 Temas estéticos estilo cyberpunk con soporte para modo claro y oscuro.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btn-close-about-footer">CERRAR</button>
       </div>
     </div>
   </div>

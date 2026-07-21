@@ -489,3 +489,69 @@ body {
   display: flex;
   justify-content: flex-end;
 }
+
+/* ABOUT MODAL STYLES */
+.about-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 10px;
+}
+
+.about-logo {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: var(--accent-color);
+}
+
+.about-version {
+  font-size: 0.8rem;
+  color: var(--contrast-color);
+}
+
+.about-desc {
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--text-main);
+}
+
+.about-details {
+  background-color: var(--bg-color);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8rem;
+}
+
+.about-link {
+  color: var(--contrast-color);
+  text-decoration: none;
+}
+
+.about-link:hover {
+  text-decoration: underline;
+}
+
+.about-features h4 {
+  font-size: 0.85rem;
+  color: var(--contrast-color);
+  margin-bottom: 8px;
+}
+
+.about-features ul {
+  list-style-type: none;
+  padding-left: 0;
+  font-size: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.about-features li::before {
+  content: "❯ ";
+  color: var(--accent-color);
+}
