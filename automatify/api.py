@@ -232,6 +232,19 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
 
+        elif path == "/api/backup/export":
+            try:
+                from automatify.core.backup import export_backup_zip
+                ok, path_or_err = export_backup_zip()
+                if ok:
+                    _append_log(f"Respaldo ZIP creado con éxito: {path_or_err}")
+                    self._send_json({"status": "ok", "path": path_or_err})
+                else:
+                    _append_log(f"Error al crear respaldo ZIP: {path_or_err}")
+                    self._send_json({"error": path_or_err}, 500)
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
         elif path == "/api/spicetify/apply":
             _is_working = True
             _install_logs.clear()

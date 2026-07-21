@@ -54,12 +54,13 @@
       </div>
     </header>
 
-    <!-- Quick Access Folder Bar -->
+    <!-- Quick Access Folder & Backup Bar -->
     <div class="quick-access-bar">
-      <span class="bar-label"><i data-lucide="folder-open"></i> <span id="lbl-quick-access">EXPLORADOR DE ARCHIVOS:</span></span>
+      <span class="bar-label"><i data-lucide="folder-open"></i> <span id="lbl-quick-access">ACCESOS Y RESPALDOS:</span></span>
       <div class="quick-links">
         <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> <span id="lbl-spicetify-dir">Carpeta Spicetify</span></button>
         <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> <span id="lbl-themes-dir">Carpeta Temas</span></button>
+        <button class="btn-chip btn-chip-accent" id="btn-export-backup"><i data-lucide="archive"></i> <span id="lbl-export-backup">Exportar Respaldo (.zip)</span></button>
       </div>
     </div>
 
@@ -131,7 +132,13 @@
     </div>
 
     <!-- Terminal Console Output -->
-    <section class="section-title" id="sec-title-logs">// CONSOLA DE LOGS</section>
+    <div class="console-header">
+      <span class="section-title" id="sec-title-logs">// CONSOLA DE LOGS DEL SISTEMA</span>
+      <div class="console-actions">
+        <button class="btn btn-small btn-outline" id="btn-copy-logs"><i data-lucide="copy"></i> <span id="lbl-copy-logs">COPIAR LOGS</span></button>
+        <button class="btn btn-small btn-outline" id="btn-clear-logs"><i data-lucide="trash-2"></i> <span id="lbl-clear-logs">LIMPIAR</span></button>
+      </div>
+    </div>
     <div class="console-box">
       <pre id="console-output">root@automatify:~$ sistema inicializado. Listo.</pre>
     </div>
@@ -234,7 +241,7 @@
             <li>Gestor visual de extensiones con interruptores en vivo.</li>
             <li>Reproductor integrado de Spotify mediante llamadas nativas Win32 API.</li>
             <li>Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).</li>
-            <li>7 Temas estéticos estilo cyberpunk con soporte para modo claro y oscuro.</li>
+            <li>Respaldo completo exportable a comprimido ZIP.</li>
           </ul>
         </div>
       </div>

@@ -548,6 +548,49 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Export Backup ZIP button
+  const btnExportBackup = document.getElementById('btn-export-backup');
+  if (btnExportBackup) {
+    btnExportBackup.addEventListener('click', async () => {
+      const res = await apiFetch('/api/backup/export', 'POST');
+      if (res && res.status === 'ok') {
+        pollStatus();
+      }
+    });
+  }
+
+  // Copy Logs button
+  const btnCopyLogs = document.getElementById('btn-copy-logs');
+  if (btnCopyLogs) {
+    btnCopyLogs.addEventListener('click', () => {
+      const logs = document.getElementById('console-output').textContent;
+      navigator.clipboard.writeText(logs).then(() => {
+        const lbl = document.getElementById('lbl-copy-logs');
+        if (lbl) {
+          const oldTxt = lbl.textContent;
+          lbl.textContent = currentLang === 'es' ? '¡COPIADO!' : 'COPIED!';
+          setTimeout(() => { lbl.textContent = oldTxt; }, 1500);
+        }
+      });
+    });
+  }
+
+  // Clear Logs button
+  const btnClearLogs = document.getElementById('btn-clear-logs');
+  if (btnClearLogs) {
+    btnClearLogs.addEventListener('click', () => {
+      document.getElementById('console-output').textContent = 'root@automatify:~$ consola limpiada.';
+    });
+  }
+
+  // Global Keyboard Shortcuts
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeOptionsModal();
+      closeAboutModal();
+    }
+  });
+
   // Refresh Status button
   document.getElementById('btn-refresh-status').addEventListener('click', () => {
     pollStatus();

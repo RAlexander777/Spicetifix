@@ -358,6 +358,29 @@ svg[data-lucide], i[data-lucide] {
   color: var(--accent-color);
 }
 
+.btn-chip-accent {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background-color: var(--card-bg);
+}
+
+.btn-chip-accent:hover {
+  background-color: var(--accent-color);
+  color: #08090d;
+}
+
+.console-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.console-actions {
+  display: flex;
+  gap: 6px;
+}
+
 /* Panels */
 .panel {
   background-color: var(--bg-color);
