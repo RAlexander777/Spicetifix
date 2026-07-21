@@ -161,3 +161,34 @@ def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None)
         return True, "Respaldo importado correctamente."
     except Exception as e:
         return False, str(e)
+
+
+def pick_and_import_backup(progress_callback=None, log_callback=None) -> tuple[bool, str]:
+    """
+    Opens native Windows File Explorer dialog to pick a .zip backup file and imports it.
+    """
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+
+        project_root = Path(__file__).resolve().parent.parent.parent
+        backups_dir = project_root / "backups"
+        initial_dir = str(backups_dir) if backups_dir.exists() else None
+
+        zip_file = filedialog.askopenfilename(
+            title="Seleccionar respaldo de Automatify / Spicetify (.zip)",
+            initialdir=initial_dir,
+            filetypes=[("Archivos ZIP", "*.zip"), ("Todos los archivos", "*.*")]
+        )
+        root.destroy()
+
+        if not zip_file:
+            return False, "Selección cancelada por el usuario."
+
+        return import_backup_zip(Path(zip_file), progress_callback=progress_callback, log_callback=log_callback)
+    except Exception as e:
+        return False, str(e)

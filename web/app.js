@@ -603,26 +603,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Import Backup ZIP button
+  // Import Backup ZIP button (opens native Windows File Explorer dialog)
   const btnImportBackup = document.getElementById('btn-import-backup');
   if (btnImportBackup) {
     btnImportBackup.addEventListener('click', async () => {
-      const zipPath = prompt(
-        currentLang === 'es' 
-          ? 'Ingresa la ruta completa del archivo .zip a restaurar:' 
-          : 'Enter the full path of the .zip backup file to restore:'
-      );
-      if (zipPath) {
-        const res = await apiFetch('/api/backup/import', 'POST', { zip_path: zipPath });
-        if (res && res.status === 'ok') {
-          alert(currentLang === 'es' ? '¡Respaldo restaurado con éxito!' : 'Backup restored successfully!');
-          pollStatus();
-          loadExtensions();
-          loadThemes();
-        } else if (res && res.error) {
-          alert(`Error: ${res.error}`);
-        }
-      }
+      await apiFetch('/api/backup/import', 'POST');
+      pollStatus();
+      loadExtensions();
+      loadThemes();
     });
   }
 

@@ -257,9 +257,12 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
             def run():
                 global _is_working
                 try:
-                    from automatify.core.backup import import_backup_zip
+                    from automatify.core.backup import import_backup_zip, pick_and_import_backup
                     from pathlib import Path
-                    import_backup_zip(Path(zip_path_str), progress_callback=_set_progress, log_callback=_append_log)
+                    if zip_path_str:
+                        import_backup_zip(Path(zip_path_str), progress_callback=_set_progress, log_callback=_append_log)
+                    else:
+                        pick_and_import_backup(progress_callback=_set_progress, log_callback=_append_log)
                 finally:
                     _is_working = False
 
