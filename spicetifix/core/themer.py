@@ -39,13 +39,15 @@ def get_all_theme_dirs() -> list[Path]:
 
 
 def install_themes() -> bool:
-    """Clones or updates official Spicetify themes (text, Onepunch, Sleek, Catppuccin, etc.)."""
+    """Clones or updates official Spicetify themes."""
     themes_dir = get_spicetify_themes_dir()
-    text_theme_path = themes_dir / "text"
-    onepunch_path = themes_dir / "Onepunch"
+    themes_dir.mkdir(parents=True, exist_ok=True)
 
-    # If official themes already exist, return True
-    if text_theme_path.exists() and onepunch_path.exists():
+    has_any_theme = any(
+        d.is_dir() and not d.name.startswith(".")
+        for d in themes_dir.iterdir()
+    )
+    if has_any_theme:
         return True
 
     if not _git_available():
@@ -66,7 +68,6 @@ def install_themes() -> bool:
     )
 
     if code == 0 and temp_clone_dir.exists():
-        themes_dir.mkdir(parents=True, exist_ok=True)
         for item in temp_clone_dir.iterdir():
             if item.is_dir() and not item.name.startswith("."):
                 target = themes_dir / item.name

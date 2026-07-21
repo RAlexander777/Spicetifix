@@ -69,7 +69,7 @@ class Installer:
         steps = [
             (t(l, "step_spotify"), self._ensure_spotify),
             (t(l, "step_spicetify"), self._install_spicetify),
-            (t(l, "step_config"), self._configure_spicetify),
+            (t(l, "step_config"), lambda: self._configure_spicetify(user_config)),
             (t(l, "step_backup"), self._run_backup),
             (t(l, "step_themes"), lambda: self._install_themes(user_config)),
             (t(l, "step_marketplace"), self._install_marketplace),
@@ -223,14 +223,26 @@ class Installer:
         if err and "PromptForChoice" not in err:
             self._clean_log(err)
         installed = find_executable("spicetify")
-        if installed:
-            self.log(f"Spicetify installed at: {installed}")
-            return True
-        self.log(f"Spicetify install failed (exit code {code})")
-        return False
+        if not installed:
+            self.log(f"Spicetify install failed (exit code {code})")
+            return False
+        self.log(f"Spicetify installed at: {installed}")
+        self._close_spotify()
+        code, out, err = run_spicetify([])
+        self._clean_log(out)
+        if err:
+            self._clean_log(err)
+        if code != 0:
+            self.log(f"spicetify init exited with code {code}, continuing anyway")
+        return True
 
-    def _configure_spicetify(self) -> bool:
-        return init_spicetify_config()
+    def _configure_spicetify(self, user_config: dict) -> bool:
+        from spicetifix.core.config import write_spicetify_config
+        try:
+            write_spicetify_config(user_config)
+            return True
+        except FileNotFoundError:
+            return False
 
     def _run_backup(self) -> bool:
         self._close_spotify()

@@ -96,8 +96,8 @@ def _default_config() -> dict:
         "language": "en",
         "ui_theme": "emerald",
         "spicetify": {
-            "theme": "Onepunch",
-            "color_scheme": "dark",
+            "theme": "text",
+            "color_scheme": "",
             "spotify_launch_flags": "--no-update",
         },
         "extensions": [],
