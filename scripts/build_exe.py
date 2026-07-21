@@ -1,10 +1,11 @@
 import os
 import subprocess
+import sys
 import zipfile
 from pathlib import Path
 
 
-def build_standalone_exe():
+def build_standalone_exe(console=False):
     print("=" * 50)
     print("   SPICETIFIX BUILDER (PyInstaller + ZIP)")
     print("=" * 50)
@@ -16,22 +17,26 @@ def build_standalone_exe():
     app_name = "Spicetifix"
 
     try:
-        subprocess.run(["pyinstaller", "--version"], capture_output=True, check=True)
+        subprocess.run([sys.executable, "-m", "PyInstaller", "--version"], capture_output=True, check=True)
     except Exception:
         print("Installing PyInstaller...")
         subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
 
     cmd = [
-        "pyinstaller",
+        sys.executable, "-m", "PyInstaller",
         "--noconfirm",
         "--onedir",
-        "--windowed",
         "--clean",
         f"--name={app_name}",
         f"--add-data={web_dir}{os.pathsep}web",
-        "--add-data", f"{project_root / 'spicetifix'}{os.pathsep}spicetifix",
+        "--hidden-import=tkinter",
+        "--hidden-import=tkinter.filedialog",
+        "--collect-all=spicetifix",
         str(main_script),
     ]
+
+    if not console:
+        cmd.insert(cmd.index("--clean") + 1, "--windowed")
 
     print(f"\nRunning: {' '.join(cmd)}\n")
     res = subprocess.run(cmd, cwd=str(project_root))
@@ -87,10 +92,10 @@ def build_zip_only():
     return True
 
 
-import sys
-
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--zip-only":
         build_zip_only()
+    elif len(sys.argv) > 1 and sys.argv[1] == "--console":
+        build_standalone_exe(console=True)
     else:
         build_standalone_exe()
