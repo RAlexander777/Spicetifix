@@ -58,6 +58,7 @@ venv.bak/
 
 # Local User Config (Automatify user settings)
 automatify.yaml
+backups/
 
 # IDEs and Editors
 .vscode/

@@ -17,15 +17,14 @@ from automatify.core.config import get_user_config_path
 def export_backup_zip(dest_dir: Path = None) -> tuple[bool, str]:
     """
     Creates a .zip archive containing Spicetify configuration, themes, extensions,
-    custom apps, and Automatify user settings.
+    custom apps, and Automatify user settings inside the project's backups/ directory.
     """
     try:
         if dest_dir is None:
-            desktop = Path(os.path.expanduser(r"~\Desktop"))
-            if desktop.exists():
-                dest_dir = desktop
-            else:
-                dest_dir = Path(os.path.expanduser(r"~\Downloads"))
+            project_root = Path(__file__).resolve().parent.parent.parent
+            dest_dir = project_root / "backups"
+
+        dest_dir.mkdir(parents=True, exist_ok=True)
 
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         zip_name = f"automatify_backup_{timestamp}.zip"
