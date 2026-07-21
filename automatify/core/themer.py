@@ -1,4 +1,5 @@
 import os
+import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -38,25 +39,43 @@ def get_all_theme_dirs() -> list[Path]:
 
 
 def install_themes() -> bool:
+    """Clones or updates official Spicetify themes (text, Onepunch, Sleek, Catppuccin, etc.)."""
     themes_dir = get_spicetify_themes_dir()
-    if themes_dir.exists() and any(themes_dir.iterdir()):
+    text_theme_path = themes_dir / "text"
+    onepunch_path = themes_dir / "Onepunch"
+
+    # If official themes already exist, return True
+    if text_theme_path.exists() and onepunch_path.exists():
         return True
 
     if not _git_available():
         return False
 
-    themes_dir.mkdir(parents=True, exist_ok=True)
+    temp_clone_dir = themes_dir.parent / "spicetify-themes-tmp"
+    shutil.rmtree(temp_clone_dir, ignore_errors=True)
+
     code, out, err = run_cmd(
         [
             "git",
             "clone",
             "--depth=1",
             SPICETIFY_THEMES_REPO,
-            str(themes_dir),
+            str(temp_clone_dir),
         ],
         timeout=120,
     )
-    return code == 0
+
+    if code == 0 and temp_clone_dir.exists():
+        themes_dir.mkdir(parents=True, exist_ok=True)
+        for item in temp_clone_dir.iterdir():
+            if item.is_dir() and not item.name.startswith("."):
+                target = themes_dir / item.name
+                if not target.exists():
+                    shutil.copytree(item, target)
+        shutil.rmtree(temp_clone_dir, ignore_errors=True)
+        return True
+
+    return False
 
 
 def set_theme(name: str) -> bool:
