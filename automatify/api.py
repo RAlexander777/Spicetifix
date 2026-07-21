@@ -233,32 +233,38 @@ class AutomatifyAPIHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": str(e)}, 500)
 
         elif path == "/api/backup/export":
-            try:
-                from automatify.core.backup import export_backup_zip
-                ok, path_or_err = export_backup_zip()
-                if ok:
-                    _append_log(f"Respaldo ZIP creado con éxito: {path_or_err}")
-                    self._send_json({"status": "ok", "path": path_or_err})
-                else:
-                    _append_log(f"Error al crear respaldo ZIP: {path_or_err}")
-                    self._send_json({"error": path_or_err}, 500)
-            except Exception as e:
-                self._send_json({"error": str(e)}, 500)
+            _is_working = True
+            _install_logs.clear()
+            _install_progress = 0.0
+
+            def run():
+                global _is_working
+                try:
+                    from automatify.core.backup import export_backup_zip
+                    export_backup_zip(progress_callback=_set_progress, log_callback=_append_log)
+                finally:
+                    _is_working = False
+
+            threading.Thread(target=run, daemon=True).start()
+            self._send_json({"status": "started"})
 
         elif path == "/api/backup/import":
             zip_path_str = body.get("zip_path", "")
-            try:
-                from automatify.core.backup import import_backup_zip
-                from pathlib import Path
-                ok, msg = import_backup_zip(Path(zip_path_str))
-                if ok:
-                    _append_log(f"Respaldo restaurado: {msg}")
-                    self._send_json({"status": "ok", "message": msg})
-                else:
-                    _append_log(f"Error al importar respaldo: {msg}")
-                    self._send_json({"error": msg}, 400)
-            except Exception as e:
-                self._send_json({"error": str(e)}, 500)
+            _is_working = True
+            _install_logs.clear()
+            _install_progress = 0.0
+
+            def run():
+                global _is_working
+                try:
+                    from automatify.core.backup import import_backup_zip
+                    from pathlib import Path
+                    import_backup_zip(Path(zip_path_str), progress_callback=_set_progress, log_callback=_append_log)
+                finally:
+                    _is_working = False
+
+            threading.Thread(target=run, daemon=True).start()
+            self._send_json({"status": "started"})
 
         elif path == "/api/themes/schemes":
             theme_name = body.get("theme", "")

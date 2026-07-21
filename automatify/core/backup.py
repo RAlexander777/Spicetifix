@@ -14,12 +14,20 @@ from automatify.core.utils import (
 from automatify.core.config import get_user_config_path
 
 
-def export_backup_zip(dest_dir: Path = None) -> tuple[bool, str]:
+def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callback=None) -> tuple[bool, str]:
     """
     Creates a .zip archive containing Spicetify configuration, themes, extensions,
     custom apps, and Automatify user settings inside the project's backups/ directory.
     """
     try:
+        def _log(msg):
+            if log_callback: log_callback(msg)
+        def _prog(pct):
+            if progress_callback: progress_callback(pct)
+
+        _log("Iniciando exportación de respaldo ZIP...")
+        _prog(0.1)
+
         if dest_dir is None:
             project_root = Path(__file__).resolve().parent.parent.parent
             dest_dir = project_root / "backups"
@@ -30,7 +38,6 @@ def export_backup_zip(dest_dir: Path = None) -> tuple[bool, str]:
         zip_name = f"automatify_backup_{timestamp}.zip"
         zip_path = dest_dir / zip_name
 
-        spicetify_dir = get_spicetify_dir()
         config_ini = get_spicetify_config_path()
         themes_dir = get_spicetify_themes_dir()
         extensions_dir = get_spicetify_extensions_dir()
@@ -38,15 +45,16 @@ def export_backup_zip(dest_dir: Path = None) -> tuple[bool, str]:
         automatify_cfg = get_user_config_path()
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            # Add config-xpui.ini
+            _log("Comprimiendo archivos de configuración...")
+            _prog(0.3)
             if config_ini and config_ini.exists():
                 zf.write(config_ini, arcname="config-xpui.ini")
 
-            # Add automatify_config.json
             if automatify_cfg and automatify_cfg.exists():
                 zf.write(automatify_cfg, arcname="automatify_config.json")
 
-            # Helper to zip subdirectories recursively
+            _log("Comprimiendo carpeta de Temas...")
+            _prog(0.5)
             def add_dir_to_zip(folder_path: Path, arc_prefix: str):
                 if folder_path and folder_path.exists() and folder_path.is_dir():
                     for root, _, files in os.walk(folder_path):
@@ -56,10 +64,15 @@ def export_backup_zip(dest_dir: Path = None) -> tuple[bool, str]:
                             zf.write(full_file, arcname=f"{arc_prefix}/{rel_path}")
 
             add_dir_to_zip(themes_dir, "Themes")
+
+            _log("Comprimiendo extensiones y aplicaciones...")
+            _prog(0.8)
             add_dir_to_zip(extensions_dir, "Extensions")
             add_dir_to_zip(custom_apps_dir, "CustomApps")
 
-        # Open directory highlighting created backup
+        _log(f"Respaldo creado con éxito en: {zip_path}")
+        _prog(1.0)
+
         if os.name == "nt":
             try:
                 os.startfile(str(dest_dir))
@@ -72,12 +85,20 @@ def export_backup_zip(dest_dir: Path = None) -> tuple[bool, str]:
         return False, str(e)
 
 
-def import_backup_zip(zip_path: Path) -> tuple[bool, str]:
+def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None) -> tuple[bool, str]:
     """
     Extracts a backup .zip archive and restores Spicetify configuration, themes,
     extensions, custom apps, and Automatify user settings.
     """
     try:
+        def _log(msg):
+            if log_callback: log_callback(msg)
+        def _prog(pct):
+            if progress_callback: progress_callback(pct)
+
+        _log(f"Iniciando importación de respaldo: {zip_path}")
+        _prog(0.1)
+
         zip_path = Path(zip_path)
         if not zip_path.exists():
             return False, "El archivo de respaldo ZIP no existe."
@@ -89,7 +110,11 @@ def import_backup_zip(zip_path: Path) -> tuple[bool, str]:
         automatify_cfg = get_user_config_path()
 
         with zipfile.ZipFile(zip_path, "r") as zf:
-            for member in zf.infolist():
+            members = zf.infolist()
+            total_members = len(members) or 1
+            for idx, member in enumerate(members):
+                pct = 0.1 + (0.8 * (idx / total_members))
+                _prog(pct)
                 name = member.filename
                 if name == "config-xpui.ini" and config_ini:
                     config_ini.parent.mkdir(parents=True, exist_ok=True)
@@ -131,6 +156,8 @@ def import_backup_zip(zip_path: Path) -> tuple[bool, str]:
                         with zf.open(member) as src, open(dest, "wb") as dst:
                             shutil.copyfileobj(src, dst)
 
+        _log("Importación de respaldo completada con éxito.")
+        _prog(1.0)
         return True, "Respaldo importado correctamente."
     except Exception as e:
         return False, str(e)

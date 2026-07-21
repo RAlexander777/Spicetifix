@@ -87,20 +87,49 @@ def set_theme(name: str) -> bool:
 
 
 def get_theme_color_schemes(theme_name: str) -> list[str]:
-    """Reads color.ini for the specified theme and returns all section names (schemes)."""
+    """Reads color.ini for the specified theme (case-insensitive) and returns all section names (schemes)."""
     schemes = []
     if not theme_name:
         return schemes
+
+    target_lower = theme_name.lower().strip()
+
     for themes_dir in get_all_theme_dirs():
-        color_ini = themes_dir / theme_name / "color.ini"
-        if color_ini.exists():
-            try:
-                import configparser
-                parser = configparser.ConfigParser(strict=False)
-                parser.read(color_ini, encoding="utf-8")
-                schemes.extend(parser.sections())
-            except Exception:
-                pass
+        if not themes_dir.exists():
+            continue
+        for sub in themes_dir.iterdir():
+            if sub.is_dir() and sub.name.lower() == target_lower:
+                color_ini = sub / "color.ini"
+                if color_ini.exists():
+                    try:
+                        import configparser
+                        parser = configparser.ConfigParser(strict=False)
+                        parser.read(color_ini, encoding="utf-8")
+                        schemes.extend(parser.sections())
+                    except Exception:
+                        pass
+
+    if schemes:
+        return list(dict.fromkeys(schemes))
+
+    # Fallback search across all themes for matching schemes
+    for themes_dir in get_all_theme_dirs():
+        if not themes_dir.exists():
+            continue
+        for sub in themes_dir.iterdir():
+            if sub.is_dir() and not sub.name.startswith("."):
+                color_ini = sub / "color.ini"
+                if color_ini.exists():
+                    try:
+                        import configparser
+                        parser = configparser.ConfigParser(strict=False)
+                        parser.read(color_ini, encoding="utf-8")
+                        for sec in parser.sections():
+                            if target_lower in sec.lower() or sec.lower().startswith(target_lower):
+                                schemes.append(sec)
+                    except Exception:
+                        pass
+
     return list(dict.fromkeys(schemes))
 
 
