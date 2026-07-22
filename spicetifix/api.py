@@ -1,7 +1,13 @@
 import json
+import os
+import sys
 import threading
+import time
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
+
+_last_request_time = time.time()
+_server_start_time = time.time()
 
 from spicetifix.core.config import (
     load_user_config,
@@ -32,6 +38,112 @@ def _set_progress(pct: float):
     _install_progress = pct
 
 
+def _get_marketplace_catalog() -> list[dict]:
+    from spicetifix.core.utils import get_spicetify_extensions_dir, get_spicetify_themes_dir
+    from spicetifix.core.config import load_user_config, read_spicetify_config
+
+    ext_dir = get_spicetify_extensions_dir()
+    themes_dir = get_spicetify_themes_dir()
+    cfg = load_user_config()
+    user_exts = set(cfg.get("extensions", []))
+    sc = read_spicetify_config()
+    cur_theme = sc.get("Setting", {}).get("current_theme", "") if sc else ""
+
+    items = [
+        {
+            "id": "adblock",
+            "title": "Spicetify Adblock",
+            "type": "extension",
+            "author": "rxri / Spicetify",
+            "description": "Bloquea anuncios de audio, banners y popups molestos dentro de Spotify.",
+            "filename": "adblock.js",
+            "url": "https://raw.githubusercontent.com/rxri/spicetify-extensions/refs/heads/main/adblock/adblock.js",
+            "installed": (ext_dir / "adblock.js").exists() or "adblock.js" in user_exts,
+        },
+        {
+            "id": "popup-lyrics",
+            "title": "Popup Lyrics",
+            "type": "extension",
+            "author": "Spicetify Team",
+            "description": "Muestra letras sincronizadas en tiempo real en una ventana flotante.",
+            "filename": "popupLyrics.js",
+            "url": "https://raw.githubusercontent.com/spicetify/spicetify-cli/main/Extensions/popupLyrics.js",
+            "installed": (ext_dir / "popupLyrics.js").exists() or "popupLyrics.js" in user_exts,
+        },
+        {
+            "id": "full-app-display",
+            "title": "Full App Display",
+            "type": "extension",
+            "author": "Spicetify Team",
+            "description": "Pantalla completa minimalista con portada gigante e interfaz inmersiva.",
+            "filename": "fullAppDisplay.js",
+            "url": "https://raw.githubusercontent.com/spicetify/spicetify-cli/main/Extensions/fullAppDisplay.js",
+            "installed": (ext_dir / "fullAppDisplay.js").exists() or "fullAppDisplay.js" in user_exts,
+        },
+        {
+            "id": "loopy-loop",
+            "title": "Loopy Loop",
+            "type": "extension",
+            "author": "Spicetify Team",
+            "description": "Bucle continuo A/B para repetir partes específicas de cualquier canción.",
+            "filename": "loopyLoop.js",
+            "url": "https://raw.githubusercontent.com/spicetify/spicetify-cli/main/Extensions/loopyLoop.js",
+            "installed": (ext_dir / "loopyLoop.js").exists() or "loopyLoop.js" in user_exts,
+        },
+        {
+            "id": "bookmark",
+            "title": "Bookmark",
+            "type": "extension",
+            "author": "Spicetify Team",
+            "description": "Guarda marcadores con marcas de tiempo en tus podcasts y canciones.",
+            "filename": "bookmark.js",
+            "url": "https://raw.githubusercontent.com/spicetify/spicetify-cli/main/Extensions/bookmark.js",
+            "installed": (ext_dir / "bookmark.js").exists() or "bookmark.js" in user_exts,
+        },
+        {
+            "id": "autoskip-explicit",
+            "title": "Auto Skip Explicit",
+            "type": "extension",
+            "author": "Spicetify Team",
+            "description": "Omite automáticamente las canciones etiquetadas como explícitas.",
+            "filename": "autoSkipExplicit.js",
+            "url": "https://raw.githubusercontent.com/spicetify/spicetify-cli/main/Extensions/autoSkipExplicit.js",
+            "installed": (ext_dir / "autoSkipExplicit.js").exists() or "autoSkipExplicit.js" in user_exts,
+        },
+        {
+            "id": "theme-text",
+            "title": "Text Theme",
+            "type": "theme",
+            "author": "Spicetify Themes",
+            "description": "Tema oscuro minimalista centrado en tipografía Consolas y estética retro.",
+            "filename": "text",
+            "url": "https://github.com/spicetify/spicetify-themes.git",
+            "installed": (themes_dir / "text").is_dir(),
+        },
+        {
+            "id": "theme-burnt-sienna",
+            "title": "Burnt Sienna Theme",
+            "type": "theme",
+            "author": "Spicetify Themes",
+            "description": "Tema cálido elegante con acentos terracota y alto contraste.",
+            "filename": "BurntSienna",
+            "url": "https://github.com/spicetify/spicetify-themes.git",
+            "installed": (themes_dir / "BurntSienna").is_dir(),
+        },
+        {
+            "id": "theme-sleek",
+            "title": "Sleek Theme",
+            "type": "theme",
+            "author": "Spicetify Themes",
+            "description": "Tema moderno, pulido y compacto para usuarios avanzados.",
+            "filename": "Sleek",
+            "url": "https://github.com/spicetify/spicetify-themes.git",
+            "installed": (themes_dir / "Sleek").is_dir(),
+        },
+    ]
+    return items
+
+
 class SpicetifixAPIHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Suppress standard HTTP server console spam
@@ -47,11 +159,16 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
     def do_OPTIONS(self):
+        global _last_request_time
+        _last_request_time = time.time()
         self._send_json({"status": "ok"})
 
     def do_GET(self):
-        parsed = urlparse(self.path)
-        path = parsed.path
+        try:
+            global _last_request_time
+            _last_request_time = time.time()
+            parsed = urlparse(self.path)
+            path = parsed.path
 
         if path == "/api/status":
             cfg = load_user_config()
@@ -110,6 +227,10 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 "custom_apps": app_list,
             })
 
+        elif path == "/api/marketplace/catalog":
+            catalog = _get_marketplace_catalog()
+            self._send_json({"status": "ok", "catalog": catalog})
+
         else:
             from pathlib import Path
             web_dir = Path(__file__).parent.parent / "web"
@@ -124,14 +245,20 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
                 self.send_response(200)
                 self.send_header("Content-Type", content_type)
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Expires", "0")
                 self.end_headers()
                 with open(file_path, "rb") as f:
                     self.wfile.write(f.read())
             else:
                 self._send_json({"error": "Endpoint or file not found"}, 404)
+        except Exception as e:
+            self._send_json({"error": str(e)}, 500)
 
     def do_POST(self):
-        global _is_working, _install_logs, _install_progress
+        global _last_request_time, _is_working, _install_logs, _install_progress
+        _last_request_time = time.time()
         parsed = urlparse(self.path)
         path = parsed.path
 
@@ -142,7 +269,120 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         except Exception:
             body = {}
 
-        if path == "/api/player":
+        if path == "/api/marketplace/install":
+            item_type = body.get("type", "")
+            filename = body.get("filename", "")
+            url = body.get("url", "")
+            if not filename or not url:
+                self._send_json({"error": "Parámetros inválidos"}, 400)
+                return
+
+            try:
+                from spicetifix.core.utils import (
+                    get_spicetify_extensions_dir,
+                    get_spicetify_themes_dir,
+                    run_spicetify,
+                )
+                from spicetifix.core.config import (
+                    load_user_config,
+                    save_user_config,
+                    write_spicetify_config,
+                )
+                from spicetifix.core.themer import install_themes, set_theme
+
+                if item_type == "extension":
+                    import requests
+                    ext_dir = get_spicetify_extensions_dir()
+                    ext_dir.mkdir(parents=True, exist_ok=True)
+                    resp = requests.get(url, timeout=30)
+                    resp.raise_for_status()
+                    target_file = ext_dir / filename
+                    target_file.write_bytes(resp.content)
+
+                    cfg = load_user_config()
+                    exts = set(cfg.get("extensions", []))
+                    exts.add(filename)
+                    cfg["extensions"] = list(exts)
+                    save_user_config(cfg)
+                    write_spicetify_config(cfg)
+                    run_spicetify(["apply"])
+                    self._send_json({"status": "ok", "message": f"Extensión {filename} instalada y aplicada"})
+
+                elif item_type == "theme":
+                    install_themes()
+                    cfg = load_user_config()
+                    cfg.setdefault("spicetify", {})["theme"] = filename
+                    save_user_config(cfg)
+                    write_spicetify_config(cfg)
+                    set_theme(filename)
+                    run_spicetify(["apply"])
+                    self._send_json({"status": "ok", "message": f"Tema {filename} instalado y aplicado"})
+
+                else:
+                    self._send_json({"error": "Tipo no soportado"}, 400)
+
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
+        elif path == "/api/marketplace/uninstall":
+            item_type = body.get("type", "")
+            filename = body.get("filename", "")
+            if not filename:
+                self._send_json({"error": "Parámetros inválidos"}, 400)
+                return
+
+            try:
+                from spicetifix.core.utils import (
+                    get_spicetify_extensions_dir,
+                    get_spicetify_themes_dir,
+                    run_spicetify,
+                )
+                from spicetifix.core.config import (
+                    load_user_config,
+                    save_user_config,
+                    write_spicetify_config,
+                )
+                from spicetifix.core.themer import set_theme
+
+                if item_type == "extension":
+                    ext_dir = get_spicetify_extensions_dir()
+                    target_file = ext_dir / filename
+                    if target_file.exists():
+                        target_file.unlink(missing_ok=True)
+
+                    cfg = load_user_config()
+                    exts = set(cfg.get("extensions", []))
+                    exts.discard(filename)
+                    cfg["extensions"] = list(exts)
+                    save_user_config(cfg)
+                    write_spicetify_config(cfg)
+                    run_spicetify(["apply"])
+                    self._send_json({"status": "ok", "message": f"Extensión {filename} desinstalada"})
+
+                elif item_type == "theme":
+                    themes_dir = get_spicetify_themes_dir()
+                    target_dir = themes_dir / filename
+                    if target_dir.exists() and filename.lower() not in ("spicetifydefault", "marketplace"):
+                        import shutil
+                        shutil.rmtree(target_dir, ignore_errors=True)
+
+                    cfg = load_user_config()
+                    if cfg.get("spicetify", {}).get("theme", "") == filename:
+                        cfg["spicetify"]["theme"] = "SpicetifyDefault"
+                        set_theme("SpicetifyDefault")
+
+                    save_user_config(cfg)
+                    write_spicetify_config(cfg)
+                    run_spicetify(["apply"])
+                    self._send_json({"status": "ok", "message": f"Tema {filename} desinstalado"})
+
+                else:
+                    self._send_json({"error": "Tipo no soportado"}, 400)
+
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
+        elif path == "/api/player":
             action = body.get("action", "")
             if action == "play_pause":
                 spotify_control.play_pause()
@@ -369,13 +609,30 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "Endpoint not found"}, 404)
 
 
+def _start_heartbeat_checker():
+    def checker():
+        while True:
+            time.sleep(2)
+            now = time.time()
+            if now - _server_start_time < 20:
+                continue
+            if now - _last_request_time > 8:
+                print("> No requests received for 8 seconds. Terminating Spicetifix API server process...")
+                os._exit(0)
+
+    t = threading.Thread(target=checker, daemon=True)
+    t.start()
+
+
 def run_api_server(port: int = 8765):
+    _start_heartbeat_checker()
     server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
     server.serve_forever()
 
 
 def make_server(port: int = 8765) -> HTTPServer:
+    _start_heartbeat_checker()
     server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
     return server

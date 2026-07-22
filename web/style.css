@@ -828,3 +828,208 @@ svg[data-lucide], i[data-lucide] {
   font-family: var(--font-mono) !important;
   font-size: 0.88rem !important;
 }
+
+/* MAIN NAVIGATION TABS */
+.main-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--card-border);
+  padding-bottom: 10px;
+}
+
+.tab-btn {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 10px 18px;
+  font-family: var(--font-mono);
+  font-size: 0.88rem;
+  font-weight: bold;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+  border-color: var(--accent-color);
+  color: var(--text-main);
+}
+
+.tab-btn.active {
+  background: var(--card-bg);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.15);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+/* MARKETPLACE BAR & CATALOG GRID */
+.mp-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+}
+
+.mp-search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-color);
+  border: 1px solid var(--card-border);
+  border-radius: 6px;
+  padding: 6px 12px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.mp-search-box input {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  outline: none;
+  width: 100%;
+}
+
+.mp-filter-chips {
+  display: flex;
+  gap: 6px;
+}
+
+.chip-filter {
+  background: var(--bg-color);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.chip-filter:hover {
+  border-color: var(--contrast-color);
+  color: var(--text-main);
+}
+
+.chip-filter.active {
+  background: var(--contrast-color);
+  border-color: var(--contrast-color);
+  color: #000;
+  font-weight: bold;
+}
+
+.mp-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.mp-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+}
+
+.mp-card:hover {
+  border-color: var(--contrast-color);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 229, 255, 0.1);
+}
+
+.mp-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.mp-card-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.mp-card-badge {
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.mp-badge-ext {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--contrast-color);
+  border: 1px solid var(--contrast-color);
+}
+
+.mp-badge-theme {
+  background: rgba(0, 255, 157, 0.15);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+}
+
+.mp-card-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 12px;
+  flex: 1;
+}
+
+.mp-card-author {
+  font-size: 0.75rem;
+  color: var(--contrast-color);
+  margin-bottom: 14px;
+}
+
+.mp-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border-top: 1px solid var(--card-border);
+  padding-top: 12px;
+}
+
+.mp-status-tag {
+  font-size: 0.75rem;
+  font-weight: bold;
+}
+
+.mp-status-installed {
+  color: var(--accent-color);
+}
+
+.mp-status-available {
+  color: var(--text-muted);
+}

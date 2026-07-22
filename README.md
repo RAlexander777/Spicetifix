@@ -9,6 +9,8 @@ Spicetifix is a minimal, terminal-styled desktop application for installing, con
 ## ⚡ Features
 
 - **Automated Setup** — Installs Spotify, Spicetify CLI, themes, Marketplace, and configures everything in one click.
+- **Native Marketplace Tab** — Browse, search, and 1-click install/uninstall extensions (e.g. *Adblock*, *Popup Lyrics*, *Full App Display*, *Loopy Loop*, *Bookmark*, *Auto Skip Explicit*) and themes directly as **persistent local files** (`.js`).
+- **Persistent Extension Management** — Automatically downloads `.js` files to `Extensions/` and registers them in `config-xpui.ini` & `spicetifix.yaml`, ensuring 100% reboot/cache survival and full ZIP backup compatibility.
 - **Extension Manager** — Auto-detects installed `.js`/`.mjs` extensions with live toggles.
 - **Live Spotify Widget** — Now Playing display with Prev / Play-Pause / Next controls.
 - **14 UI Themes** — Cyber Emerald, Dracula, Amber CRT, Nordic Frost, Matrix Void, Tokyo Night, Catppuccin Mocha, and more.

@@ -106,6 +106,42 @@ class Installer:
         label = "spicetify restore backup apply"
         self._close_spotify()
         self.log(f"[{label}] {t(l, 'step_start')}")
+
+        # Ensure configured theme exists before recovering
+        from spicetifix.core.config import load_user_config
+        user_config = load_user_config()
+        theme_name = user_config.get("spicetify", {}).get("theme", "")
+        if theme_name:
+            from spicetifix.core.themer import get_all_theme_dirs, install_themes, set_theme
+            theme_exists = False
+            for d in get_all_theme_dirs():
+                if (d / theme_name).is_dir():
+                    theme_exists = True
+                    break
+
+            if not theme_exists:
+                self.log(f"Theme '{theme_name}' not found. Downloading themes...")
+                install_themes()
+                
+                theme_exists = False
+                for d in get_all_theme_dirs():
+                    if (d / theme_name).is_dir():
+                        theme_exists = True
+                        break
+
+                if not theme_exists:
+                    self.log(f"Warning: Theme '{theme_name}' not found in Themes directory. Falling back to 'SpicetifyDefault'.")
+                    theme_name = "SpicetifyDefault"
+                    if "spicetify" in user_config:
+                        user_config["spicetify"]["theme"] = theme_name
+                    from spicetifix.core.config import save_user_config, write_spicetify_config
+                    try:
+                        save_user_config(user_config)
+                        write_spicetify_config(user_config)
+                    except Exception:
+                        pass
+                    set_theme(theme_name)
+
         code, out, err = run_spicetify(["restore", "backup", "apply"])
         self._clean_log(out)
         if err:
@@ -284,6 +320,21 @@ class Installer:
             return True
         if not install_themes():
             self.log("Themes download skipped or git missing — using current themes")
+        
+        # Verify theme exists on disk
+        from spicetifix.core.themer import get_all_theme_dirs
+        theme_exists = False
+        for d in get_all_theme_dirs():
+            if (d / theme_name).is_dir():
+                theme_exists = True
+                break
+
+        if not theme_exists:
+            self.log(f"Warning: Theme '{theme_name}' not found in Themes directory. Falling back to 'SpicetifyDefault'.")
+            theme_name = "SpicetifyDefault"
+            if "spicetify" in user_config:
+                user_config["spicetify"]["theme"] = theme_name
+
         if not set_theme(theme_name):
             self.log(f"Theme '{theme_name}' not found in Themes directory")
         return True

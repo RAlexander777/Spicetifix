@@ -747,6 +747,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.target.id === 'about-modal') closeAboutModal();
   });
 
+  // Main Tab Buttons
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
+  // Marketplace Search & Filters
+  const searchInput = document.getElementById('mp-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => renderMarketplaceCatalog());
+  }
+
+  document.querySelectorAll('.chip-filter').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip-filter').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      currentMarketplaceFilter = chip.dataset.filter;
+      renderMarketplaceCatalog();
+    });
+  });
+
+  const btnRefreshCatalog = document.getElementById('btn-refresh-catalog');
+  if (btnRefreshCatalog) {
+    btnRefreshCatalog.addEventListener('click', () => loadMarketplaceCatalog());
+  }
+
   // Danger Zone Actions
   document.getElementById('btn-spicetify-apply').addEventListener('click', async () => {
     closeOptionsModal();
@@ -784,3 +809,136 @@ document.addEventListener('DOMContentLoaded', () => {
     );
   });
 });
+
+// MARKETPLACE & TAB SYSTEM LOGIC
+let currentMarketplaceCatalog = [];
+let currentMarketplaceFilter = 'all';
+
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tabId);
+  });
+  document.querySelectorAll('.tab-content').forEach(content => {
+    content.classList.toggle('active', content.id === `content-${tabId}`);
+  });
+  if (tabId === 'marketplace' && currentMarketplaceCatalog.length === 0) {
+    loadMarketplaceCatalog();
+  }
+}
+
+async function loadMarketplaceCatalog() {
+  const grid = document.getElementById('mp-catalog-grid');
+  if (grid) grid.innerHTML = '<div class="empty-msg">Cargando catálogo...</div>';
+
+  const data = await apiFetch('/api/marketplace/catalog');
+  if (data && data.catalog) {
+    currentMarketplaceCatalog = data.catalog;
+    renderMarketplaceCatalog();
+  } else if (grid) {
+    grid.innerHTML = '<div class="empty-msg">Error al cargar el catálogo de extensiones.</div>';
+  }
+}
+
+function renderMarketplaceCatalog() {
+  const grid = document.getElementById('mp-catalog-grid');
+  if (!grid) return;
+
+  const searchInput = document.getElementById('mp-search-input');
+  const searchQuery = (searchInput ? searchInput.value : '').toLowerCase().trim();
+
+  const filtered = currentMarketplaceCatalog.filter(item => {
+    const matchesFilter = currentMarketplaceFilter === 'all' || item.type === currentMarketplaceFilter;
+    const matchesSearch = !searchQuery || 
+      item.title.toLowerCase().includes(searchQuery) || 
+      item.description.toLowerCase().includes(searchQuery) || 
+      item.author.toLowerCase().includes(searchQuery);
+    return matchesFilter && matchesSearch;
+  });
+
+  grid.innerHTML = '';
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-msg">No se encontraron ítems en el catálogo.</div>';
+    return;
+  }
+
+  filtered.forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'mp-card';
+    const isExt = item.type === 'extension';
+    const badgeClass = isExt ? 'mp-badge-ext' : 'mp-badge-theme';
+    const badgeText = isExt ? 'EXTENSIÓN' : 'TEMA';
+    const statusText = item.installed ? '[ INSTALADO ]' : '[ DISPONIBLE ]';
+    const statusClass = item.installed ? 'mp-status-installed' : 'mp-status-available';
+
+    const btnClass = item.installed ? 'btn-danger' : 'btn-accent';
+    const btnText = item.installed ? 'DESINSTALAR' : 'INSTALAR';
+    const btnIcon = item.installed ? 'trash-2' : 'download';
+
+    card.innerHTML = `
+      <div>
+        <div class="mp-card-header">
+          <span class="mp-card-title">${item.title}</span>
+          <span class="mp-card-badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="mp-card-author">por ${item.author}</div>
+        <div class="mp-card-desc">${item.description}</div>
+      </div>
+      <div class="mp-card-footer">
+        <span class="mp-status-tag ${statusClass}">${statusText}</span>
+        <button class="btn btn-small ${btnClass} btn-mp-action" data-id="${item.id}">
+          <i data-lucide="${btnIcon}"></i> ${btnText}
+        </button>
+      </div>
+    `;
+
+    const actionBtn = card.querySelector('.btn-mp-action');
+    actionBtn.addEventListener('click', () => {
+      if (item.installed) {
+        uninstallMarketplaceItem(item);
+      } else {
+        installMarketplaceItem(item);
+      }
+    });
+
+    grid.appendChild(card);
+  });
+
+  if (window.lucide) window.lucide.createIcons();
+}
+
+async function installMarketplaceItem(item) {
+  const grid = document.getElementById('mp-catalog-grid');
+  if (grid) {
+    grid.innerHTML = `<div class="empty-msg">Instalando ${item.title}... Por favor espera.</div>`;
+  }
+  const res = await apiFetch('/api/marketplace/install', 'POST', {
+    type: item.type,
+    filename: item.filename,
+    url: item.url,
+  });
+  if (res && res.status === 'ok') {
+    pollStatus();
+    loadMarketplaceCatalog();
+  } else {
+    alert(`Error instalando ${item.title}: ${res?.error || 'Falló la instalación'}`);
+    loadMarketplaceCatalog();
+  }
+}
+
+async function uninstallMarketplaceItem(item) {
+  const grid = document.getElementById('mp-catalog-grid');
+  if (grid) {
+    grid.innerHTML = `<div class="empty-msg">Desinstalando ${item.title}... Por favor espera.</div>`;
+  }
+  const res = await apiFetch('/api/marketplace/uninstall', 'POST', {
+    type: item.type,
+    filename: item.filename,
+  });
+  if (res && res.status === 'ok') {
+    pollStatus();
+    loadMarketplaceCatalog();
+  } else {
+    alert(`Error desinstalando ${item.title}: ${res?.error || 'Falló la desinstalación'}`);
+    loadMarketplaceCatalog();
+  }
+}

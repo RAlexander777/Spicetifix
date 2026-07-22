@@ -65,70 +65,105 @@
       </div>
     </div>
 
-    <!-- Spotify Now Playing Widget -->
-    <section class="panel player-panel">
-      <div class="panel-header"><i data-lucide="disc" class="icon-pulse"></i> <span id="lbl-player-header">// REPRODUCIENDO EN SPOTIFY</span></div>
-      <div class="player-content">
-        <div class="track-info" id="track-info">Cargando estado de Spotify...</div>
-        <div class="player-controls">
-          <button class="btn btn-control" id="btn-prev"><i data-lucide="skip-back"></i> <span id="lbl-prev">ANTERIOR</span></button>
-          <button class="btn btn-control btn-accent" id="btn-play"><i data-lucide="play"></i> <span id="lbl-play">REPRODUCIR / PAUSAR</span></button>
-          <button class="btn btn-control" id="btn-next"><i data-lucide="skip-forward"></i> <span id="lbl-next">SIGUIENTE</span></button>
+    <!-- Main Navigation Tabs -->
+    <nav class="main-tabs">
+      <button class="tab-btn active" id="tab-dashboard" data-tab="dashboard">
+        <i data-lucide="terminal"></i> <span id="lbl-tab-dashboard">[ CENTRO DE CONTROL ]</span>
+      </button>
+      <button class="tab-btn" id="tab-marketplace" data-tab="marketplace">
+        <i data-lucide="shopping-bag"></i> <span id="lbl-tab-marketplace">[ MARKETPLACE / CATÁLOGO ]</span>
+      </button>
+    </nav>
+
+    <!-- Tab 1: Dashboard View -->
+    <div class="tab-content active" id="content-dashboard">
+      <!-- Spotify Now Playing Widget -->
+      <section class="panel player-panel">
+        <div class="panel-header"><i data-lucide="disc" class="icon-pulse"></i> <span id="lbl-player-header">// REPRODUCIENDO EN SPOTIFY</span></div>
+        <div class="player-content">
+          <div class="track-info" id="track-info">Cargando estado de Spotify...</div>
+          <div class="player-controls">
+            <button class="btn btn-control" id="btn-prev"><i data-lucide="skip-back"></i> <span id="lbl-prev">ANTERIOR</span></button>
+            <button class="btn btn-control btn-accent" id="btn-play"><i data-lucide="play"></i> <span id="lbl-play">REPRODUCIR / PAUSAR</span></button>
+            <button class="btn btn-control" id="btn-next"><i data-lucide="skip-forward"></i> <span id="lbl-next">SIGUIENTE</span></button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Status Cards -->
+      <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA (CLIC PARA INSTALAR / DESINSTALAR)</section>
+      <div class="status-cards-grid">
+        <div class="card card-interactive" id="card-spotify">
+          <div class="card-header">
+            <span class="card-title"><i data-lucide="music"></i> 1. Spotify</span>
+            <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
+          </div>
+          <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
+          <div class="card-action" id="action-spotify">Haz clic para instalar Spotify</div>
+        </div>
+
+        <div class="card card-interactive" id="card-spicetify">
+          <div class="card-header">
+            <span class="card-title"><i data-lucide="code"></i> 2. Spicetify CLI</span>
+            <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
+          </div>
+          <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
+          <div class="card-action" id="action-spicetify">Haz clic para instalar Spicetify</div>
+        </div>
+
+        <div class="card card-interactive" id="card-theme">
+          <div class="card-header">
+            <span class="card-title"><i data-lucide="palette"></i> <span id="lbl-card-theme-title">3. Tema Activo</span></span>
+            <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
+          </div>
+          <div class="card-sub" id="sub-theme">Verificando tema...</div>
+          <div class="card-action" id="action-theme">Haz clic para cambiar tema</div>
         </div>
       </div>
-    </section>
 
-    <!-- Status Cards -->
-    <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA (CLIC PARA INSTALAR / DESINSTALAR)</section>
-    <div class="status-cards-grid">
-      <div class="card card-interactive" id="card-spotify">
-        <div class="card-header">
-          <span class="card-title"><i data-lucide="music"></i> 1. Spotify</span>
-          <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
-        </div>
-        <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
-        <div class="card-action" id="action-spotify">Haz clic para instalar Spotify</div>
+      <!-- Actions Section -->
+      <section class="section-title" id="sec-title-actions">// ACCIONES GENERALES</section>
+      <div class="actions-grid">
+        <button class="btn btn-action btn-accent" id="btn-install">
+          <i data-lucide="download-cloud"></i> <span id="lbl-btn-install">INSTALACIÓN / ACTUALIZACIÓN COMPLETA</span>
+        </button>
+        <button class="btn btn-action btn-outline" id="btn-recover">
+          <i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">RECUPERAR SISTEMA (POST-UPDATE)</span>
+        </button>
       </div>
 
-      <div class="card card-interactive" id="card-spicetify">
-        <div class="card-header">
-          <span class="card-title"><i data-lucide="code"></i> 2. Spicetify CLI</span>
-          <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
+      <!-- Extension Manager -->
+      <section class="section-title" id="sec-title-exts">// GESTOR DE EXTENSIONES SPICETIFY</section>
+      <div class="panel ext-panel">
+        <div class="ext-header">
+          <span id="lbl-exts-header">Extensiones y Apps Detectadas:</span>
+          <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> <span id="lbl-btn-refresh-exts">RECARGAR</span></button>
         </div>
-        <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
-        <div class="card-action" id="action-spicetify">Haz clic para instalar Spicetify</div>
-      </div>
-
-      <div class="card card-interactive" id="card-theme">
-        <div class="card-header">
-          <span class="card-title"><i data-lucide="palette"></i> <span id="lbl-card-theme-title">3. Tema Activo</span></span>
-          <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
+        <div class="ext-grid" id="ext-grid">
+          <div class="empty-msg">Cargando extensiones...</div>
         </div>
-        <div class="card-sub" id="sub-theme">Verificando tema...</div>
-        <div class="card-action" id="action-theme">Haz clic para cambiar tema</div>
       </div>
     </div>
 
-    <!-- Actions Section -->
-    <section class="section-title" id="sec-title-actions">// ACCIONES GENERALES</section>
-    <div class="actions-grid">
-      <button class="btn btn-action btn-accent" id="btn-install">
-        <i data-lucide="download-cloud"></i> <span id="lbl-btn-install">INSTALACIÓN / ACTUALIZACIÓN COMPLETA</span>
-      </button>
-      <button class="btn btn-action btn-outline" id="btn-recover">
-        <i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">RECUPERAR SISTEMA (POST-UPDATE)</span>
-      </button>
-    </div>
-
-    <!-- Extension Manager -->
-    <section class="section-title" id="sec-title-exts">// GESTOR DE EXTENSIONES SPICETIFY</section>
-    <div class="panel ext-panel">
-      <div class="ext-header">
-        <span id="lbl-exts-header">Extensiones y Apps Detectadas:</span>
-        <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> <span id="lbl-btn-refresh-exts">RECARGAR</span></button>
+    <!-- Tab 2: Marketplace View -->
+    <div class="tab-content" id="content-marketplace">
+      <section class="section-title" id="sec-title-mp">// CATÁLOGO DE EXTENSIONES Y TEMAS SPICETIFY</section>
+      
+      <div class="mp-bar">
+        <div class="mp-search-box">
+          <i data-lucide="search"></i>
+          <input type="text" id="mp-search-input" placeholder="Buscar extensiones o temas..." autocomplete="off">
+        </div>
+        <div class="mp-filter-chips">
+          <button class="chip-filter active" data-filter="all" id="btn-mp-filter-all">Todos</button>
+          <button class="chip-filter" data-filter="extension" id="btn-mp-filter-ext">Extensiones</button>
+          <button class="chip-filter" data-filter="theme" id="btn-mp-filter-theme">Temas</button>
+        </div>
+        <button class="btn btn-small" id="btn-refresh-catalog"><i data-lucide="refresh-cw"></i> <span id="lbl-refresh-catalog">RECARGAR CATÁLOGO</span></button>
       </div>
-      <div class="ext-grid" id="ext-grid">
-        <div class="empty-msg">Cargando extensiones...</div>
+
+      <div class="mp-catalog-grid" id="mp-catalog-grid">
+        <div class="empty-msg">Cargando catálogo...</div>
       </div>
     </div>
 

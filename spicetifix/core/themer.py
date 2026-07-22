@@ -44,7 +44,7 @@ def install_themes() -> bool:
     themes_dir.mkdir(parents=True, exist_ok=True)
 
     has_any_theme = any(
-        d.is_dir() and not d.name.startswith(".")
+        d.is_dir() and not d.name.startswith(".") and d.name.lower() not in ("spicetifydefault", "marketplace")
         for d in themes_dir.iterdir()
     )
     if has_any_theme:
