@@ -59,10 +59,25 @@ def get_prefs_path() -> str:
     spotify_path = get_spotify_path()
     if spotify_path:
         prefs = Path(spotify_path) / "prefs"
-        if prefs.is_file():
-            return str(prefs)
+        return str(prefs)
     default = Path(os.environ.get("APPDATA", "")) / "Spotify" / "prefs"
-    return str(default) if default.is_file() else ""
+    return str(default)
+
+
+def ensure_spotify_prefs() -> str:
+    spotify_path = get_spotify_path()
+    if not spotify_path:
+        spotify_path = str(Path(os.environ.get("APPDATA", "")) / "Spotify")
+        Path(spotify_path).mkdir(parents=True, exist_ok=True)
+
+    prefs_file = Path(spotify_path) / "prefs"
+    if not prefs_file.exists():
+        prefs_file.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            prefs_file.touch()
+        except Exception:
+            pass
+    return str(prefs_file)
 
 
 def get_spicetify_dir() -> Path:

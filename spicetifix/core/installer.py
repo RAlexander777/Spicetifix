@@ -10,6 +10,7 @@ from spicetifix.core.utils import (
     SPOTIFY_DOWNLOAD_URL,
     SPICETIFY_INSTALL_PS1,
     MARKETPLACE_INSTALL_PS1,
+    ensure_spotify_prefs,
     find_executable,
     get_spotify_path,
     get_spicetify_dir,
@@ -75,7 +76,7 @@ class Installer:
             (t(l, "step_config"), lambda: self._configure_spicetify(user_config)),
             (t(l, "step_backup"), self._run_backup),
             (t(l, "step_themes"), lambda: self._install_themes(user_config)),
-            (t(l, "step_marketplace"), self._install_marketplace),
+            (t(l, "step_marketplace"), lambda: self._install_marketplace(user_config)),
             (t(l, "step_apply"), self._run_apply),
         ]
 
@@ -196,6 +197,7 @@ class Installer:
         path = get_spotify_path()
         if path:
             self.log(f"{self._tl('spotify_detected')} {path}")
+            ensure_spotify_prefs()
             return True
 
         self.log(self._tl("spotify_not_found"))
@@ -206,11 +208,25 @@ class Installer:
             code, out, err = run_cmd(
                 [str(installer_path), "/Silent"], timeout=120
             )
-            if code != 0:
-                self.log(f"{self._tl('spotify_install_error')} {err}")
-                return False
             installer_path.unlink(missing_ok=True)
-            self.log(self._tl("spotify_installed"))
+
+            # Wait up to 60 seconds for Spotify installation files to land on disk
+            import time
+            found_path = None
+            for _ in range(30):
+                time.sleep(2)
+                found_path = get_spotify_path()
+                if found_path:
+                    break
+
+            if not found_path:
+                self.log(f"{self._tl('spotify_install_error')} Timeout waiting for Spotify installation.")
+                return False
+
+            self.log(f"{self._tl('spotify_installed')} ({found_path})")
+            ensure_spotify_prefs()
+            time.sleep(2)
+            self._close_spotify()
             return True
         except Exception as e:
             self.log(f"{self._tl('spotify_install_error')} {e}")
@@ -267,14 +283,12 @@ class Installer:
             self.log(self._tl("no_theme"))
             return True
         if not install_themes():
-            self.log("Git not found — install it from https://git-scm.com")
-            return False
+            self.log("Themes download skipped or git missing — using current themes")
         if not set_theme(theme_name):
             self.log(f"Theme '{theme_name}' not found in Themes directory")
-            return False
         return True
 
-    def _install_marketplace(self) -> bool:
+    def _install_marketplace(self, user_config: dict | None = None) -> bool:
         sp_dir = get_spicetify_dir()
         apps_dir = sp_dir / "CustomApps" / "marketplace"
         themes_dir = get_spicetify_themes_dir() / "marketplace"
@@ -313,20 +327,36 @@ class Installer:
         except Exception as e:
             self.log(f"Failed to download theme placeholder: {e}")
 
+        # Preserve marketplace app in user configuration so it persists across config saves
+        if user_config is not None:
+            custom_apps = user_config.get("custom_apps", [])
+            if "marketplace" not in custom_apps:
+                custom_apps.append("marketplace")
+                user_config["custom_apps"] = custom_apps
+            from spicetifix.core.config import save_user_config, write_spicetify_config
+            try:
+                save_user_config(user_config)
+                write_spicetify_config(user_config)
+            except Exception:
+                pass
+
         self.log("Configuring Spicetify for Marketplace...")
         run_spicetify(["config", "custom_apps", "marketplace"])
         run_spicetify(["config", "inject_css", "1", "replace_colors", "1"])
 
         self._close_spotify()
 
-        self.log("Running spicetify backup...")
-        run_spicetify(["backup"])
-
-        self.log("Running spicetify apply...")
-        code, out, err = run_spicetify(["apply"])
+        self.log("Running spicetify backup apply...")
+        code, out, err = run_spicetify(["backup", "apply"])
         self._clean_log(out)
         if err:
             self._clean_log(err)
+
+        if code != 0:
+            code, out, err = run_spicetify(["apply"])
+            self._clean_log(out)
+            if err:
+                self._clean_log(err)
 
         if code != 0:
             self.log(f"spicetify apply exited with code {code}, you may need to restart Spotify")

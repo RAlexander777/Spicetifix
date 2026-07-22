@@ -1,0 +1,28 @@
+custom_apps:
+- lyrics-plus
+- new-releases
+- reddit
+extensions:
+- popupLyrics.js
+- loopyLoop.js
+- fullAppDisplay.js
+- trashbin.js
+- shuffle+.js
+- bookmark.js
+- keyboardShortcut.js
+- webnowplaying.js
+language: es
+options:
+  check_spicetify_update: false
+  inject_css: true
+  replace_colors: true
+preprocesses:
+  disable_sentry: true
+  disable_ui_logging: true
+  expose_apis: true
+  remove_rtl_rule: true
+spicetify:
+  color_scheme: dark
+  spotify_launch_flags: --no-update
+  theme: text
+ui_theme: kanagawa

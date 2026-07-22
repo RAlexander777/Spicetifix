@@ -50,33 +50,51 @@ def install_themes() -> bool:
     if has_any_theme:
         return True
 
-    if not _git_available():
-        return False
-
-    temp_clone_dir = themes_dir.parent / "spicetify-themes-tmp"
-    shutil.rmtree(temp_clone_dir, ignore_errors=True)
-
-    code, out, err = run_cmd(
-        [
-            "git",
-            "clone",
-            "--depth=1",
-            SPICETIFY_THEMES_REPO,
-            str(temp_clone_dir),
-        ],
-        timeout=120,
-    )
-
-    if code == 0 and temp_clone_dir.exists():
-        for item in temp_clone_dir.iterdir():
-            if item.is_dir() and not item.name.startswith("."):
-                target = themes_dir / item.name
-                if not target.exists():
-                    shutil.copytree(item, target)
+    if _git_available():
+        temp_clone_dir = themes_dir.parent / "spicetify-themes-tmp"
         shutil.rmtree(temp_clone_dir, ignore_errors=True)
-        return True
 
-    return False
+        code, out, err = run_cmd(
+            [
+                "git",
+                "clone",
+                "--depth=1",
+                SPICETIFY_THEMES_REPO,
+                str(temp_clone_dir),
+            ],
+            timeout=120,
+        )
+
+        if code == 0 and temp_clone_dir.exists():
+            for item in temp_clone_dir.iterdir():
+                if item.is_dir() and not item.name.startswith("."):
+                    target = themes_dir / item.name
+                    if not target.exists():
+                        shutil.copytree(item, target)
+            shutil.rmtree(temp_clone_dir, ignore_errors=True)
+            return True
+
+    # Fallback: Download zip archive if git is missing or clone fails
+    try:
+        import io, zipfile, requests
+        zip_url = "https://github.com/spicetify/spicetify-themes/archive/refs/heads/master.zip"
+        resp = requests.get(zip_url, stream=True, timeout=120)
+        resp.raise_for_status()
+        temp_extract = themes_dir.parent / "spicetify-themes-zip-tmp"
+        shutil.rmtree(temp_extract, ignore_errors=True)
+        with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+            zf.extractall(temp_extract)
+        root_folder = temp_extract / "spicetify-themes-master"
+        if root_folder.exists():
+            for item in root_folder.iterdir():
+                if item.is_dir() and not item.name.startswith("."):
+                    target = themes_dir / item.name
+                    if not target.exists():
+                        shutil.copytree(item, target)
+        shutil.rmtree(temp_extract, ignore_errors=True)
+        return True
+    except Exception:
+        return False
 
 
 def set_theme(name: str) -> bool:
