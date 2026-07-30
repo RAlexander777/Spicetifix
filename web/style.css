@@ -286,6 +286,16 @@ svg[data-lucide], i[data-lucide] {
   color: var(--contrast-color);
 }
 
+.badge-disconnected {
+  color: var(--danger-color) !important;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.badge-connecting {
+  color: var(--text-muted) !important;
+  animation: pulse 1s ease-in-out infinite;
+}
+
 .header-actions {
   display: flex;
   align-items: center;
@@ -529,7 +539,20 @@ svg[data-lucide], i[data-lucide] {
 .btn-small {
   padding: 6px 12px;
   font-size: 0.8rem;
-  color: var(--accent-color);
+}
+
+.btn-small.btn-accent {
+  color: #08090d;
+}
+
+.btn-small.btn-danger {
+  color: #ffffff;
+  background-color: var(--danger-color);
+  border-color: var(--danger-color);
+}
+
+.btn-small.btn-outline {
+  color: var(--contrast-color);
 }
 
 .btn-danger {
@@ -542,6 +565,13 @@ svg[data-lucide], i[data-lucide] {
   background-color: var(--danger-color);
   color: #ffffff;
   border: none;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: none !important;
+  pointer-events: none;
 }
 
 /* Extension Grid */
@@ -1021,6 +1051,12 @@ svg[data-lucide], i[data-lucide] {
   padding-top: 12px;
 }
 
+.mp-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .mp-status-tag {
   font-size: 0.75rem;
   font-weight: bold;
@@ -1032,4 +1068,46 @@ svg[data-lucide], i[data-lucide] {
 
 .mp-status-available {
   color: var(--text-muted);
+}
+
+/* PAGINATION */
+.mp-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+  margin-bottom: 24px;
+}
+
+.mp-page-info {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+/* GITHUB BUTTON */
+.btn-mp-gh {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+.btn-mp-gh:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  background-color: var(--bg-color);
+}
+
+.btn-mp-action:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.mp-card-working {
+  opacity: 0.5;
+  pointer-events: none;
 }
