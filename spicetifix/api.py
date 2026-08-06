@@ -210,8 +210,6 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     run_spicetify,
                 )
                 from spicetifix.core.config import (
-                    load_user_config,
-                    save_user_config,
                     write_spicetify_config,
                 )
                 from spicetifix.core.themer import install_themes, set_theme
@@ -292,8 +290,6 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     run_spicetify,
                 )
                 from spicetifix.core.config import (
-                    load_user_config,
-                    save_user_config,
                     write_spicetify_config,
                 )
                 from spicetifix.core.themer import set_theme
@@ -388,6 +384,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg = load_user_config()
                     installer.set_lang(cfg.get("language", "en"))
                     installer.install_all(cfg)
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
                 finally:
                     _is_working = False
 
@@ -436,6 +434,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 try:
                     from spicetifix.core.backup import export_backup_zip
                     export_backup_zip(progress_callback=_set_progress, log_callback=_append_log)
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
                 finally:
                     _is_working = False
 
@@ -457,6 +457,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                         import_backup_zip(Path(zip_path_str), progress_callback=_set_progress, log_callback=_append_log)
                     else:
                         pick_and_import_backup(progress_callback=_set_progress, log_callback=_append_log)
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
                 finally:
                     _is_working = False
 
@@ -486,6 +488,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     if out: _append_log(out)
                     if err: _append_log(err)
                     _append_log(f"Finished with exit code {code}")
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
                 finally:
                     _is_working = False
 
@@ -508,6 +512,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg = load_user_config()
                     installer.set_lang(cfg.get("language", "en"))
                     installer.uninstall_spicetify()
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
                 finally:
                     _is_working = False
 
@@ -531,6 +537,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer.set_lang(cfg.get("language", "en"))
                     installer.uninstall_spicetify()
                     installer.uninstall_spotify()
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
                 finally:
                     _is_working = False
 
@@ -553,6 +561,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg = load_user_config()
                     installer.set_lang(cfg.get("language", "en"))
                     installer.recover()
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
                 finally:
                     _is_working = False
 
