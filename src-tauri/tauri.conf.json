@@ -7,7 +7,7 @@
   },
   "package": {
     "productName": "Spicetifix",
-    "version": "1.1.0"
+    "version": "1.2.0"
   },
   "tauri": {
     "allowlist": {
@@ -29,7 +29,7 @@
     },
     "windows": [
       {
-        "title": "SPICETIFIX // TAURI SHELL",
+        "title": "SPICETIFIX",
         "width": 780,
         "height": 720,
         "resizable": true,

@@ -9,6 +9,13 @@ from urllib.parse import parse_qs, urlparse
 _last_request_time = time.time()
 _server_start_time = time.time()
 
+_AUTH_TOKEN = ""
+
+
+def set_auth_token(token: str) -> None:
+    global _AUTH_TOKEN
+    _AUTH_TOKEN = token
+
 from spicetifix.core.config import (
     load_user_config,
     save_user_config,
@@ -78,12 +85,26 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         # Suppress standard HTTP server console spam
         pass
 
+    def _is_authorized(self) -> bool:
+        if not _AUTH_TOKEN:
+            return True
+        return self.headers.get("X-Auth-Token", "") == _AUTH_TOKEN
+
+    def _cors_headers(self) -> dict:
+        origin = self.headers.get("Origin", "")
+        if origin == "null" or "127.0.0.1" in origin:
+            return {
+                "Access-Control-Allow-Origin": origin,
+                "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+                "Access-Control-Allow-Headers": "Content-Type, X-Auth-Token",
+            }
+        return {}
+
     def _send_json(self, data: dict, status: int = 200):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        for k, v in self._cors_headers().items():
+            self.send_header(k, v)
         self.end_headers()
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
@@ -97,6 +118,10 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         _last_request_time = time.time()
         parsed = urlparse(self.path)
         path = parsed.path
+
+        if path.startswith("/api/") and not self._is_authorized():
+            self._send_json({"error": "Unauthorized"}, 401)
+            return
 
         if path == "/api/status":
             cfg = load_user_config()
@@ -187,6 +212,10 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         _last_request_time = time.time()
         parsed = urlparse(self.path)
         path = parsed.path
+
+        if path.startswith("/api/") and not self._is_authorized():
+            self._send_json({"error": "Unauthorized"}, 401)
+            return
 
         content_length = int(self.headers.get("Content-Length", 0))
         body_bytes = self.rfile.read(content_length) if content_length > 0 else b"{}"
@@ -424,6 +453,18 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
 
+        elif path == "/api/open/external":
+            url = body.get("url", "")
+            if not url.startswith(("http://", "https://")):
+                self._send_json({"error": "Invalid URL"}, 400)
+                return
+            try:
+                import webbrowser
+                webbrowser.open(url)
+                self._send_json({"status": "ok"})
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
         elif path == "/api/backup/export":
             _is_working = True
             _install_logs.clear()
@@ -573,30 +614,34 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "Endpoint not found"}, 404)
 
 
-def _start_heartbeat_checker():
+def _start_heartbeat_checker(idle_timeout: int = 300):
     def checker():
         while True:
             time.sleep(5)
             now = time.time()
             if now - _server_start_time < 30:
                 continue
-            if now - _last_request_time > 60:
-                print("> No requests received for 60 seconds. Terminating Spicetifix API server process...")
+            if now - _last_request_time > idle_timeout:
+                print(f"> No requests received for {idle_timeout} seconds. Terminating Spicetifix API server process...")
                 os._exit(0)
 
     t = threading.Thread(target=checker, daemon=True)
     t.start()
 
 
-def run_api_server(port: int = 8765):
-    _start_heartbeat_checker()
+def run_api_server(port: int = 8765, auth_token: str = "", idle_timeout: int = 300):
+    if auth_token:
+        set_auth_token(auth_token)
+    _start_heartbeat_checker(idle_timeout)
     server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
     server.serve_forever()
 
 
-def make_server(port: int = 8765) -> HTTPServer:
-    _start_heartbeat_checker()
+def make_server(port: int = 8765, auth_token: str = "", idle_timeout: int = 300) -> HTTPServer:
+    if auth_token:
+        set_auth_token(auth_token)
+    _start_heartbeat_checker(idle_timeout)
     server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
     return server

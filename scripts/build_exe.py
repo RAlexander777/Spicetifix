@@ -32,6 +32,12 @@ def build_standalone_exe(console=False):
         "--hidden-import=tkinter",
         "--hidden-import=tkinter.filedialog",
         "--collect-all=spicetifix",
+        "--collect-all=webview",
+        "--hidden-import=pythonnet",
+        "--hidden-import=clr_loader",
+        "--exclude-module=PyQt5",
+        "--exclude-module=PyQt6",
+        "--exclude-module=Pyside6",
         str(main_script),
     ]
 

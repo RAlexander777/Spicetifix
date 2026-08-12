@@ -1,4 +1,5 @@
-const API_BASE = 'http://127.0.0.1:8765';
+const API_BASE = '';
+const AUTH_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
 
 let currentUITheme = 'emerald';
 let currentLang = 'es';
@@ -177,6 +178,9 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
     method,
     headers: { 'Content-Type': 'application/json' },
   };
+  if (AUTH_TOKEN) {
+    options.headers['X-Auth-Token'] = AUTH_TOKEN;
+  }
   if (body) {
     options.body = JSON.stringify(body);
   }
@@ -190,6 +194,11 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
     console.warn(`API error (${endpoint}):`, err);
     return null;
   }
+}
+
+async function openExternal(url) {
+  if (!/^https?:\/\//i.test(url)) return;
+  await apiFetch('/api/open/external', 'POST', { url });
 }
 
 // Show SweetAlert Cyberpunk Dialog
@@ -623,6 +632,15 @@ document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
   }
 
+  // Route external links through the Python sidecar (works in pywebview & browser)
+  document.addEventListener('click', (e) => {
+    const anchor = e.target.closest('a[target="_blank"]');
+    if (anchor) {
+      e.preventDefault();
+      openExternal(anchor.href);
+    }
+  });
+
   // Spicetify theme selection change -> load schemes
   const selectSpicetifyTheme = document.getElementById('select-spicetify-theme');
   if (selectSpicetifyTheme) {
@@ -991,7 +1009,7 @@ function renderMarketplaceCatalog() {
     const ghBtn = card.querySelector('.btn-mp-gh');
     ghBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.open(repoUrl, '_blank');
+      openExternal(repoUrl);
     });
 
     const actionBtn = card.querySelector('.btn-mp-action');

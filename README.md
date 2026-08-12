@@ -2,12 +2,13 @@
 
 > **Automated Spotify & Spicetify Setup, Extension Manager & Terminal Control Center for Windows.**
 
-Spicetifix is a minimal, terminal-styled desktop application for installing, configuring, and managing **Spotify** and **Spicetify** on Windows. It uses a **Tauri web frontend** with a **Python sidecar API backend**.
+Spicetifix is a minimal, terminal-styled desktop application for installing, configuring, and managing **Spotify** and **Spicetify** on Windows. It uses a **pywebview native window** (WebView2) wrapping a **Python sidecar API backend** served on `127.0.0.1`.
 
 ---
 
 ## ⚡ Features
 
+- **Native Desktop Window** — Runs in a **pywebview** window (WebView2), no browser dependency.
 - **Automated Setup** — Installs Spotify, Spicetify CLI, themes, Marketplace, and configures everything in one click.
 - **Native Marketplace Tab** — Browse, search, and 1-click install/uninstall extensions (e.g. *Adblock*, *Popup Lyrics*, *Full App Display*, *Loopy Loop*, *Bookmark*, *Auto Skip Explicit*) and themes directly as **persistent local files** (`.js`).
 - **Persistent Extension Management** — Automatically downloads `.js` files to `Extensions/` and registers them in `config-xpui.ini` & `spicetifix.yaml`, ensuring 100% reboot/cache survival and full ZIP backup compatibility.
@@ -34,7 +35,9 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Then open the Tauri shell (needs Rust + Node.js) or just visit `http://127.0.0.1:8765` in a browser.
+Running `python main.py` opens a **native pywebview window** (WebView2). If the WebView2 runtime is
+missing, it falls back to a browser window (`--app` mode). You can also visit `http://127.0.0.1:8765`
+directly in any browser.
 
 ### Option 2: Download Portable EXE
 
@@ -67,7 +70,7 @@ Output: `dist/Spicetifix/` (onedir) + `dist/Spicetifix.zip` (compressed archive)
 ```
 spicetifix/
 ├── spicetifix/
-│   ├── api.py                 # Python HTTP API server (sidecar)
+│   ├── api.py                 # Python HTTP API server (sidecar, token auth)
 │   ├── core/
 │   │   ├── config.py          # Spicetify INI & YAML config handling
 │   │   ├── i18n.py            # English / Spanish strings
@@ -77,15 +80,17 @@ spicetifix/
 │   │   ├── ui_theme.py        # UI theme palettes
 │   │   └── utils.py           # Helpers
 ├── src-tauri/
-│   └── tauri.conf.json        # Tauri configuration
+│   └── tauri.conf.json        # Optional Tauri dev shell
 ├── web/
-│   ├── index.html             # Main UI (loaded in Tauri webview)
+│   ├── index.html             # Main UI (loaded in pywebview window)
 │   ├── app.js                 # Frontend logic
 │   └── style.css              # Terminal-styled CSS
 ├── scripts/
 │   └── build_exe.py           # PyInstaller build script
+├── docs/
+│   └── DESKTOP_APPS_GUIDE.md  # Reusable desktop-app development guide
 ├── tests/                     # Unit tests
-├── main.py                    # Entry point (starts API server)
+├── main.py                    # Entry point (pywebview window + API server)
 ├── pyproject.toml             # Python packaging metadata
 ├── requirements.txt           # Python dependencies
 └── LICENSE                    # MIT License
