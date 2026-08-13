@@ -1,5 +1,7 @@
 const API_BASE = '';
-const AUTH_TOKEN = new URLSearchParams(window.location.search).get('token') || '';
+const AUTH_TOKEN = new URLSearchParams(window.location.hash.slice(1)).get('token') || '';
+
+const GITHUB_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="lucide gh-icon"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>`;
 
 let currentUITheme = 'emerald';
 let currentLang = 'es';
@@ -19,6 +21,11 @@ const I18N = {
     refresh_btn: 'REFRESCAR',
     about_btn: 'ACERCA DE',
     options_btn: 'OPCIONES',
+    update_btn: 'NUEVA VERSIÓN',
+    update_title: '¡NUEVA VERSIÓN DISPONIBLE!',
+    update_message: 'Versión {v} disponible. Descargala ahora.',
+    update_download: 'DESCARGAR ZIP',
+    update_dismiss: 'MÁS TARDE',
     ui_theme_lbl: 'Tema UI:',
     quick_access: 'ACCESOS Y RESPALDOS:',
     spicetify_dir: 'Carpeta Spicetify',
@@ -99,6 +106,11 @@ const I18N = {
     refresh_btn: 'REFRESH',
     about_btn: 'ABOUT',
     options_btn: 'OPTIONS',
+    update_btn: 'NEW VERSION',
+    update_title: 'NEW VERSION AVAILABLE!',
+    update_message: 'Version {v} is now available. Download it now.',
+    update_download: 'DOWNLOAD ZIP',
+    update_dismiss: 'LATER',
     ui_theme_lbl: 'UI Theme:',
     quick_access: 'QUICK ACCESS & BACKUPS:',
     spicetify_dir: 'Spicetify Folder',
@@ -201,6 +213,46 @@ async function openExternal(url) {
   await apiFetch('/api/open/external', 'POST', { url });
 }
 
+let pendingUpdate = null;
+
+async function checkForUpdate() {
+  const data = await apiFetch('/api/update/check');
+  const btn = document.getElementById('btn-update-check');
+  if (!data || !data.update) {
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+  pendingUpdate = data.update;
+  if (btn) btn.style.display = 'inline-flex';
+}
+
+function openUpdateModal() {
+  const t = I18N[currentLang];
+  if (!pendingUpdate) return;
+  if (typeof Swal !== 'undefined') {
+    Swal.fire({
+      title: t.update_title,
+      html: t.update_message.replace('{v}', `<b>${pendingUpdate.latest_version}</b>`),
+      showCancelButton: true,
+      confirmButtonText: t.update_download,
+      cancelButtonText: t.update_dismiss,
+      buttonsStyling: false,
+      customClass: {
+        popup: 'cyber-swal-popup',
+        title: 'cyber-swal-title',
+        htmlContainer: 'cyber-swal-html',
+        confirmButton: 'btn btn-accent',
+        cancelButton: 'btn btn-outline',
+      },
+    }).then(async (result) => {
+      if (result.isConfirmed && pendingUpdate.asset_url) {
+        await apiFetch('/api/update/download', 'POST', { asset_url: pendingUpdate.asset_url });
+        pollStatus();
+      }
+    });
+  }
+}
+
 // Show SweetAlert Cyberpunk Dialog
 function showCyberAlert(title, text, confirmText, cancelText, onConfirm) {
   if (typeof Swal !== 'undefined') {
@@ -245,6 +297,7 @@ function applyLanguage(lang) {
   setTxt('lbl-refresh-status', t.refresh_btn);
   setTxt('lbl-open-options', t.options_btn);
   setTxt('lbl-open-about', t.about_btn);
+  setTxt('lbl-update-check', t.update_btn);
   setTxt('lbl-ui-theme', t.ui_theme_lbl);
   setTxt('lbl-quick-access', t.quick_access);
   setTxt('lbl-spicetify-dir', t.spicetify_dir);
@@ -626,10 +679,17 @@ document.addEventListener('DOMContentLoaded', () => {
   loadExtensions();
   pollStatus();
   setInterval(pollStatus, 1500);
+  checkForUpdate();
 
   // Render Lucide SVG Icons
   if (typeof lucide !== 'undefined') {
     lucide.createIcons();
+  }
+
+  // Update button
+  const btnUpdateCheck = document.getElementById('btn-update-check');
+  if (btnUpdateCheck) {
+    btnUpdateCheck.addEventListener('click', openUpdateModal);
   }
 
   // Route external links through the Python sidecar (works in pywebview & browser)
@@ -731,6 +791,7 @@ document.addEventListener('DOMContentLoaded', () => {
     pollStatus();
     loadExtensions();
     loadThemes();
+    checkForUpdate();
     if (typeof lucide !== 'undefined') lucide.createIcons();
   });
 
@@ -937,7 +998,11 @@ function getFilteredCatalog() {
   const searchQuery = (searchInput ? searchInput.value : '').toLowerCase().trim();
 
   return currentMarketplaceCatalog.filter(item => {
-    const matchesFilter = currentMarketplaceFilter === 'all' || item.type === currentMarketplaceFilter;
+    const matchesFilter =
+      currentMarketplaceFilter === 'all' ||
+      (currentMarketplaceFilter === 'installed'
+        ? item.installed
+        : item.type === currentMarketplaceFilter);
     const matchesSearch = !searchQuery || 
       item.title.toLowerCase().includes(searchQuery) || 
       item.description.toLowerCase().includes(searchQuery) || 
@@ -997,7 +1062,7 @@ function renderMarketplaceCatalog() {
         <span class="mp-status-tag ${statusClass}">${statusText}</span>
         <div class="mp-card-actions">
           <button class="btn btn-small btn-mp-gh" title="Abrir repositorio en GitHub">
-            <i data-lucide="github"></i>
+            ${GITHUB_ICON_SVG}
           </button>
           <button class="btn btn-small ${btnClass} btn-mp-action" data-id="${item.id}">
             <i data-lucide="${btnIcon}"></i> ${btnText}

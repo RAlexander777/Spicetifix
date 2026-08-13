@@ -142,16 +142,25 @@ class Installer:
                         pass
                     set_theme(theme_name)
 
-        code, out, err = run_spicetify(["restore", "backup", "apply"])
-        self._clean_log(out)
-        if err:
-            self._clean_log(err)
+        attempts = [
+            (["restore", "backup", "apply"], "restore backup apply"),
+            (["backup", "apply"], "backup apply"),
+            (["apply"], "apply"),
+        ]
+        code = -1
+        for args, label_short in attempts:
+            code, out, err = run_spicetify(args)
+            self._clean_log(out)
+            if err:
+                self._clean_log(err)
+            if code == 0:
+                self._reset_progress()
+                self.log(f"[{label}] {t(l, 'step_done')} ✓ ({label_short})")
+                return True
+            self.log(f"spicetify {label_short} failed (código {code}), trying next...")
         self._reset_progress()
-        if code != 0:
-            self.log(f"[{label}] {t(l, 'step_failed')} (código {code})")
-            return False
-        self.log(f"[{label}] {t(l, 'step_done')} ✓")
-        return True
+        self.log(f"[{label}] {t(l, 'step_failed')} (código {code})")
+        return False
 
     def uninstall_spicetify(self) -> bool:
         l = self._lang
@@ -411,8 +420,8 @@ class Installer:
 
         if code != 0:
             self.log(f"spicetify apply exited with code {code}, you may need to restart Spotify")
-        else:
-            self.log("Marketplace installed successfully! Restart Spotify to see it.")
+            return False
+        self.log("Marketplace installed successfully! Restart Spotify to see it.")
         return True
 
     def _run_apply(self) -> bool:

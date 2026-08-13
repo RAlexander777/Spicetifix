@@ -34,15 +34,54 @@ _install_logs = []
 _install_progress = 0.0
 _is_working = False
 
+_state_lock = threading.RLock()
+
 
 def _append_log(msg: str):
     global _install_logs
-    _install_logs.append(msg)
+    with _state_lock:
+        _install_logs.append(msg)
 
 
 def _set_progress(pct: float):
     global _install_progress
-    _install_progress = pct
+    with _state_lock:
+        _install_progress = pct
+
+
+def _begin_work() -> bool:
+    """Atomically claim the single-worker slot. Returns False if already busy."""
+    global _is_working, _install_logs, _install_progress
+    with _state_lock:
+        if _is_working:
+            return False
+        _is_working = True
+        _install_logs.clear()
+        _install_progress = 0.0
+        return True
+
+
+def _end_work():
+    global _is_working
+    with _state_lock:
+        _is_working = False
+
+
+def _get_state() -> tuple[bool, float, list]:
+    with _state_lock:
+        return _is_working, _install_progress, list(_install_logs)
+
+
+def _resolve_static_file(path: str):
+    from pathlib import Path
+    web_dir = Path(__file__).parent.parent / "web"
+    req_file = "index.html" if path in ("/", "") else path.lstrip("/")
+    file_path = (web_dir / req_file).resolve()
+    if not file_path.is_relative_to(web_dir.resolve()):
+        return None
+    if file_path.exists() and file_path.is_file():
+        return file_path
+    return None
 
 
 def _enrich_catalog_item(item: dict) -> dict:
@@ -133,14 +172,15 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             if sc and "Setting" in sc:
                 theme_name = sc["Setting"].get("current_theme", "None")
 
+            is_working, progress, logs = _get_state()
             self._send_json({
                 "config": cfg,
                 "health": health,
                 "now_playing": now_playing,
                 "current_theme": theme_name,
-                "is_working": _is_working,
-                "progress": _install_progress,
-                "logs": _install_logs,
+                "is_working": is_working,
+                "progress": progress,
+                "logs": logs,
             })
 
         elif path == "/api/themes":
@@ -184,12 +224,14 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             catalog = _get_marketplace_catalog()
             self._send_json({"status": "ok", "catalog": catalog})
 
+        elif path == "/api/update/check":
+            from spicetifix.core.updater import check_for_update
+            update = check_for_update()
+            self._send_json({"status": "ok", "update": update})
+
         else:
-            from pathlib import Path
-            web_dir = Path(__file__).parent.parent / "web"
-            req_file = "index.html" if path == "/" else path.lstrip("/")
-            file_path = web_dir / req_file
-            if file_path.exists() and file_path.is_file():
+            file_path = _resolve_static_file(path)
+            if file_path is not None:
                 content_type = "text/html"
                 if file_path.suffix == ".css":
                     content_type = "text/css"
@@ -208,7 +250,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "Endpoint or file not found"}, 404)
 
     def do_POST(self):
-        global _last_request_time, _is_working, _install_logs, _install_progress
+        global _last_request_time
         _last_request_time = time.time()
         parsed = urlparse(self.path)
         path = parsed.path
@@ -250,6 +292,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     resp = requests.get(url, timeout=30)
                     resp.raise_for_status()
                     target_file = ext_dir / filename
+                    target_file.parent.mkdir(parents=True, exist_ok=True)
                     target_file.write_bytes(resp.content)
 
                     cfg = load_user_config()
@@ -328,6 +371,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     target_file = ext_dir / filename
                     if target_file.exists():
                         target_file.unlink(missing_ok=True)
+                    if target_file.parent != ext_dir:
+                        try:
+                            target_file.parent.rmdir()
+                        except OSError:
+                            pass
 
                     cfg = load_user_config()
                     exts = set(cfg.get("extensions", []))
@@ -398,16 +446,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             self._send_json({"status": "ok", "config": cfg})
 
         elif path == "/api/install":
-            if _is_working:
+            if not _begin_work():
                 self._send_json({"error": "Already working"}, 400)
                 return
 
-            _is_working = True
-            _install_logs.clear()
-            _install_progress = 0.0
-
             def run():
-                global _is_working
                 try:
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
@@ -416,7 +459,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
-                    _is_working = False
+                    _end_work()
 
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
@@ -466,31 +509,29 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": str(e)}, 500)
 
         elif path == "/api/backup/export":
-            _is_working = True
-            _install_logs.clear()
-            _install_progress = 0.0
+            if not _begin_work():
+                self._send_json({"error": "Already working"}, 400)
+                return
 
             def run():
-                global _is_working
                 try:
                     from spicetifix.core.backup import export_backup_zip
                     export_backup_zip(progress_callback=_set_progress, log_callback=_append_log)
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
-                    _is_working = False
+                    _end_work()
 
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
 
         elif path == "/api/backup/import":
             zip_path_str = body.get("zip_path", "")
-            _is_working = True
-            _install_logs.clear()
-            _install_progress = 0.0
+            if not _begin_work():
+                self._send_json({"error": "Already working"}, 400)
+                return
 
             def run():
-                global _is_working
                 try:
                     from spicetifix.core.backup import import_backup_zip, pick_and_import_backup
                     from pathlib import Path
@@ -501,7 +542,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
-                    _is_working = False
+                    _end_work()
 
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
@@ -516,12 +557,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": str(e)}, 500)
 
         elif path == "/api/spicetify/apply":
-            _is_working = True
-            _install_logs.clear()
-            _install_progress = 0.0
+            if not _begin_work():
+                self._send_json({"error": "Already working"}, 400)
+                return
 
             def run():
-                global _is_working
                 try:
                     from spicetifix.core.utils import run_spicetify
                     _append_log("Running spicetify apply...")
@@ -532,22 +572,17 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
-                    _is_working = False
+                    _end_work()
 
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
 
         elif path == "/api/uninstall/spicetify":
-            if _is_working:
+            if not _begin_work():
                 self._send_json({"error": "Already working"}, 400)
                 return
 
-            _is_working = True
-            _install_logs.clear()
-            _install_progress = 0.0
-
             def run():
-                global _is_working
                 try:
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
@@ -556,22 +591,17 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
-                    _is_working = False
+                    _end_work()
 
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
 
         elif path == "/api/uninstall/spotify":
-            if _is_working:
+            if not _begin_work():
                 self._send_json({"error": "Already working"}, 400)
                 return
 
-            _is_working = True
-            _install_logs.clear()
-            _install_progress = 0.0
-
             def run():
-                global _is_working
                 try:
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
@@ -581,22 +611,42 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
-                    _is_working = False
+                    _end_work()
+
+            threading.Thread(target=run, daemon=True).start()
+            self._send_json({"status": "started"})
+
+        elif path == "/api/update/download":
+            asset_url = body.get("asset_url", "")
+            if not asset_url.startswith("https://"):
+                self._send_json({"error": "Invalid asset URL"}, 400)
+                return
+            if not _begin_work():
+                self._send_json({"error": "Already working"}, 400)
+                return
+
+            def run():
+                try:
+                    from spicetifix.core.updater import download_release_zip
+                    _append_log("Descargando nueva versión...")
+                    target = download_release_zip(asset_url)
+                    _append_log(f"Descargado: {target}")
+                    import os
+                    os.startfile(str(target.parent))
+                except Exception as e:
+                    _append_log(f"ERROR: {e}")
+                finally:
+                    _end_work()
 
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
 
         elif path == "/api/recover":
-            if _is_working:
+            if not _begin_work():
                 self._send_json({"error": "Already working"}, 400)
                 return
 
-            _is_working = True
-            _install_logs.clear()
-            _install_progress = 0.0
-
             def run():
-                global _is_working
                 try:
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
@@ -605,7 +655,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
-                    _is_working = False
+                    _end_work()
 
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})

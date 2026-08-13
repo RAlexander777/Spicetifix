@@ -56,7 +56,7 @@ def start():
         sys.exit(1)
 
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    url = f"http://127.0.0.1:{DEFAULT_PORT}/?token={token}"
+    url = f"http://127.0.0.1:{DEFAULT_PORT}/#token={token}"
 
     if webview is not None:
         try:
