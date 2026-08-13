@@ -29,7 +29,7 @@ def get_current_version() -> str:
                     return line.split("=", 1)[1].strip().strip('"').strip("'")
     except Exception:
         pass
-    return "1.3.0"
+    return "1.4.0"
 
 
 def _version_tuple(version: str) -> tuple[int, ...]:

@@ -152,3 +152,11 @@ def run_spicetify(args: list[str], timeout: int = 300) -> tuple[int, str, str]:
     if not exe:
         return -1, "", "spicetify no encontrado en PATH ni en %LOCALAPPDATA%\\spicetify"
     return run_cmd([exe, *args], timeout=timeout)
+
+
+def close_spotify() -> None:
+    """Closes any running Spotify processes so Spicetify can patch files without file locks."""
+    try:
+        run_cmd(["taskkill", "/f", "/im", "Spotify.exe"])
+    except Exception:
+        pass

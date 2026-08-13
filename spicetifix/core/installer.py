@@ -10,6 +10,7 @@ from spicetifix.core.utils import (
     SPOTIFY_DOWNLOAD_URL,
     SPICETIFY_INSTALL_PS1,
     MARKETPLACE_INSTALL_PS1,
+    close_spotify,
     ensure_spotify_prefs,
     find_executable,
     get_spotify_path,
@@ -96,10 +97,7 @@ class Installer:
 
     def _close_spotify(self) -> None:
         """Closes any running Spotify processes so Spicetify can patch files without file locks."""
-        try:
-            run_cmd(["taskkill", "/f", "/im", "Spotify.exe"])
-        except Exception:
-            pass
+        close_spotify()
 
     def recover(self) -> bool:
         l = self._lang

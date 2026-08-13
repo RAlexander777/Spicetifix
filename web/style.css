@@ -215,7 +215,7 @@ body {
 
   display: flex;
   flex-direction: column;
-  gap: 18px;
+  gap: 22px;
 }
 
 /* SVG ICON HELPERS & ANIMATIONS */
@@ -383,7 +383,8 @@ svg[data-lucide], i[data-lucide] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 4px;
+  margin-top: 26px;
+  margin-bottom: 8px;
 }
 
 .console-actions {
@@ -395,24 +396,26 @@ svg[data-lucide], i[data-lucide] {
 .panel {
   background-color: var(--bg-color);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 16px 20px;
+  border-radius: 10px;
+  padding: 20px 22px;
 }
 
 .panel-header {
   font-size: 0.85rem;
   font-weight: bold;
   color: var(--contrast-color);
-  margin-bottom: 10px;
+  margin-bottom: 14px;
   display: flex;
   align-items: center;
+  gap: 6px;
+  letter-spacing: 0.5px;
 }
 
 .track-info {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: bold;
   color: var(--accent-color);
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 
 .player-controls {
@@ -425,36 +428,44 @@ svg[data-lucide], i[data-lucide] {
   font-size: 0.85rem;
   font-weight: bold;
   color: var(--contrast-color);
-  margin-top: 4px;
+  margin-top: 26px;
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--card-border);
+  letter-spacing: 0.5px;
+}
+
+.section-title:first-child {
+  margin-top: 0;
 }
 
 /* Cards */
 .status-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 10px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  gap: 12px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 .card-title {
   font-weight: bold;
-  font-size: 0.95rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
 }
@@ -466,7 +477,7 @@ svg[data-lucide], i[data-lucide] {
 }
 
 .card-sub {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   color: var(--text-muted);
 }
 
@@ -483,7 +494,9 @@ svg[data-lucide], i[data-lucide] {
 }
 
 .card-action {
-  margin-top: 10px;
+  margin-top: 4px;
+  padding-top: 12px;
+  border-top: 1px solid var(--card-border);
   font-size: 0.78rem;
   font-weight: bold;
   color: var(--accent-color);
@@ -927,6 +940,15 @@ button .gh-icon,
 
 .tab-content.active {
   display: block;
+}
+
+.tab-content > .panel,
+.tab-content > .mp-bar,
+.tab-content > .status-cards-grid,
+.tab-content > .actions-grid,
+.tab-content > .ext-panel,
+.tab-content > .mp-catalog-grid {
+  margin-top: 8px;
 }
 
 /* MARKETPLACE BAR & CATALOG GRID */

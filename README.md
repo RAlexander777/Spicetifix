@@ -75,16 +75,19 @@ spicetifix/
 │   │   ├── config.py          # Spicetify INI & YAML config handling
 │   │   ├── i18n.py            # English / Spanish strings
 │   │   ├── installer.py       # Installation & recovery engine
+│   │   ├── marketplace_fetcher.py # Spicetify Marketplace catalog fetcher
 │   │   ├── spotify_control.py # Windows Win32 Spotify controls
 │   │   ├── themer.py          # Spicetify theme manager
 │   │   ├── ui_theme.py        # UI theme palettes
+│   │   ├── updater.py         # GitHub release check & ZIP download
 │   │   └── utils.py           # Helpers
-├── src-tauri/
-│   └── tauri.conf.json        # Optional Tauri dev shell
 ├── web/
 │   ├── index.html             # Main UI (loaded in pywebview window)
 │   ├── app.js                 # Frontend logic
-│   └── style.css              # Terminal-styled CSS
+│   ├── style.css              # Terminal-styled CSS
+│   └── i18n/
+│       ├── es.json            # Spanish translations
+│       └── en.json            # English translations
 ├── scripts/
 │   └── build_exe.py           # PyInstaller build script
 ├── docs/

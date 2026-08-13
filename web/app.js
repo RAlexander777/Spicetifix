@@ -12,178 +12,27 @@ let consecutiveErrors = 0;
 let isSpotifyInstalled = false;
 let isSpicetifyInstalled = false;
 
-const I18N = {
-  es: {
-    system_ready: '[ SISTEMA_LISTO ]',
-    system_disconnected: '[ DESCONECTADO ]',
-    system_connecting: '[ CONECTANDO... ]',
-    open_spotify: 'ABRIR SPOTIFY',
-    refresh_btn: 'REFRESCAR',
-    about_btn: 'ACERCA DE',
-    options_btn: 'OPCIONES',
-    update_btn: 'NUEVA VERSIÓN',
-    update_title: '¡NUEVA VERSIÓN DISPONIBLE!',
-    update_message: 'Versión {v} disponible. Descargala ahora.',
-    update_download: 'DESCARGAR ZIP',
-    update_dismiss: 'MÁS TARDE',
-    ui_theme_lbl: 'Tema UI:',
-    quick_access: 'ACCESOS Y RESPALDOS:',
-    spicetify_dir: 'Carpeta Spicetify',
-    themes_dir: 'Carpeta Temas',
-    export_backup: 'Exportar Respaldo (.zip)',
-    import_backup: 'Importar Respaldo (.zip)',
-    now_playing_title: '// REPRODUCIENDO EN SPOTIFY',
-    loading_spotify: 'Cargando estado de Spotify...',
-    prev_btn: 'ANTERIOR',
-    play_btn: 'REPRODUCIR / PAUSAR',
-    next_btn: 'SIGUIENTE',
-    sec_status: '// ESTADO DEL SISTEMA (CLIC PARA INSTALAR O DESINSTALAR)',
-    card_theme_title: '3. Tema Activo',
-    card_spotify_sub_ok: 'Instalado y detectado (clic para desinstalar)',
-    card_spotify_sub_err: 'Spotify no encontrado (clic para instalar)',
-    card_spicetify_sub_ok: 'Configurado y activo (clic para desinstalar)',
-    card_spicetify_sub_err: 'Spicetify no configurado (clic para instalar)',
-    tag_online: '[ ONLINE ]',
-    tag_missing: '[ FALTA ]',
-    tag_active: '[ ACTIVO ]',
-    act_install_spotify: 'Haz clic para instalar Spotify',
-    act_uninstall_spotify: 'Haz clic para desinstalar Spotify',
-    act_install_spicetify: 'Haz clic para instalar Spicetify',
-    act_uninstall_spicetify: 'Haz clic para desinstalar Spicetify',
-    act_change_theme: 'Haz clic para cambiar tema',
-    sec_actions: '// ACCIONES GENERALES',
-    btn_install: 'INSTALACIÓN / ACTUALIZACIÓN COMPLETA',
-    btn_recover: 'RECUPERAR SISTEMA (POST-UPDATE)',
-    sec_exts: '// GESTOR DE EXTENSIONES SPICETIFY',
-    lbl_exts_header: 'Extensiones y Apps Detectadas:',
-    btn_refresh: 'RECARGAR',
-    sec_logs: '// CONSOLA DE LOGS DEL SISTEMA',
-    lbl_copy_logs: 'COPIAR LOGS',
-    lbl_clear_logs: 'LIMPIAR',
-    modal_opt_title: 'OPCIONES Y CONFIGURACIÓN DEL SISTEMA',
-    opt_sec_gen: 'AJUSTES GENERALES',
-    lbl_lang: 'Idioma / Language:',
-    lbl_spicetify_theme: 'Tema de Spicetify:',
-    lbl_color_scheme: 'Esquema de Color (Color Scheme):',
-    opt_sec_flags: 'BANDERAS AVANZADAS DE SPICETIFY',
-    lbl_flag_css: 'Inyectar CSS',
-    lbl_flag_colors: 'Reemplazar Colores',
-    lbl_flag_assets: 'Sobrescribir Assets',
-    lbl_flag_devtools: 'DevTools Siempre Activo',
-    lbl_flag_sentry: 'Telemetría Sentry',
-    opt_sec_danger: 'ZONA DE PELIGRO (DESINSTALACIÓN Y RECUPERACIÓN)',
-    btn_spicetify_apply: 'APLICAR CAMBIOS DE SPICETIFY',
-    btn_uninstall_spicetify: 'DESINSTALAR SPICETIFY',
-    btn_uninstall_spotify: 'DESINSTALAR SPOTIFY Y SPICETIFY',
-    btn_save_options: 'GUARDAR Y APLICAR OPCIONES',
-    modal_about_title: 'ACERCA DE AUTOMATIFY',
-    about_desc: 'Spicetifix es un centro de control terminal de diseño minimalista e instalador automatizado para Spotify y Spicetify en Windows.',
-    about_author_lbl: 'Autor / Creador:',
-    about_license_lbl: 'Licencia:',
-    about_engine_lbl: 'Motor:',
-    about_repo_lbl: 'Repositorio GitHub:',
-    about_spicetify_web: 'Web de Spicetify:',
-    about_spotify_web: 'Web de Spotify:',
-    about_features_title: 'Funcionalidades Principales:',
-    about_feat_1: 'Instalación paso a paso o en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.',
-    about_feat_2: 'Gestor visual de extensiones con interruptores en vivo.',
-    about_feat_3: 'Reproductor integrado de Spotify mediante llamadas nativas Win32 API.',
-    about_feat_4: 'Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).',
-    about_feat_5: 'Respaldo e Importación completa de configuraciones y temas (.zip).',
-    btn_close: 'CERRAR',
-    confirm_spicetify_title: 'Desinstalar Spicetify?',
-    confirm_spicetify: 'Esto desinstalará Spicetify y restaurará los archivos originales de Spotify.',
-    confirm_spotify_title: 'Desinstalar Spotify y Spicetify?',
-    confirm_spotify: 'ATENCIÓN: Esto desinstalará completamente Spotify y Spicetify del sistema.',
-    btn_yes_uninstall: 'Sí, Desinstalar',
-    btn_cancel: 'Cancelar'
-  },
-  en: {
-    system_ready: '[ SYSTEM_READY ]',
-    system_disconnected: '[ DISCONNECTED ]',
-    system_connecting: '[ CONNECTING... ]',
-    open_spotify: 'OPEN SPOTIFY',
-    refresh_btn: 'REFRESH',
-    about_btn: 'ABOUT',
-    options_btn: 'OPTIONS',
-    update_btn: 'NEW VERSION',
-    update_title: 'NEW VERSION AVAILABLE!',
-    update_message: 'Version {v} is now available. Download it now.',
-    update_download: 'DOWNLOAD ZIP',
-    update_dismiss: 'LATER',
-    ui_theme_lbl: 'UI Theme:',
-    quick_access: 'QUICK ACCESS & BACKUPS:',
-    spicetify_dir: 'Spicetify Folder',
-    themes_dir: 'Themes Folder',
-    export_backup: 'Export Backup (.zip)',
-    import_backup: 'Import Backup (.zip)',
-    now_playing_title: '// SPOTIFY NOW PLAYING',
-    loading_spotify: 'Loading Spotify Status...',
-    prev_btn: 'PREV',
-    play_btn: 'PLAY / PAUSE',
-    next_btn: 'NEXT',
-    sec_status: '// SYSTEM STATUS (CLICK CARD TO INSTALL / UNINSTALL)',
-    card_theme_title: '3. Active Theme',
-    card_spotify_sub_ok: 'Installed and detected (click to uninstall)',
-    card_spotify_sub_err: 'Spotify not found (click to install)',
-    card_spicetify_sub_ok: 'Configured and active (click to uninstall)',
-    card_spicetify_sub_err: 'Spicetify not configured (click to install)',
-    tag_online: '[ ONLINE ]',
-    tag_missing: '[ MISSING ]',
-    tag_active: '[ ACTIVE ]',
-    act_install_spotify: 'Click to install Spotify',
-    act_uninstall_spotify: 'Click to uninstall Spotify',
-    act_install_spicetify: 'Click to install Spicetify',
-    act_uninstall_spicetify: 'Click to uninstall Spicetify',
-    act_change_theme: 'Click to change theme',
-    sec_actions: '// GENERAL ACTIONS',
-    btn_install: 'FULL INSTALL / UPDATE',
-    btn_recover: 'RECOVER SYSTEM (POST-UPDATE)',
-    sec_exts: '// SPICETIFY EXTENSION MANAGER',
-    lbl_exts_header: 'Detected Extensions & Custom Apps:',
-    btn_refresh: 'REFRESH',
-    sec_logs: '// SYSTEM LOGS',
-    lbl_copy_logs: 'COPY LOGS',
-    lbl_clear_logs: 'CLEAR',
-    modal_opt_title: 'SYSTEM OPTIONS & CONFIGURATION',
-    opt_sec_gen: 'GENERAL SETTINGS',
-    lbl_lang: 'Language / Idioma:',
-    lbl_spicetify_theme: 'Spicetify Theme:',
-    lbl_color_scheme: 'Color Scheme:',
-    opt_sec_flags: 'ADVANCED SPICETIFY FLAGS',
-    lbl_flag_css: 'Inject CSS',
-    lbl_flag_colors: 'Replace Colors',
-    lbl_flag_assets: 'Overwrite Assets',
-    lbl_flag_devtools: 'Always Enable DevTools',
-    lbl_flag_sentry: 'Sentry Telemetry',
-    opt_sec_danger: 'DANGER ZONE (UNINSTALL & RECOVERY)',
-    btn_spicetify_apply: 'APPLY SPICETIFY CHANGES',
-    btn_uninstall_spicetify: 'UNINSTALL SPICETIFY',
-    btn_uninstall_spotify: 'UNINSTALL SPOTIFY & SPICETIFY',
-    btn_save_options: 'SAVE & APPLY OPTIONS',
-    modal_about_title: 'ABOUT AUTOMATIFY',
-    about_desc: 'Spicetifix is a minimalist terminal-styled control center and automated installer for Spotify and Spicetify on Windows.',
-    about_author_lbl: 'Author / Creator:',
-    about_license_lbl: 'License:',
-    about_engine_lbl: 'Engine:',
-    about_repo_lbl: 'GitHub Repository:',
-    about_spicetify_web: 'Spicetify Website:',
-    about_spotify_web: 'Spotify Website:',
-    about_features_title: 'Key Features:',
-    about_feat_1: 'Step-by-step or 1-Click installation for Spotify, Spicetify CLI, Marketplace & Themes.',
-    about_feat_2: 'Visual extension manager with live toggles.',
-    about_feat_3: 'Integrated Spotify player using native Win32 API calls.',
-    about_feat_4: 'Automated post-update recovery for Spotify.',
-    about_feat_5: 'Full backup export and import (.zip).',
-    btn_close: 'CLOSE',
-    confirm_spicetify_title: 'Uninstall Spicetify?',
-    confirm_spicetify: 'This will uninstall Spicetify and restore stock Spotify files.',
-    confirm_spotify_title: 'Uninstall Spotify & Spicetify?',
-    confirm_spotify: 'WARNING: This will completely uninstall Spotify and Spicetify from your system.',
-    btn_yes_uninstall: 'Yes, Uninstall',
-    btn_cancel: 'Cancel'
+let I18N = { es: {}, en: {} };
+let I18N_READY = false;
+
+async function loadI18n() {
+  if (I18N_READY) return;
+  try {
+    const [es, en] = await Promise.all([
+      fetch('i18n/es.json').then(r => r.json()),
+      fetch('i18n/en.json').then(r => r.json()),
+    ]);
+    I18N = { es, en };
+    I18N_READY = true;
+  } catch (err) {
+    console.warn('i18n load failed:', err);
   }
-};
+}
+
+function t(key) {
+  const dict = I18N[currentLang] || I18N.es || {};
+  return dict[key] !== undefined ? dict[key] : key;
+}
 
 async function apiFetch(endpoint, method = 'GET', body = null) {
   const options = {
@@ -283,13 +132,18 @@ function showCyberAlert(title, text, confirmText, cancelText, onConfirm) {
 }
 
 // Apply Language to UI
-function applyLanguage(lang) {
-  currentLang = lang in I18N ? lang : 'es';
+async function applyLanguage(lang) {
+  await loadI18n();
+  currentLang = I18N[lang] ? lang : 'es';
   const t = I18N[currentLang];
 
   const setTxt = (id, text) => {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
+  };
+  const setPh = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.placeholder = text;
   };
 
   setTxt('system-badge', t.system_ready);
@@ -304,6 +158,8 @@ function applyLanguage(lang) {
   setTxt('lbl-themes-dir', t.themes_dir);
   setTxt('lbl-export-backup', t.export_backup);
   setTxt('lbl-import-backup', t.import_backup);
+  setTxt('lbl-tab-dashboard', t.tab_dashboard);
+  setTxt('lbl-tab-marketplace', t.tab_marketplace);
   setTxt('lbl-player-header', t.now_playing_title);
   setTxt('lbl-prev', t.prev_btn);
   setTxt('lbl-play', t.play_btn);
@@ -336,6 +192,15 @@ function applyLanguage(lang) {
   setTxt('lbl-btn-uninstall-spotify', t.btn_uninstall_spotify);
   setTxt('btn-save-options', t.btn_save_options);
   setTxt('btn-close-about-footer', t.btn_close);
+  setTxt('lbl-refresh-catalog', t.mp_refresh);
+  setTxt('lbl-sec-title-mp', t.sec_title_mp);
+  setTxt('lbl-mp-filter-all', t.mp_filter_all);
+  setTxt('lbl-mp-filter-ext', t.mp_filter_ext);
+  setTxt('lbl-mp-filter-theme', t.mp_filter_theme);
+  setTxt('lbl-mp-filter-installed', t.mp_filter_installed);
+  setTxt('lbl-mp-prev', t.mp_prev);
+  setTxt('lbl-mp-next', t.mp_next);
+  setPh('mp-search-input', t.mp_search_placeholder);
 
   // About modal texts
   const modalAboutTitle = document.querySelector('#about-modal h2');
@@ -396,7 +261,7 @@ async function pollStatus() {
         badge.className = 'badge badge-disconnected';
       }
       const trackInfo = document.getElementById('track-info');
-      trackInfo.textContent = 'Error: No se puede conectar con el servidor Spicetifix :8765';
+      trackInfo.textContent = t('conn_error');
     }
     isConnected = false;
     return;
@@ -408,7 +273,7 @@ async function pollStatus() {
   if (data.config) {
     systemConfig = data.config;
     if (systemConfig.language && systemConfig.language !== currentLang) {
-      applyLanguage(systemConfig.language);
+      await applyLanguage(systemConfig.language);
     }
   }
 
@@ -503,7 +368,7 @@ async function pollStatus() {
   if (data.is_working) {
     const consoleBox = document.getElementById('console-output');
     if (!data.logs || data.logs.length === 0) {
-      consoleBox.textContent = 'root@spicetifix:~$ Operación en curso...\n';
+      consoleBox.textContent = `root@spicetifix:~$ ${t('console_working')}\n`;
     }
   }
 }
@@ -513,12 +378,12 @@ async function loadColorSchemes(themeName) {
   const schemeSelect = document.getElementById('select-color-scheme');
   if (!schemeSelect) return;
 
-  schemeSelect.innerHTML = '<option value="">Default</option>';
+  schemeSelect.innerHTML = `<option value="">${t('scheme_default')}</option>`;
   if (!themeName) return;
 
   const data = await apiFetch('/api/themes/schemes', 'POST', { theme: themeName });
   if (!data) {
-    schemeSelect.innerHTML = '<option value="">Error al cargar esquemas</option>';
+    schemeSelect.innerHTML = `<option value="">${t('scheme_error')}</option>`;
     return;
   }
   if (data.schemes && data.schemes.length > 0) {
@@ -536,7 +401,7 @@ async function loadExtensions() {
   const data = await apiFetch('/api/extensions');
   if (!data) {
     const extGrid = document.getElementById('ext-grid');
-    if (extGrid) extGrid.innerHTML = '<div class="empty-msg">Error: no se pudo conectar al servidor.</div>';
+    if (extGrid) extGrid.innerHTML = `<div class="empty-msg">${t('conn_error')}</div>`;
     return;
   }
 
@@ -549,7 +414,7 @@ async function loadExtensions() {
   ];
 
   if (allItems.length === 0) {
-    extGrid.innerHTML = '<div class="empty-msg">No extensions detected.</div>';
+    extGrid.innerHTML = `<div class="empty-msg">${t('ext_empty')}</div>`;
     return;
   }
 
@@ -655,7 +520,7 @@ async function saveOptions() {
   const selectSpicetifyTheme = document.getElementById('select-spicetify-theme');
 
   const selectedLang = selectLang ? selectLang.value : 'es';
-  applyLanguage(selectedLang);
+  await applyLanguage(selectedLang);
 
   const body = {
     language: selectedLang,
@@ -669,12 +534,13 @@ async function saveOptions() {
 }
 
 // Initialize UI
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadI18n();
   const badge = document.getElementById('system-badge');
   badge.textContent = I18N['es'].system_connecting;
   badge.className = 'badge badge-connecting';
 
-  applyLanguage('es');
+  await applyLanguage('es');
   loadThemes();
   loadExtensions();
   pollStatus();
@@ -774,7 +640,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnClearLogs = document.getElementById('btn-clear-logs');
   if (btnClearLogs) {
     btnClearLogs.addEventListener('click', () => {
-      document.getElementById('console-output').textContent = 'root@spicetifix:~$ consola limpiada.';
+      document.getElementById('console-output').textContent = `root@spicetifix:~$ ${t('console_cleared')}`;
     });
   }
 
@@ -982,14 +848,14 @@ function switchTab(tabId) {
 async function loadMarketplaceCatalog() {
   currentPage = 1;
   const grid = document.getElementById('mp-catalog-grid');
-  if (grid) grid.innerHTML = '<div class="empty-msg">Cargando catálogo...</div>';
+  if (grid) grid.innerHTML = `<div class="empty-msg">${t('mp_loading')}</div>`;
 
   const data = await apiFetch('/api/marketplace/catalog');
   if (data && data.catalog) {
     currentMarketplaceCatalog = data.catalog;
     renderMarketplaceCatalog();
   } else if (grid) {
-    grid.innerHTML = '<div class="empty-msg">Error al cargar el catálogo. El servidor no está disponible en :8765.</div>';
+    grid.innerHTML = `<div class="empty-msg">${t('mp_error')}</div>`;
   }
 }
 
@@ -1023,7 +889,7 @@ function renderMarketplaceCatalog() {
 
   grid.innerHTML = '';
   if (filtered.length === 0) {
-    grid.innerHTML = '<div class="empty-msg">No se encontraron ítems en el catálogo.</div>';
+    grid.innerHTML = `<div class="empty-msg">${t('mp_no_results')}</div>`;
     if (pagination) pagination.style.display = 'none';
     return;
   }
@@ -1039,12 +905,12 @@ function renderMarketplaceCatalog() {
     card.id = `mp-card-${item.id}`;
     const isExt = item.type === 'extension';
     const badgeClass = isExt ? 'mp-badge-ext' : 'mp-badge-theme';
-    const badgeText = isExt ? 'EXTENSIÓN' : 'TEMA';
-    const statusText = item.installed ? '[ INSTALADO ]' : '[ DISPONIBLE ]';
+    const badgeText = isExt ? t('mp_badge_ext') : t('mp_badge_theme');
+    const statusText = item.installed ? t('mp_status_installed') : t('mp_status_available');
     const statusClass = item.installed ? 'mp-status-installed' : 'mp-status-available';
 
     const btnClass = item.installed ? 'btn-danger' : 'btn-accent';
-    const btnText = item.installed ? 'DESINSTALAR' : 'INSTALAR';
+    const btnText = item.installed ? t('mp_uninstall') : t('mp_install');
     const btnIcon = item.installed ? 'trash-2' : 'download';
 
     const repoUrl = `https://github.com/${item.user}/${item.repo}`;
@@ -1055,13 +921,13 @@ function renderMarketplaceCatalog() {
           <span class="mp-card-title">${item.title}</span>
           <span class="mp-card-badge ${badgeClass}">${badgeText}</span>
         </div>
-        <div class="mp-card-author">por ${item.author}</div>
+        <div class="mp-card-author">${t('mp_by')} ${item.author}</div>
         <div class="mp-card-desc">${item.description}</div>
       </div>
       <div class="mp-card-footer">
         <span class="mp-status-tag ${statusClass}">${statusText}</span>
         <div class="mp-card-actions">
-          <button class="btn btn-small btn-mp-gh" title="Abrir repositorio en GitHub">
+          <button class="btn btn-small btn-mp-gh" title="${t('mp_gh_title')}">
             ${GITHUB_ICON_SVG}
           </button>
           <button class="btn btn-small ${btnClass} btn-mp-action" data-id="${item.id}">
@@ -1094,7 +960,7 @@ function renderMarketplaceCatalog() {
 
   // Update pagination info
   const pageInfo = document.getElementById('mp-page-info');
-  if (pageInfo) pageInfo.textContent = `Página ${currentPage} / ${totalPages}`;
+  if (pageInfo) pageInfo.textContent = t('mp_page').replace('{c}', currentPage).replace('{t}', totalPages);
 
   const prevBtn = document.getElementById('btn-mp-prev');
   const nextBtn = document.getElementById('btn-mp-next');
@@ -1116,15 +982,14 @@ async function installMarketplaceItem(item) {
     schemes_url: item.schemes_url,
     include: item.include,
   });
+  const consoleBox = document.getElementById('console-output');
   if (res && res.status === 'ok') {
-    const consoleBox = document.getElementById('console-output');
-    consoleBox.textContent += `\nroot@spicetifix:~$ ${item.title} instalado correctamente.`;
+    consoleBox.textContent += `\nroot@spicetifix:~$ ${item.title} ${t('mp_installed_ok')}`;
     consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
     pollStatus();
     await loadMarketplaceCatalog();
   } else {
-    const consoleBox = document.getElementById('console-output');
-    consoleBox.textContent += `\nroot@spicetifix:~$ Error instalando ${item.title}: ${res?.error || 'Falló la instalación'}`;
+    consoleBox.textContent += `\nroot@spicetifix:~$ ${t('mp_installed_err')} ${item.title}: ${res?.error || t('mp_failed')}`;
     consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
     await loadMarketplaceCatalog();
   }
@@ -1135,15 +1000,14 @@ async function uninstallMarketplaceItem(item) {
     type: item.type,
     filename: item.filename,
   });
+  const consoleBox = document.getElementById('console-output');
   if (res && res.status === 'ok') {
-    const consoleBox = document.getElementById('console-output');
-    consoleBox.textContent += `\nroot@spicetifix:~$ ${item.title} desinstalado correctamente.`;
+    consoleBox.textContent += `\nroot@spicetifix:~$ ${item.title} ${t('mp_uninstalled_ok')}`;
     consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
     pollStatus();
     await loadMarketplaceCatalog();
   } else {
-    const consoleBox = document.getElementById('console-output');
-    consoleBox.textContent += `\nroot@spicetifix:~$ Error desinstalando ${item.title}: ${res?.error || 'Falló la desinstalación'}`;
+    consoleBox.textContent += `\nroot@spicetifix:~$ ${t('mp_uninstalled_err')} ${item.title}: ${res?.error || t('mp_failed')}`;
     consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
     await loadMarketplaceCatalog();
   }

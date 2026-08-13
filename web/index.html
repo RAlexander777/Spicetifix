@@ -150,29 +150,27 @@
 
     <!-- Tab 2: Marketplace View -->
     <div class="tab-content" id="content-marketplace">
-      <section class="section-title" id="sec-title-mp">// CATÁLOGO DE EXTENSIONES Y TEMAS SPICETIFY</section>
-      
+      <section class="section-title" id="sec-title-mp"><span id="lbl-sec-title-mp">// CATÁLOGO DE EXTENSIONES Y TEMAS SPICETIFY</span></section>      
       <div class="mp-bar">
         <div class="mp-search-box">
           <i data-lucide="search"></i>
-          <input type="text" id="mp-search-input" placeholder="Buscar extensiones o temas..." autocomplete="off">
-        </div>
+          <input type="text" id="mp-search-input" placeholder="Buscar extensiones o temas..." autocomplete="off">        </div>
         <div class="mp-filter-chips">
-          <button class="chip-filter active" data-filter="all" id="btn-mp-filter-all">Todos</button>
-          <button class="chip-filter" data-filter="extension" id="btn-mp-filter-ext">Extensiones</button>
-          <button class="chip-filter" data-filter="theme" id="btn-mp-filter-theme">Temas</button>
-          <button class="chip-filter" data-filter="installed" id="btn-mp-filter-installed">Instaladas</button>
+          <button class="chip-filter active" data-filter="all" id="btn-mp-filter-all"><span id="lbl-mp-filter-all">Todos</span></button>
+          <button class="chip-filter" data-filter="extension" id="btn-mp-filter-ext"><span id="lbl-mp-filter-ext">Extensiones</span></button>
+          <button class="chip-filter" data-filter="theme" id="btn-mp-filter-theme"><span id="lbl-mp-filter-theme">Temas</span></button>
+          <button class="chip-filter" data-filter="installed" id="btn-mp-filter-installed"><span id="lbl-mp-filter-installed">Instaladas</span></button>
         </div>
         <button class="btn btn-small" id="btn-refresh-catalog"><i data-lucide="refresh-cw"></i> <span id="lbl-refresh-catalog">RECARGAR CATÁLOGO</span></button>
       </div>
 
       <div class="mp-catalog-grid" id="mp-catalog-grid">
-        <div class="empty-msg">Cargando catálogo...</div>
+        <div class="empty-msg" id="mp-loading-msg">Cargando catálogo...</div>
       </div>
       <div class="mp-pagination" id="mp-pagination" style="display:none">
-        <button class="btn btn-small" id="btn-mp-prev"><i data-lucide="chevron-left"></i> ANTERIOR</button>
+        <button class="btn btn-small" id="btn-mp-prev"><i data-lucide="chevron-left"></i> <span id="lbl-mp-prev">ANTERIOR</span></button>
         <span class="mp-page-info" id="mp-page-info">Página 1 / 1</span>
-        <button class="btn btn-small" id="btn-mp-next">SIGUIENTE <i data-lucide="chevron-right"></i></button>
+        <button class="btn btn-small" id="btn-mp-next"><span id="lbl-mp-next">SIGUIENTE</span> <i data-lucide="chevron-right"></i></button>
       </div>
     </div>
 
@@ -269,7 +267,7 @@
       <div class="modal-body about-body">
         <div class="about-hero">
           <span class="about-logo">❯ SPICETIFIX</span>
-          <span class="about-version">v1.3.0 (Spicetifix / pywebview)</span>
+          <span class="about-version">v1.4.0 (Spicetifix / pywebview)</span>
         </div>
 
         <p class="about-desc">

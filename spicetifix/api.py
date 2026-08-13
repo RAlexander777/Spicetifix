@@ -276,6 +276,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             try:
                 from spicetifix.core.utils import (
+                    close_spotify,
                     get_spicetify_extensions_dir,
                     get_spicetify_themes_dir,
                     run_spicetify,
@@ -301,7 +302,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg["extensions"] = list(exts)
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
-                    run_spicetify(["apply"])
+                    close_spotify()
+                    code, out, err = run_spicetify(["apply"])
+                    if code != 0:
+                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        return
                     self._send_json({"status": "ok", "message": f"Extensión {filename} instalada y aplicada"})
 
                 elif item_type == "theme":
@@ -339,7 +344,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     set_theme(filename)
-                    run_spicetify(["apply"])
+                    close_spotify()
+                    code, out, err = run_spicetify(["apply"])
+                    if code != 0:
+                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        return
                     self._send_json({"status": "ok", "message": f"Tema {filename} instalado y aplicado"})
 
                 else:
@@ -357,6 +366,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             try:
                 from spicetifix.core.utils import (
+                    close_spotify,
                     get_spicetify_extensions_dir,
                     get_spicetify_themes_dir,
                     run_spicetify,
@@ -383,7 +393,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg["extensions"] = list(exts)
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
-                    run_spicetify(["apply"])
+                    close_spotify()
+                    code, out, err = run_spicetify(["apply"])
+                    if code != 0:
+                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        return
                     self._send_json({"status": "ok", "message": f"Extensión {filename} desinstalada"})
 
                 elif item_type == "theme":
@@ -400,7 +414,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
-                    run_spicetify(["apply"])
+                    close_spotify()
+                    code, out, err = run_spicetify(["apply"])
+                    if code != 0:
+                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        return
                     self._send_json({"status": "ok", "message": f"Tema {filename} desinstalado"})
 
                 else:
