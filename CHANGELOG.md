@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.6.0] - 2026-08-14
+
+### Changed
+- License attribution: copyright notice now names the author (RAlexander777) instead
+  of the generic "spicetify contributors", so derivatives must credit the author.
+- Packaging metadata now declares the MIT license and the author.
+
 ## [1.5.0] - 2026-08-14
 
 ### Fixed

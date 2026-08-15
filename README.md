@@ -103,4 +103,8 @@ spicetifix/
 
 ## 📄 License
 
-Distributed under the MIT License. See [`LICENSE`](LICENSE) for details.
+Distributed under the **MIT License**. See [`LICENSE`](LICENSE) for details.
+
+**Author:** [RAlexander777](https://github.com/RAlexander777) · Copyright (c) 2026 RAlexander777
+
+If you use, fork, or build on this project, keep the copyright notice and credit the author.

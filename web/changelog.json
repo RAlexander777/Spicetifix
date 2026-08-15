@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.6.0",
+    "date": "2026-08-14",
+    "title": "Author attribution",
+    "changes": [
+      "Copyright notice now names the author (RAlexander777) instead of the generic \"spicetify contributors\", so any derivative must credit the author.",
+      "Packaging metadata now declares the MIT license and the author."
+    ]
+  },
+  {
     "version": "1.5.0",
     "date": "2026-08-14",
     "title": "Reliable marketplace apply & in-app changelog",
