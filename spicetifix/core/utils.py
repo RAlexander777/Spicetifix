@@ -154,9 +154,36 @@ def run_spicetify(args: list[str], timeout: int = 300) -> tuple[int, str, str]:
     return run_cmd([exe, *args], timeout=timeout)
 
 
+def run_spicetify_apply(timeout: int = 300) -> tuple[int, str, str]:
+    """Runs spicetify apply with a recovery cascade.
+
+    Spotify auto-updates can invalidate the stored backup, so a bare
+    `spicetify apply` may fail. Try progressively harder variants the same
+    way recover() does: restore backup apply -> backup apply -> apply.
+    """
+    attempts = [
+        (["restore", "backup", "apply"], "restore backup apply"),
+        (["backup", "apply"], "backup apply"),
+        (["apply"], "apply"),
+    ]
+    last = (-1, "", "no attempts made")
+    for args, _label in attempts:
+        last = run_spicetify(args, timeout=timeout)
+        if last[0] == 0:
+            return last
+    return last
+
+
 def close_spotify() -> None:
-    """Closes any running Spotify processes so Spicetify can patch files without file locks."""
-    try:
-        run_cmd(["taskkill", "/f", "/im", "Spotify.exe"])
-    except Exception:
-        pass
+    """Closes all Spotify-related processes so Spicetify can patch files without file locks."""
+    for proc in (
+        "Spotify.exe",
+        "SpotifyWebHelper.exe",
+        "SpotifyCrashService.exe",
+        "SpotifyHelper.exe",
+        "spotifyd.exe",
+    ):
+        try:
+            run_cmd(["taskkill", "/f", "/im", proc])
+        except Exception:
+            pass

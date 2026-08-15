@@ -8,6 +8,7 @@ let currentLang = 'es';
 let systemConfig = {};
 let isConnected = true;
 let consecutiveErrors = 0;
+let appVersion = '';
 
 let isSpotifyInstalled = false;
 let isSpicetifyInstalled = false;
@@ -222,6 +223,9 @@ async function applyLanguage(lang) {
   const featH4 = document.querySelector('.about-features h4');
   if (featH4) featH4.textContent = t.about_features_title;
 
+  const changelogH4 = document.getElementById('about-changelog-title');
+  if (changelogH4) changelogH4.textContent = t.about_changelog_title;
+
   const featLis = document.querySelectorAll('.about-features li');
   if (featLis.length >= 5) {
     featLis[0].textContent = t.about_feat_1;
@@ -269,6 +273,12 @@ async function pollStatus() {
   isConnected = true;
   const badge = document.getElementById('system-badge');
   badge.className = 'badge';
+
+  if (data.version) {
+    appVersion = data.version;
+    const versionEl = document.getElementById('about-version');
+    if (versionEl) versionEl.textContent = `v${appVersion} (Spicetifix / pywebview)`;
+  }
 
   if (data.config) {
     systemConfig = data.config;
@@ -503,6 +513,40 @@ function openAboutModal() {
   const modal = document.getElementById('about-modal');
   if (modal) {
     modal.classList.add('active');
+    loadAboutInfo();
+  }
+}
+
+// Load app version + changelog into the About dialog
+async function loadAboutInfo() {
+  const versionEl = document.getElementById('about-version');
+  if (versionEl && appVersion) {
+    versionEl.textContent = `v${appVersion} (Spicetifix / pywebview)`;
+  }
+
+  const listEl = document.getElementById('about-changelog-list');
+  if (!listEl) return;
+
+  try {
+    const res = await fetch('changelog.json');
+    if (!res.ok) throw new Error('changelog not found');
+    const entries = await res.json();
+
+    const esc = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    listEl.innerHTML = entries.map(entry => `
+      <div class="changelog-entry">
+        <div class="changelog-head">
+          <span class="changelog-version">v${esc(entry.version)}</span>
+          <span class="changelog-date">${esc(entry.date)}</span>
+        </div>
+        <div class="changelog-title">${esc(entry.title)}</div>
+        <ul class="changelog-changes">
+          ${(entry.changes || []).map(c => `<li>${esc(c)}</li>`).join('')}
+        </ul>
+      </div>
+    `).join('');
+  } catch (err) {
+    listEl.textContent = '';
   }
 }
 

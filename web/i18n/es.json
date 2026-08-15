@@ -85,6 +85,7 @@
   "about_feat_3": "Reproductor integrado de Spotify mediante llamadas nativas Win32 API.",
   "about_feat_4": "Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).",
   "about_feat_5": "Respaldo e Importación completa de configuraciones y temas (.zip).",
+  "about_changelog_title": "Cambios Recientes:",
   "btn_close": "CERRAR",
   "confirm_spicetify_title": "Desinstalar Spicetify?",
   "confirm_spicetify": "Esto desinstalará Spicetify y restaurará los archivos originales de Spotify.",

@@ -116,9 +116,53 @@ def _default_config() -> dict:
     }
 
 
+def _merge_live_entries(user_config: dict) -> dict:
+    """Preserve extensions/custom apps that live in config-xpui.ini and are still
+    installed on disk but not tracked in the user config.
+
+    Items added directly via `spicetify config` (or any external tool) would be
+    silently dropped whenever the config is rebuilt from the user config alone.
+    Merging with the live config keeps them, while entries whose file was removed
+    (e.g. an uninstall through spicetifix) are still dropped.
+    """
+    live = read_spicetify_config()
+    if not live:
+        return user_config
+
+    extras = live.get("AdditionalOptions", {}) or {}
+
+    def split_list(key: str) -> list[str]:
+        raw = extras.get(key, "") or ""
+        return [e.strip() for e in raw.split("|") if e.strip()]
+
+    live_exts = split_list("extensions")
+    live_apps = split_list("custom_apps")
+
+    disk_exts = set(get_installed_extensions())
+    disk_apps = set(get_installed_custom_apps())
+
+    merged = dict(user_config)
+    merged["extensions"] = _merge_ordered(
+        user_config.get("extensions", []), live_exts, disk_exts
+    )
+    merged["custom_apps"] = _merge_ordered(
+        user_config.get("custom_apps", []), live_apps, disk_apps
+    )
+    return merged
+
+
+def _merge_ordered(base: list, live: list, disk: set) -> list:
+    result = list(base)
+    for entry in live:
+        if entry in disk and entry not in result:
+            result.append(entry)
+    return result
+
+
 def write_spicetify_config(user_config: dict | None = None) -> None:
     if user_config is None:
         user_config = load_user_config()
+    user_config = _merge_live_entries(user_config)
 
     spotify_path = get_spotify_path()
     if not spotify_path:

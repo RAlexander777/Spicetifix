@@ -1,0 +1,68 @@
+[
+  {
+    "version": "1.5.0",
+    "date": "2026-08-14",
+    "title": "Reliable marketplace apply & in-app changelog",
+    "changes": [
+      "Marketplace install/uninstall now runs spicetify apply with a recovery cascade (restore backup apply -> backup apply -> apply) so a Spotify auto-update can't silently block the change.",
+      "Close all Spotify helper processes (WebHelper, CrashService, etc.) before patching, not just Spotify.exe.",
+      "Uninstall now verifies the extension is actually gone after apply and reports a clear error if it is not.",
+      "Extensions and custom apps configured outside Spicetifix (e.g. via spicetify config) are preserved when rebuilding the config, so they are no longer dropped.",
+      "Show the app version and release notes (changelog) inside the About dialog."
+    ]
+  },
+  {
+    "version": "1.4.0",
+    "date": "2026-08-12",
+    "title": "JSON i18n & marketplace apply fix",
+    "changes": [
+      "Move translations to JSON files (en/es) loaded dynamically.",
+      "Fix mixed-language strings across the UI.",
+      "Marketplace install/uninstall: close Spotify before spicetify apply and report the real failure code instead of a silent 'ok'.",
+      "Visual hierarchy rework for cards and sections.",
+      "Remove dead assets and leftover project files."
+    ]
+  },
+  {
+    "version": "1.3.0",
+    "date": "2026-08-05",
+    "title": "Security hardening & auto-update",
+    "changes": [
+      "API auth token and path-traversal protection for static files.",
+      "Built-in auto-update checker with release download.",
+      "Fix marketplace extensions installed in subfolders.",
+      "Recover System now cascades spicetify restore/backup/apply commands.",
+      "Bundle pywebview properly so the native window works."
+    ]
+  },
+  {
+    "version": "1.2.0",
+    "date": "2026-07-22",
+    "title": "Native window & auth",
+    "changes": [
+      "Run in a native pywebview window instead of a browser tab.",
+      "API token authentication between the UI and the Python sidecar."
+    ]
+  },
+  {
+    "version": "1.1.0",
+    "date": "2026-07-20",
+    "title": "Marketplace tab & stability",
+    "changes": [
+      "Marketplace tab with pagination, search, filters and GitHub links.",
+      "Connection error UI when the app loses its backend.",
+      "Heartbeat fix to keep the app alive."
+    ]
+  },
+  {
+    "version": "1.0.0",
+    "date": "2026-07-18",
+    "title": "Initial release",
+    "changes": [
+      "Automated installer for Spotify, Spicetify CLI, Marketplace and Themes.",
+      "Terminal-styled control center: status, extensions, custom apps, themes and backups.",
+      "Integrated Spotify player controls via native Win32 API.",
+      "Backup export and import (.zip)."
+    ]
+  }
+]

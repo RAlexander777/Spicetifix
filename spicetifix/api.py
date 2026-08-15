@@ -28,6 +28,7 @@ from spicetifix.core.installer import Installer
 from spicetifix.core.themer import list_available_themes, set_theme
 from spicetifix.core.ui_theme import list_ui_theme_names, get_ui_theme, THEMES
 from spicetifix.core import spotify_control
+from spicetifix import __version__
 
 
 _install_logs = []
@@ -174,6 +175,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             is_working, progress, logs = _get_state()
             self._send_json({
+                "version": __version__,
                 "config": cfg,
                 "health": health,
                 "now_playing": now_playing,
@@ -279,7 +281,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     close_spotify,
                     get_spicetify_extensions_dir,
                     get_spicetify_themes_dir,
-                    run_spicetify,
+                    run_spicetify_apply,
                 )
                 from spicetifix.core.config import (
                     write_spicetify_config,
@@ -303,7 +305,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     close_spotify()
-                    code, out, err = run_spicetify(["apply"])
+                    code, out, err = run_spicetify_apply()
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
                         return
@@ -345,7 +347,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     write_spicetify_config(cfg)
                     set_theme(filename)
                     close_spotify()
-                    code, out, err = run_spicetify(["apply"])
+                    code, out, err = run_spicetify_apply()
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
                         return
@@ -369,7 +371,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     close_spotify,
                     get_spicetify_extensions_dir,
                     get_spicetify_themes_dir,
-                    run_spicetify,
+                    run_spicetify_apply,
                 )
                 from spicetifix.core.config import (
                     write_spicetify_config,
@@ -394,9 +396,14 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     close_spotify()
-                    code, out, err = run_spicetify(["apply"])
+                    code, out, err = run_spicetify_apply()
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        return
+
+                    still_present = target_file.exists() or filename in cfg["extensions"]
+                    if still_present:
+                        self._send_json({"error": f"La extensión {filename} se marcó para desinstalar pero sigue presente. Reintentá o usá Recover System."}, 500)
                         return
                     self._send_json({"status": "ok", "message": f"Extensión {filename} desinstalada"})
 
@@ -415,7 +422,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     close_spotify()
-                    code, out, err = run_spicetify(["apply"])
+                    code, out, err = run_spicetify_apply()
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
                         return
@@ -581,9 +588,9 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             def run():
                 try:
-                    from spicetifix.core.utils import run_spicetify
+                    from spicetifix.core.utils import run_spicetify_apply
                     _append_log("Running spicetify apply...")
-                    code, out, err = run_spicetify(["apply"])
+                    code, out, err = run_spicetify_apply()
                     if out: _append_log(out)
                     if err: _append_log(err)
                     _append_log(f"Finished with exit code {code}")

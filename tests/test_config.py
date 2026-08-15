@@ -7,6 +7,7 @@ from spicetifix.core.config import (
     get_installed_custom_apps,
     load_user_config,
     _default_config,
+    _merge_live_entries,
 )
 
 
@@ -46,6 +47,49 @@ class TestConfigExtensionDetection(unittest.TestCase):
 
         cfg = load_user_config()
         self.assertEqual(cfg["extensions"], ["marketplace.js", "bookmark.js"])
+
+
+class TestMergeLiveEntries(unittest.TestCase):
+    def setUp(self):
+        self.live = {
+            "AdditionalOptions": {
+                "extensions": "popupLyrics.js|adblock/adblock.js|externalApp.js",
+                "custom_apps": "marketplace|lyrics-plus",
+            }
+        }
+        self.disk_exts = {"popupLyrics.js", "adblock/adblock.js", "externalApp.js"}
+        self.disk_apps = {"marketplace", "lyrics-plus"}
+
+    def test_preserves_external_entries_not_in_yaml(self):
+        with patch("spicetifix.core.config.read_spicetify_config", return_value=self.live), \
+             patch("spicetifix.core.config.get_installed_extensions", return_value=list(self.disk_exts)), \
+             patch("spicetifix.core.config.get_installed_custom_apps", return_value=list(self.disk_apps)):
+            cfg = _merge_live_entries({"extensions": ["adblock/adblock.js"], "custom_apps": []})
+        self.assertEqual(
+            set(cfg["extensions"]),
+            {"adblock/adblock.js", "popupLyrics.js", "externalApp.js"},
+        )
+        self.assertEqual(set(cfg["custom_apps"]), {"marketplace", "lyrics-plus"})
+
+    def test_drops_live_entry_whose_file_was_removed(self):
+        disk_exts = self.disk_exts - {"externalApp.js"}
+        with patch("spicetifix.core.config.read_spicetify_config", return_value=self.live), \
+             patch("spicetifix.core.config.get_installed_extensions", return_value=list(disk_exts)), \
+             patch("spicetifix.core.config.get_installed_custom_apps", return_value=list(self.disk_apps)):
+            cfg = _merge_live_entries({"extensions": [], "custom_apps": []})
+        self.assertNotIn("externalApp.js", cfg["extensions"])
+
+    def test_keeps_yaml_entries_and_avoids_duplicates(self):
+        with patch("spicetifix.core.config.read_spicetify_config", return_value=self.live), \
+             patch("spicetifix.core.config.get_installed_extensions", return_value=list(self.disk_exts)), \
+             patch("spicetifix.core.config.get_installed_custom_apps", return_value=list(self.disk_apps)):
+            cfg = _merge_live_entries({"extensions": ["popupLyrics.js"], "custom_apps": []})
+        self.assertEqual(cfg["extensions"].count("popupLyrics.js"), 1)
+
+    def test_no_live_config_returns_yaml_unchanged(self):
+        with patch("spicetifix.core.config.read_spicetify_config", return_value=None):
+            cfg = _merge_live_entries({"extensions": ["a.js"], "custom_apps": []})
+        self.assertEqual(cfg["extensions"], ["a.js"])
 
 
 if __name__ == "__main__":

@@ -20,6 +20,7 @@ from spicetifix.core.utils import (
     run_cmd,
     run_ps1,
     run_spicetify,
+    run_spicetify_apply,
     strip_ansi,
 )
 from spicetifix.core.config import init_spicetify_config
@@ -424,7 +425,7 @@ class Installer:
 
     def _run_apply(self) -> bool:
         self._close_spotify()
-        code, out, err = run_spicetify(["apply"])
+        code, out, err = run_spicetify_apply()
         self._clean_log(out)
         if err:
             self._clean_log(err)

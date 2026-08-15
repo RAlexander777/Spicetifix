@@ -85,6 +85,7 @@
   "about_feat_3": "Integrated Spotify player using native Win32 API calls.",
   "about_feat_4": "Automated post-update recovery for Spotify.",
   "about_feat_5": "Full backup export and import (.zip).",
+  "about_changelog_title": "Release Notes:",
   "btn_close": "CLOSE",
   "confirm_spicetify_title": "Uninstall Spicetify?",
   "confirm_spicetify": "This will uninstall Spicetify and restore stock Spotify files.",
