@@ -63,8 +63,8 @@ def start():
             window = webview.create_window(
                 "SPICETIFIX",
                 url,
-                width=780,
-                height=720,
+                width=1523,
+                height=1188,
                 resizable=True,
                 min_size=(700, 600),
                 background_color="#0b0f17",
