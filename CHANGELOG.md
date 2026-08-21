@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.0] - 2026-08-20
+
+### Added
+- Changelog is now one click away: a dedicated CHANGES button in the header.
+- Update dialog shows the release notes and the installed → available version.
+- "View release on GitHub" link in the update dialog, alongside the direct ZIP download.
+
+### Fixed
+- The "new version" button now glows 3 times instead of blinking forever.
+- The app no longer waits ~3 seconds to close (WebView2 private mode disabled).
+
 ## [1.6.0] - 2026-08-14
 
 ### Changed

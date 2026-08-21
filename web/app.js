@@ -73,19 +73,54 @@ async function checkForUpdate() {
     return;
   }
   pendingUpdate = data.update;
-  if (btn) btn.style.display = 'inline-flex';
+  if (btn) {
+    btn.style.display = 'inline-flex';
+    const lbl = document.getElementById('lbl-update-check');
+    if (lbl) {
+      lbl.textContent = t('update_btn');
+    }
+    const current = data.update.current_version || '';
+    const latest = data.update.latest_version || '';
+    if (current && latest) {
+      btn.title = `v${current} → v${latest}`;
+    }
+  }
 }
 
 function openUpdateModal() {
-  const t = I18N[currentLang];
   if (!pendingUpdate) return;
   if (typeof Swal !== 'undefined') {
+    const esc = (str) => (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const notes = (pendingUpdate.notes || '').trim();
+    const cur = pendingUpdate.current_version || '';
+    const latest = pendingUpdate.latest_version || '';
+    let html = t('update_message').replace('{v}', `<b>${esc(latest)}</b>`);
+    if (cur) {
+      html += `<div class="cyber-versions">${esc(cur)} → <b>${esc(latest)}</b></div>`;
+    }
+    if (notes) {
+      const lines = notes.split('\n').map(l => {
+        const clean = esc(l.trim());
+        if (clean.startsWith('-') || clean.startsWith('*')) {
+          return `<li>${clean.replace(/^[-*]\s*/, '')}</li>`;
+        }
+        if (clean.startsWith('#')) {
+          return `<h5 class="cyber-notes-heading">${clean.replace(/^#+\s*/, '')}</h5>`;
+        }
+        return clean ? `<li>${clean}</li>` : '';
+      }).join('');
+      html += `<div class="cyber-notes"><div class="cyber-notes-title">${t('update_new_in').replace('{v}', `<b>${esc(pendingUpdate.latest_version)}</b>`)}</div><ul>${lines}</ul></div>`;
+    }
+    const footer = pendingUpdate.release_url
+      ? `<a href="#" class="cyber-swal-gh-link" data-release-url="${esc(pendingUpdate.release_url)}">${GITHUB_ICON_SVG} ${t('update_view_release')}</a>`
+      : '';
     Swal.fire({
-      title: t.update_title,
-      html: t.update_message.replace('{v}', `<b>${pendingUpdate.latest_version}</b>`),
+      title: t('update_title'),
+      html,
+      footer,
       showCancelButton: true,
-      confirmButtonText: t.update_download,
-      cancelButtonText: t.update_dismiss,
+      confirmButtonText: t('update_download'),
+      cancelButtonText: t('update_dismiss'),
       buttonsStyling: false,
       customClass: {
         popup: 'cyber-swal-popup',
@@ -93,6 +128,15 @@ function openUpdateModal() {
         htmlContainer: 'cyber-swal-html',
         confirmButton: 'btn btn-accent',
         cancelButton: 'btn btn-outline',
+      },
+      didRender: (popup) => {
+        const link = popup.querySelector('.cyber-swal-gh-link');
+        if (link) {
+          link.addEventListener('click', (e) => {
+            e.preventDefault();
+            openExternal(link.getAttribute('data-release-url'));
+          });
+        }
       },
     }).then(async (result) => {
       if (result.isConfirmed && pendingUpdate.asset_url) {
@@ -791,6 +835,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // About Modal Handlers
   document.getElementById('btn-open-about').addEventListener('click', openAboutModal);
+  document.getElementById('btn-open-changelog').addEventListener('click', openAboutModal);
   document.getElementById('btn-close-about').addEventListener('click', closeAboutModal);
   document.getElementById('btn-close-about-footer').addEventListener('click', closeAboutModal);
 

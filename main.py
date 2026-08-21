@@ -71,7 +71,7 @@ def start():
             )
             if window:
                 window.events.closed += lambda: os._exit(0)
-            webview.start()
+            webview.start(private_mode=False)
             os._exit(0)
         except Exception as e:
             print(f"> pywebview no disponible ({e}). Usando navegador como respaldo.")

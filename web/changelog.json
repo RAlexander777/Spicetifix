@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.7.0",
+    "date": "2026-08-20",
+    "title": "Update flow & faster close",
+    "changes": [
+      "The 'new version' button now glows only 3 times instead of blinking forever.",
+      "Changelog is now one click away: a dedicated CHANGES button in the header.",
+      "Update dialog now shows the release notes and the installed -> available version, plus a 'View release on GitHub' link alongside the direct ZIP download.",
+      "The app no longer waits ~3 seconds to close (WebView2 private mode disabled)."
+    ]
+  },
+  {
     "version": "1.6.0",
     "date": "2026-08-14",
     "title": "Author attribution",
