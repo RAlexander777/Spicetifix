@@ -84,8 +84,36 @@ def get_spicetify_dir() -> Path:
     return Path(os.environ.get("LOCALAPPDATA", "")) / "spicetify"
 
 
+_config_dir_cache: Path | None = None
+
+
+def get_spicetify_config_dir() -> Path:
+    """Resolve the directory where Spicetify stores its config.
+
+    Spicetify writes config-xpui.ini to the *user* config dir, which on Windows
+    is %APPDATA%\\spicetify (Roaming), NOT the %LOCALAPPDATA%\\spicetify dir
+    where the exe, extensions and themes live. Querying `spicetify -c` is
+    authoritative; fall back to APPDATA if the CLI is unavailable.
+    """
+    global _config_dir_cache
+    if _config_dir_cache is not None:
+        return _config_dir_cache
+
+    resolved: Path | None = None
+    code, out, _err = run_spicetify(["-c"], timeout=30)
+    if code == 0 and out.strip():
+        candidate = Path(out.strip().strip('"'))
+        resolved = candidate.parent if candidate.suffix == ".ini" else candidate
+
+    if resolved is None or not resolved.is_dir():
+        resolved = Path(os.environ.get("APPDATA", "")) / "spicetify"
+
+    _config_dir_cache = resolved
+    return resolved
+
+
 def get_spicetify_config_path() -> Path | None:
-    cfg = get_spicetify_dir() / "config-xpui.ini"
+    cfg = get_spicetify_config_dir() / "config-xpui.ini"
     return cfg if cfg.exists() else None
 
 

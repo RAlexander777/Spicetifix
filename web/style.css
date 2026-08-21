@@ -209,7 +209,7 @@ body {
 }
 
 .app-container {
-  max-width: 1320px;
+  max-width: 1500px;
   margin: 0 auto;
   padding: 24px;
 
@@ -1088,7 +1088,7 @@ button .gh-icon,
 }
 
 .console-sidebar {
-  width: 320px;
+  width: 420px;
   flex-shrink: 0;
   display: flex;
   flex-direction: column;

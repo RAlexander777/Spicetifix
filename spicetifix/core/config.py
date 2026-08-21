@@ -6,6 +6,7 @@ from spicetifix.core.utils import (
     get_spotify_path,
     get_prefs_path,
     get_spicetify_config_path,
+    get_spicetify_config_dir,
     get_spicetify_dir,
     get_user_config_path,
 )
@@ -170,7 +171,7 @@ def write_spicetify_config(user_config: dict | None = None) -> None:
             "No se pudo detectar la instalación de Spotify. Instalalo primero."
         )
 
-    sp_dir = get_spicetify_dir()
+    sp_dir = get_spicetify_config_dir()
     sp_dir.mkdir(parents=True, exist_ok=True)
 
     config_path = sp_dir / "config-xpui.ini"
