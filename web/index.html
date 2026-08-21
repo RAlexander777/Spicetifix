@@ -81,6 +81,8 @@
       </button>
     </nav>
 
+    <div class="main-layout">
+    <div class="tabs-area">
     <!-- Tab 1: Dashboard View -->
     <div class="tab-content active" id="content-dashboard">
       <!-- Spotify Now Playing Widget -->
@@ -176,22 +178,26 @@
         <button class="btn btn-small" id="btn-mp-next"><span id="lbl-mp-next">SIGUIENTE</span> <i data-lucide="chevron-right"></i></button>
       </div>
     </div>
+    </div>
 
-    <!-- Terminal Console Output -->
-    <div class="console-header">
-      <span class="section-title" id="sec-title-logs">// CONSOLA DE LOGS DEL SISTEMA</span>
-      <div class="console-actions">
-        <button class="btn btn-small btn-outline" id="btn-copy-logs"><i data-lucide="copy"></i> <span id="lbl-copy-logs">COPIAR LOGS</span></button>
-        <button class="btn btn-small btn-outline" id="btn-clear-logs"><i data-lucide="trash-2"></i> <span id="lbl-clear-logs">LIMPIAR</span></button>
+    <aside class="console-sidebar">
+      <!-- Terminal Console Output -->
+      <div class="console-header">
+        <span class="section-title" id="sec-title-logs">// CONSOLA DE LOGS DEL SISTEMA</span>
+        <div class="console-actions">
+          <button class="btn btn-small btn-outline" id="btn-copy-logs"><i data-lucide="copy"></i> <span id="lbl-copy-logs">COPIAR LOGS</span></button>
+          <button class="btn btn-small btn-outline" id="btn-clear-logs"><i data-lucide="trash-2"></i> <span id="lbl-clear-logs">LIMPIAR</span></button>
+        </div>
       </div>
-    </div>
-    <div class="console-box">
-      <pre id="console-output">root@spicetifix:~$ sistema inicializado. Listo.</pre>
-    </div>
+      <div class="console-box">
+        <pre id="console-output">root@spicetifix:~$ sistema inicializado. Listo.</pre>
+      </div>
 
-    <!-- Progress Bar -->
-    <div class="progress-container">
-      <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+      <!-- Progress Bar -->
+      <div class="progress-container">
+        <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+      </div>
+    </aside>
     </div>
   </div>
 
@@ -297,15 +303,28 @@
             <li>Respaldo e Importación completa de configuraciones y temas (.zip).</li>
           </ul>
         </div>
-
-        <div class="about-changelog">
-          <h4 id="about-changelog-title">Cambios Recientes</h4>
-          <div id="about-changelog-list" class="about-changelog-list"></div>
-        </div>
       </div>
 
       <div class="modal-footer">
         <button class="btn btn-outline" id="btn-close-about-footer">CERRAR</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHANGELOG MODAL -->
+  <div class="modal-overlay" id="changelog-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2><i data-lucide="history"></i> <span id="changelog-title">Cambios Recientes</span></h2>
+        <button class="modal-close" id="btn-close-changelog">✕</button>
+      </div>
+
+      <div class="modal-body changelog-body">
+        <div id="changelog-list" class="about-changelog-list"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline" id="btn-close-changelog-footer">CERRAR</button>
       </div>
     </div>
   </div>

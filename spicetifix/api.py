@@ -306,17 +306,14 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     close_spotify()
-                    code, out, err = run_spicetify_apply()
-                    if code != 0:
-                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
-                        return
-                    # The recovery cascade's first attempt is `restore backup apply`,
-                    # which reverts the client to the pre-extension backup and can drop
-                    # the just-added extension. Rewrite the config and run a plain apply
-                    # so the extension is guaranteed to land in both config-xpui.ini and
-                    # the patched client.
-                    write_spicetify_config(cfg)
+                    # Prefer a clean `spicetify apply` so the just-added extension is
+                    # injected into the patched client. The recovery cascade
+                    # (`restore backup apply`) is a fallback only for broken backups; if
+                    # run first it can revert to a pre-extension state and drop the
+                    # extension from the patched app.
                     code, out, err = run_spicetify(["apply"])
+                    if code != 0:
+                        code, out, err = run_spicetify_apply()
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
                         return

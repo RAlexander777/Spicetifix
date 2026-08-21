@@ -267,7 +267,7 @@ async function applyLanguage(lang) {
   const featH4 = document.querySelector('.about-features h4');
   if (featH4) featH4.textContent = t.about_features_title;
 
-  const changelogH4 = document.getElementById('about-changelog-title');
+  const changelogH4 = document.getElementById('changelog-title');
   if (changelogH4) changelogH4.textContent = t.about_changelog_title;
 
   const featLis = document.querySelectorAll('.about-features li');
@@ -556,19 +556,26 @@ function closeOptionsModal() {
 function openAboutModal() {
   const modal = document.getElementById('about-modal');
   if (modal) {
+    const versionEl = document.getElementById('about-version');
+    if (versionEl && appVersion) {
+      versionEl.textContent = `v${appVersion} (Spicetifix / pywebview)`;
+    }
     modal.classList.add('active');
-    loadAboutInfo();
   }
 }
 
-// Load app version + changelog into the About dialog
-async function loadAboutInfo() {
-  const versionEl = document.getElementById('about-version');
-  if (versionEl && appVersion) {
-    versionEl.textContent = `v${appVersion} (Spicetifix / pywebview)`;
+// Open Changelog Modal (releases only)
+function openChangelogModal() {
+  const modal = document.getElementById('changelog-modal');
+  if (modal) {
+    modal.classList.add('active');
+    loadChangelogInfo();
   }
+}
 
-  const listEl = document.getElementById('about-changelog-list');
+// Load release list (version + title + date) with expandable details
+async function loadChangelogInfo() {
+  const listEl = document.getElementById('changelog-list');
   if (!listEl) return;
 
   try {
@@ -598,6 +605,7 @@ async function loadAboutInfo() {
         entry.classList.toggle('open', !expanded);
       });
     });
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
   } catch (err) {
     listEl.textContent = '';
   }
@@ -606,6 +614,14 @@ async function loadAboutInfo() {
 // Close About Modal
 function closeAboutModal() {
   const modal = document.getElementById('about-modal');
+  if (modal) {
+    modal.classList.remove('active');
+  }
+}
+
+// Close Changelog Modal
+function closeChangelogModal() {
+  const modal = document.getElementById('changelog-modal');
   if (modal) {
     modal.classList.remove('active');
   }
@@ -844,13 +860,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // About Modal Handlers
   document.getElementById('btn-open-about').addEventListener('click', openAboutModal);
-  document.getElementById('btn-open-changelog').addEventListener('click', openAboutModal);
   document.getElementById('btn-close-about').addEventListener('click', closeAboutModal);
   document.getElementById('btn-close-about-footer').addEventListener('click', closeAboutModal);
 
   document.getElementById('about-modal').addEventListener('click', (e) => {
     if (e.target.id === 'about-modal') closeAboutModal();
   });
+
+  // Changelog Modal Handlers
+  document.getElementById('btn-open-changelog').addEventListener('click', openChangelogModal);
+  const btnCloseChangelog = document.getElementById('btn-close-changelog');
+  const btnCloseChangelogFooter = document.getElementById('btn-close-changelog-footer');
+  if (btnCloseChangelog) btnCloseChangelog.addEventListener('click', closeChangelogModal);
+  if (btnCloseChangelogFooter) btnCloseChangelogFooter.addEventListener('click', closeChangelogModal);
+
+  const changelogModal = document.getElementById('changelog-modal');
+  if (changelogModal) {
+    changelogModal.addEventListener('click', (e) => {
+      if (e.target.id === 'changelog-modal') closeChangelogModal();
+    });
+  }
 
   // Main Tab Buttons
   document.querySelectorAll('.tab-btn').forEach(btn => {
