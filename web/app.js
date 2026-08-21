@@ -577,18 +577,27 @@ async function loadAboutInfo() {
     const entries = await res.json();
 
     const esc = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    listEl.innerHTML = entries.map(entry => `
+    listEl.innerHTML = entries.map((entry, idx) => `
       <div class="changelog-entry">
-        <div class="changelog-head">
+        <button type="button" class="changelog-head" data-toggle="${idx}" aria-expanded="false">
           <span class="changelog-version">v${esc(entry.version)}</span>
+          <span class="changelog-title">${esc(entry.title)}</span>
           <span class="changelog-date">${esc(entry.date)}</span>
-        </div>
-        <div class="changelog-title">${esc(entry.title)}</div>
+          <i data-lucide="chevron-down" class="changelog-chevron"></i>
+        </button>
         <ul class="changelog-changes">
           ${(entry.changes || []).map(c => `<li>${esc(c)}</li>`).join('')}
         </ul>
       </div>
     `).join('');
+    listEl.querySelectorAll('.changelog-head').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const entry = btn.closest('.changelog-entry');
+        const expanded = btn.getAttribute('aria-expanded') === 'true';
+        btn.setAttribute('aria-expanded', String(!expanded));
+        entry.classList.toggle('open', !expanded);
+      });
+    });
   } catch (err) {
     listEl.textContent = '';
   }
@@ -921,6 +930,7 @@ let currentMarketplaceCatalog = [];
 let currentMarketplaceFilter = 'all';
 let currentPage = 1;
 const ITEMS_PER_PAGE = 12;
+let isLoadingCatalog = false;
 
 function switchTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -929,22 +939,39 @@ function switchTab(tabId) {
   document.querySelectorAll('.tab-content').forEach(content => {
     content.classList.toggle('active', content.id === `content-${tabId}`);
   });
-  if (tabId === 'marketplace' && currentMarketplaceCatalog.length === 0) {
-    loadMarketplaceCatalog();
+  if (tabId === 'marketplace') {
+    // Never restart the load on every tab switch; only fetch if it has not
+    // been loaded yet, and leave the in-progress spinner untouched so the
+    // load does not look like it was cancelled.
+    if (currentMarketplaceCatalog.length === 0 && !isLoadingCatalog) {
+      loadMarketplaceCatalog();
+    }
   }
 }
 
 async function loadMarketplaceCatalog() {
+  if (isLoadingCatalog) return;
+  isLoadingCatalog = true;
   currentPage = 1;
   const grid = document.getElementById('mp-catalog-grid');
-  if (grid) grid.innerHTML = `<div class="empty-msg">${t('mp_loading')}</div>`;
+  if (grid) {
+    grid.innerHTML = `
+      <div class="mp-loading">
+        <div class="mp-spinner" aria-hidden="true"></div>
+        <span>${t('mp_loading')}</span>
+      </div>`;
+  }
 
-  const data = await apiFetch('/api/marketplace/catalog');
-  if (data && data.catalog) {
-    currentMarketplaceCatalog = data.catalog;
-    renderMarketplaceCatalog();
-  } else if (grid) {
-    grid.innerHTML = `<div class="empty-msg">${t('mp_error')}</div>`;
+  try {
+    const data = await apiFetch('/api/marketplace/catalog');
+    if (data && data.catalog) {
+      currentMarketplaceCatalog = data.catalog;
+      renderMarketplaceCatalog();
+    } else if (grid) {
+      grid.innerHTML = `<div class="empty-msg">${t('mp_error')}</div>`;
+    }
+  } finally {
+    isLoadingCatalog = false;
   }
 }
 
@@ -1035,12 +1062,17 @@ function renderMarketplaceCatalog() {
     const actionBtn = card.querySelector('.btn-mp-action');
     actionBtn.addEventListener('click', async () => {
       actionBtn.disabled = true;
-      actionBtn.innerHTML = '<i data-lucide="loader"></i> ...';
+      actionBtn.classList.add('is-busy');
+      actionBtn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span class="btn-busy-label">...</span>';
       if (window.lucide) lucide.createIcons();
-      if (item.installed) {
-        await uninstallMarketplaceItem(item);
-      } else {
-        await installMarketplaceItem(item);
+      try {
+        if (item.installed) {
+          await uninstallMarketplaceItem(item);
+        } else {
+          await installMarketplaceItem(item);
+        }
+      } finally {
+        actionBtn.classList.remove('is-busy');
       }
     });
 
