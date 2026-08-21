@@ -1219,9 +1219,21 @@ button .gh-icon,
 
 .mp-catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 24px;
+}
+
+@media (max-width: 1200px) {
+  .mp-catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .mp-catalog-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .mp-loading {

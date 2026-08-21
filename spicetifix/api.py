@@ -38,6 +38,19 @@ _is_working = False
 _state_lock = threading.RLock()
 
 
+def _launch_spotify() -> None:
+    """Relaunch the Spotify client after install/apply patched it."""
+    import os
+    spotify_exe = os.path.expanduser(r"~\AppData\Roaming\Spotify\Spotify.exe")
+    try:
+        if os.path.exists(spotify_exe):
+            os.startfile(spotify_exe)
+        else:
+            os.startfile("spotify:")
+    except Exception:
+        pass
+
+
 def _append_log(msg: str):
     global _install_logs
     with _state_lock:
@@ -317,6 +330,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
                         return
+                    _launch_spotify()
                     self._send_json({"status": "ok", "message": f"Extensión {filename} instalada y aplicada"})
 
                 elif item_type == "theme":
@@ -359,6 +373,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
                         return
+                    _launch_spotify()
                     self._send_json({"status": "ok", "message": f"Tema {filename} instalado y aplicado"})
 
                 else:
