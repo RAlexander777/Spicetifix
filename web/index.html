@@ -145,7 +145,10 @@
       <div class="panel ext-panel">
         <div class="ext-header">
           <span id="lbl-exts-header">Extensiones y Apps Detectadas:</span>
-          <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> <span id="lbl-btn-refresh-exts">RECARGAR</span></button>
+          <div class="ext-actions">
+            <button class="btn btn-small" id="btn-apply-exts" disabled><i data-lucide="check"></i> <span id="lbl-btn-apply-exts">APLICAR CAMBIOS</span></button>
+            <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> <span id="lbl-btn-refresh-exts">RECARGAR</span></button>
+          </div>
         </div>
         <div class="ext-grid" id="ext-grid">
           <div class="empty-msg">Cargando extensiones...</div>
@@ -276,7 +279,7 @@
       <div class="modal-body about-body">
         <div class="about-hero">
           <span class="about-logo">❯ SPICETIFIX</span>
-          <span class="about-version" id="about-version">v1.7.2 (Spicetifix / pywebview)</span>
+          <span class="about-version" id="about-version">v1.7.3 (Spicetifix / pywebview)</span>
         </div>
 
         <p class="about-desc">

@@ -227,6 +227,7 @@ async function applyLanguage(lang) {
   setTxt('sec-title-exts', t.sec_exts);
   setTxt('lbl-exts-header', t.lbl_exts_header);
   setTxt('lbl-btn-refresh-exts', t.btn_refresh);
+  setTxt('lbl-btn-apply-exts', t.btn_apply_exts);
   setTxt('sec-title-logs', t.sec_logs);
   setTxt('lbl-copy-logs', t.lbl_copy_logs);
   setTxt('lbl-clear-logs', t.lbl_clear_logs);
@@ -461,6 +462,24 @@ async function loadColorSchemes(themeName) {
 }
 
 // Load extensions
+let extDirty = false;
+
+function appendConsole(text) {
+  const consoleBox = document.getElementById('console-output');
+  if (!consoleBox) return;
+  consoleBox.textContent += `\nroot@spicetifix:~$ ${text}`;
+  consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
+}
+
+function setExtApplyPending(pending) {
+  extDirty = pending;
+  const btn = document.getElementById('btn-apply-exts');
+  if (!btn) return;
+  btn.disabled = !pending;
+  const label = btn.querySelector('span');
+  if (label) label.textContent = t('btn_apply_exts');
+}
+
 let extTitleMap = null;
 
 async function getExtTitleMap() {
@@ -519,11 +538,17 @@ async function loadExtensions() {
     chk.type = 'checkbox';
     chk.checked = item.enabled;
     chk.addEventListener('change', async () => {
-      await apiFetch('/api/extensions/toggle', 'POST', {
+      const res = await apiFetch('/api/extensions/toggle', 'POST', {
         name: item.name,
         type: item.type,
         enabled: chk.checked,
       });
+      if (res && res.error) {
+        appendConsole(`${t('ext_apply_err')} ${res.error}`);
+      } else {
+        setExtApplyPending(true);
+        appendConsole(`${t('ext_apply_pending')}`);
+      }
       loadExtensions();
     });
 
@@ -877,6 +902,28 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
   document.getElementById('btn-refresh-exts').addEventListener('click', loadExtensions);
+
+  const btnApply = document.getElementById('btn-apply-exts');
+  if (btnApply) {
+    btnApply.addEventListener('click', async () => {
+      if (btnApply.disabled) return;
+      btnApply.disabled = true;
+      const label = btnApply.querySelector('span');
+      if (label) label.textContent = t('btn_apply_exts_pending');
+      const res = await apiFetch('/api/extensions/apply', 'POST');
+      if (res && res.error) {
+        appendConsole(`${t('ext_apply_err')} ${res.error}`);
+        btnApply.disabled = false;
+        if (label) label.textContent = t('btn_apply_exts');
+      } else {
+        appendConsole(t('ext_apply_ok'));
+        extDirty = false;
+        setExtApplyPending(false);
+        loadExtensions();
+        pollStatus();
+      }
+    });
+  }
 
   // Theme dropdown change
   document.getElementById('ui-theme-select').addEventListener('change', async (e) => {

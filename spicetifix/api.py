@@ -496,7 +496,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             cfg[key] = list(items)
             save_user_config(cfg)
             # Persist to config-xpui.ini without re-merging live entries, so a
-            # toggle-off actually removes the item from the real config.
+            # toggle-off actually removes the item from the real config. The
+            # patched client is updated later via /api/extensions/apply.
             try:
                 from spicetifix.core.config import write_spicetify_config
                 write_spicetify_config(cfg, merge_live=False)
@@ -506,14 +507,19 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     500,
                 )
                 return
-            # Apply the change to the patched client: the injected extensions are
-            # static, so a plain Spotify restart would not reflect the toggle.
+            self._send_json({"status": "ok", key: cfg[key]})
+
+        elif path == "/api/extensions/apply":
             try:
+                from spicetifix.core.config import write_spicetify_config
                 from spicetifix.core.utils import (
                     close_spotify,
                     run_spicetify_apply,
                     spicetify_error_hint,
                 )
+                # Rebuild the config from the latest user config, then re-patch
+                # the client so all pending toggles take effect.
+                write_spicetify_config(load_user_config())
                 close_spotify()
                 code, out, err = run_spicetify_apply()
                 if code != 0:
@@ -527,7 +533,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
                 return
-            self._send_json({"status": "ok", key: cfg[key]})
+            self._send_json({"status": "ok", "message": "Cambios aplicados"})
 
         elif path == "/api/config/save":
             cfg = load_user_config()

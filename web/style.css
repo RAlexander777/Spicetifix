@@ -635,6 +635,11 @@ button .gh-icon,
   margin-bottom: 12px;
 }
 
+.ext-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .ext-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));

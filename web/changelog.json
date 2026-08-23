@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.7.3",
+    "date": "2026-08-23",
+    "title": "Batch apply for extension changes",
+    "changes": [
+      "Enabling or disabling extensions/custom apps no longer restarts Spotify on every single toggle.",
+      "A new 'Apply changes' button in the extension manager applies all pending toggles at once, closing Spotify, re-patching and relaunching it, just like installing or uninstalling an extension."
+    ]
+  },
+  {
     "version": "1.7.2",
     "date": "2026-08-23",
     "title": "Marketplace reliability & accurate extension state",
