@@ -1,3 +1,4 @@
+import ctypes
 import os
 import secrets
 import subprocess
@@ -70,6 +71,56 @@ def start():
                 background_color="#0b0f17",
             )
             if window:
+                kernel32 = ctypes.windll.kernel32
+                kernel32.CreateEventW.restype = ctypes.c_void_p
+                kernel32.CreateEventW.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_int,
+                    ctypes.c_int,
+                    ctypes.c_wchar_p,
+                ]
+                kernel32.SetEvent.restype = ctypes.c_int
+                kernel32.SetEvent.argtypes = [ctypes.c_void_p]
+                kernel32.WaitForSingleObject.restype = ctypes.c_ulong
+                kernel32.WaitForSingleObject.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_ulong,
+                ]
+                kernel32.TerminateProcess.restype = ctypes.c_int
+                kernel32.TerminateProcess.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_uint,
+                ]
+                kernel32.GetCurrentProcess.restype = ctypes.c_void_p
+                kernel32.CreateThread.restype = ctypes.c_void_p
+                kernel32.CreateThread.argtypes = [
+                    ctypes.c_void_p,
+                    ctypes.c_size_t,
+                    ctypes.c_void_p,
+                    ctypes.c_void_p,
+                    ctypes.c_ulong,
+                    ctypes.POINTER(ctypes.c_ulong),
+                ]
+
+                _kill_event = kernel32.CreateEventW(None, False, False, None)
+                _watchdog_proto = ctypes.WINFUNCTYPE(
+                    ctypes.c_ulong, ctypes.c_void_p
+                )
+
+                def _watchdog(_):
+                    kernel32.WaitForSingleObject(_kill_event, -1)
+                    kernel32.TerminateProcess(kernel32.GetCurrentProcess(), 0)
+                    return 0
+
+                _watchdog = _watchdog_proto(_watchdog)
+                kernel32.CreateThread(
+                    None, 0, _watchdog, None, 0, None
+                )
+
+                def _closing():
+                    kernel32.SetEvent(_kill_event)
+
+                window.events.closing += _closing
                 window.events.closed += lambda: os._exit(0)
             webview.start(private_mode=False)
             os._exit(0)

@@ -48,9 +48,19 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
   }
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, options);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    let data = null;
+    try {
+      data = await res.json();
+    } catch {
+      data = null;
+    }
+    if (!res.ok) {
+      consecutiveErrors++;
+      console.warn(`API error (${endpoint}):`, res.status, data);
+      return data ? { error: data.error || `HTTP ${res.status}`, ...data } : null;
+    }
     consecutiveErrors = 0;
-    return await res.json();
+    return data;
   } catch (err) {
     consecutiveErrors++;
     console.warn(`API error (${endpoint}):`, err);

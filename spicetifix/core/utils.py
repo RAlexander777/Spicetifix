@@ -202,6 +202,36 @@ def run_spicetify_apply(timeout: int = 300) -> tuple[int, str, str]:
     return last
 
 
+_MISMATCH_MARKERS = (
+    "version and backup version are mismatched",
+    "cannot be backed up at this state",
+    "restore first then backup",
+    "clear backup",
+)
+
+
+def spicetify_error_hint(out: str = "", err: str = "") -> str | None:
+    """Return a clear, actionable message when spicetify fails because the
+    stored backup is out of sync with the installed Spotify version.
+
+    Spotify auto-updates often leave the client in an applied/modded state
+    (no stock .spa files) so spicetify refuses restore/backup/apply/clear.
+    The only safe recovery is to reinstall Spotify (return to stock) and then
+    run backup apply again.
+    """
+    combined = f"{out or ''} {err or ''}"
+    if not combined.strip():
+        return None
+    if any(m in combined.lower() for m in _MISMATCH_MARKERS):
+        return (
+            "El respaldo de Spicetify quedó desincronizado con tu versión de "
+            "Spotify (probablemente por una actualización automática de Spotify). "
+            "Para repararlo: reinstalá Spotify y luego ejecutá 'RECUPERAR SISTEMA' "
+            "en Spicetifix."
+        )
+    return None
+
+
 def close_spotify() -> None:
     """Closes all Spotify-related processes so Spicetify can patch files without file locks."""
     for proc in (

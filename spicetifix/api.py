@@ -296,6 +296,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     get_spicetify_themes_dir,
                     run_spicetify,
                     run_spicetify_apply,
+                    spicetify_error_hint,
                 )
                 from spicetifix.core.config import (
                     write_spicetify_config,
@@ -328,7 +329,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     if code != 0:
                         code, out, err = run_spicetify_apply()
                     if code != 0:
-                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        hint = spicetify_error_hint(out, err)
+                        msg = f"spicetify apply falló (código {code}): {err or out}"
+                        if hint:
+                            msg = f"{msg} {hint}"
+                        self._send_json({"error": msg}, 500)
                         return
                     _launch_spotify()
                     self._send_json({"status": "ok", "message": f"Extensión {filename} instalada y aplicada"})
@@ -428,6 +433,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     if still_present:
                         self._send_json({"error": f"La extensión {filename} se marcó para desinstalar pero sigue presente. Reintentá o usá Recover System."}, 500)
                         return
+                    _launch_spotify()
                     self._send_json({"status": "ok", "message": f"Extensión {filename} desinstalada"})
 
                 elif item_type == "theme":
@@ -449,6 +455,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     if code != 0:
                         self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
                         return
+                    _launch_spotify()
                     self._send_json({"status": "ok", "message": f"Tema {filename} desinstalado"})
 
                 else:

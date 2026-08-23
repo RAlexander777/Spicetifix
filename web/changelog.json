@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.7.1",
+    "date": "2026-08-23",
+    "title": "Console, uninstall & instant close fixes",
+    "changes": [
+      "Console log box now has a maximum height, so long logs no longer stretch the sidebar.",
+      "Uninstalling an extension or theme now relaunches Spotify after the apply, just like installing does.",
+      "The app now closes instantly instead of waiting ~2 seconds after the window is closed.",
+      "Marketplace apply errors now include a hint when the spicetify CLI and Spotify versions mismatch."
+    ]
+  },
+  {
     "version": "1.7.0",
     "date": "2026-08-20",
     "title": "Update flow & faster close",

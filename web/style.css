@@ -666,8 +666,9 @@ button .gh-icon,
   border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 14px;
-  height: 100%;
+  height: auto;
   min-height: 160px;
+  max-height: 460px;
   overflow-y: auto;
   flex: 1;
 }
@@ -1092,6 +1093,7 @@ button .gh-icon,
   flex-shrink: 0;
   display: flex;
   flex-direction: column;
+  align-self: flex-start;
 }
 
 .console-sidebar .section-title {
