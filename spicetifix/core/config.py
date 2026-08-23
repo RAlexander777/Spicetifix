@@ -83,7 +83,10 @@ def load_user_config() -> dict:
     elif cfg.get("custom_apps"):
         cfg["custom_apps"] = [a for a in cfg["custom_apps"] if a in installed_apps]
 
-    return cfg
+    # Reflect live config-xpui.ini entries (the real source of truth for what
+    # Spicetify loads) so extensions/custom apps enabled externally are not
+    # reported as disabled.
+    return _merge_live_entries(cfg)
 
 
 def save_user_config(config: dict) -> None:
@@ -160,10 +163,13 @@ def _merge_ordered(base: list, live: list, disk: set) -> list:
     return result
 
 
-def write_spicetify_config(user_config: dict | None = None) -> None:
+def write_spicetify_config(
+    user_config: dict | None = None, merge_live: bool = True
+) -> None:
     if user_config is None:
         user_config = load_user_config()
-    user_config = _merge_live_entries(user_config)
+    if merge_live:
+        user_config = _merge_live_entries(user_config)
 
     spotify_path = get_spotify_path()
     if not spotify_path:
@@ -177,6 +183,23 @@ def write_spicetify_config(user_config: dict | None = None) -> None:
     config_path = sp_dir / "config-xpui.ini"
     parser = ConfigParser()
     parser.optionxform = str  # preserve case
+
+    # Preserve spicetify-managed sections ([Patch], [Backup], etc.) that are
+    # stored in config-xpui.ini but not managed here. Rebuilding only
+    # Setting/Preprocesses/AdditionalOptions would wipe them and leave
+    # `spicetify apply` unable to reconcile the patch state.
+    preserved_sections = {}
+    if config_path.exists():
+        try:
+            existing = ConfigParser()
+            existing.optionxform = str
+            existing.read(config_path, encoding="utf-8")
+            managed = {"Setting", "Preprocesses", "AdditionalOptions"}
+            for section in existing.sections():
+                if section not in managed:
+                    preserved_sections[section] = dict(existing.items(section))
+        except Exception:
+            pass
 
     sc = user_config.get("spicetify", {})
 
@@ -211,6 +234,9 @@ def write_spicetify_config(user_config: dict | None = None) -> None:
         "home_config": "1",
         "experimental_features": "1",
     }
+
+    for section, values in preserved_sections.items():
+        parser[section] = values
 
     with open(config_path, "w", encoding="utf-8") as f:
         parser.write(f, space_around_delimiters=True)
@@ -316,3 +342,46 @@ def check_config_health() -> list[dict]:
         })
 
     return checks
+
+
+def repair_backup_metadata() -> bool:
+    """If config-xpui.ini lost its spicetify [Backup] section (older Spicetifix
+    versions rebuilt the config without it) but a valid stock backup exists on
+    disk, restore the section so spicetify's version check stops failing.
+    Returns True when the section was (re)created."""
+    config_path = get_spicetify_config_path()
+    if not config_path or not config_path.exists():
+        return False
+
+    parser = ConfigParser()
+    parser.optionxform = str
+    try:
+        parser.read(config_path, encoding="utf-8")
+    except Exception:
+        return False
+
+    if parser.has_section("Backup"):
+        return False
+
+    from spicetifix.core.utils import get_spicetify_dir, get_spotify_version
+    backup_dir = get_spicetify_dir() / "Backup"
+    has_spa = backup_dir.is_dir() and any(
+        p.is_file() and p.suffix == ".spa" for p in backup_dir.iterdir()
+    )
+    if not has_spa:
+        return False
+
+    version = get_spotify_version()
+    if not version:
+        return False
+
+    parser["Backup"] = {
+        "version": version,
+        "with": "unknown",
+    }
+    try:
+        with open(config_path, "w", encoding="utf-8") as f:
+            parser.write(f, space_around_delimiters=True)
+    except Exception:
+        return False
+    return True

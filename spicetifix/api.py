@@ -299,6 +299,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     spicetify_error_hint,
                 )
                 from spicetifix.core.config import (
+                    repair_backup_metadata,
                     write_spicetify_config,
                 )
                 from spicetifix.core.themer import install_themes, set_theme
@@ -319,6 +320,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg["extensions"] = list(exts)
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
+                    repair_backup_metadata()
                     close_spotify()
                     # Prefer a clean `spicetify apply` so the just-added extension is
                     # injected into the patched client. The recovery cascade
@@ -372,6 +374,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg.setdefault("spicetify", {})["theme"] = filename
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
+                    repair_backup_metadata()
                     set_theme(filename)
                     close_spotify()
                     code, out, err = run_spicetify_apply()
@@ -402,6 +405,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     run_spicetify_apply,
                 )
                 from spicetifix.core.config import (
+                    repair_backup_metadata,
                     write_spicetify_config,
                 )
                 from spicetifix.core.themer import set_theme
@@ -423,6 +427,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     cfg["extensions"] = list(exts)
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
+                    repair_backup_metadata()
                     close_spotify()
                     code, out, err = run_spicetify_apply()
                     if code != 0:
@@ -450,6 +455,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
+                    repair_backup_metadata()
                     close_spotify()
                     code, out, err = run_spicetify_apply()
                     if code != 0:
@@ -479,15 +485,49 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         elif path == "/api/extensions/toggle":
             ext_name = body.get("name", "")
             enabled = body.get("enabled", False)
+            item_type = body.get("type", "ext")
+            key = "custom_apps" if item_type == "app" else "extensions"
             cfg = load_user_config()
-            exts = set(cfg.get("extensions", []))
+            items = set(cfg.get(key, []))
             if enabled:
-                exts.add(ext_name)
+                items.add(ext_name)
             else:
-                exts.discard(ext_name)
-            cfg["extensions"] = list(exts)
+                items.discard(ext_name)
+            cfg[key] = list(items)
             save_user_config(cfg)
-            self._send_json({"status": "ok", "extensions": cfg["extensions"]})
+            # Persist to config-xpui.ini without re-merging live entries, so a
+            # toggle-off actually removes the item from the real config.
+            try:
+                from spicetifix.core.config import write_spicetify_config
+                write_spicetify_config(cfg, merge_live=False)
+            except Exception as e:
+                self._send_json(
+                    {"error": f"No se pudo aplicar el cambio en la configuración de Spicetify: {e}"},
+                    500,
+                )
+                return
+            # Apply the change to the patched client: the injected extensions are
+            # static, so a plain Spotify restart would not reflect the toggle.
+            try:
+                from spicetifix.core.utils import (
+                    close_spotify,
+                    run_spicetify_apply,
+                    spicetify_error_hint,
+                )
+                close_spotify()
+                code, out, err = run_spicetify_apply()
+                if code != 0:
+                    hint = spicetify_error_hint(out, err)
+                    msg = f"spicetify apply falló (código {code}): {err or out}"
+                    if hint:
+                        msg = f"{msg} {hint}"
+                    self._send_json({"error": msg}, 500)
+                    return
+                _launch_spotify()
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+                return
+            self._send_json({"status": "ok", key: cfg[key]})
 
         elif path == "/api/config/save":
             cfg = load_user_config()

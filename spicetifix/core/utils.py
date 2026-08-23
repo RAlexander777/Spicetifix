@@ -64,6 +64,22 @@ def get_prefs_path() -> str:
     return str(default)
 
 
+def get_spotify_version() -> str:
+    """Return the Spotify build version spicetify tracks (from the prefs file),
+    or "" when it cannot be determined."""
+    try:
+        prefs = Path(get_prefs_path())
+        if not prefs.exists():
+            return ""
+        for line in prefs.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if line.startswith("app.last-launched-version="):
+                return line.split("=", 1)[1].strip().strip('"')
+    except Exception:
+        pass
+    return ""
+
+
 def ensure_spotify_prefs() -> str:
     spotify_path = get_spotify_path()
     if not spotify_path:

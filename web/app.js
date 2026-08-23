@@ -461,6 +461,25 @@ async function loadColorSchemes(themeName) {
 }
 
 // Load extensions
+let extTitleMap = null;
+
+async function getExtTitleMap() {
+  if (extTitleMap) return extTitleMap;
+  const map = {};
+  const seed = list => (list || []).forEach(i => {
+    if (i.filename && i.title) map[i.filename] = i.title;
+  });
+  seed(currentMarketplaceCatalog);
+  if (Object.keys(map).length === 0) {
+    try {
+      const data = await apiFetch('/api/marketplace/catalog');
+      if (data && data.catalog) seed(data.catalog);
+    } catch (e) { /* keep raw filenames */ }
+  }
+  extTitleMap = map;
+  return map;
+}
+
 async function loadExtensions() {
   const data = await apiFetch('/api/extensions');
   if (!data) {
@@ -482,12 +501,18 @@ async function loadExtensions() {
     return;
   }
 
+  const titleMap = await getExtTitleMap();
+
   allItems.forEach(item => {
     const div = document.createElement('div');
     div.className = 'ext-item';
 
+    const label =
+      item.type === 'ext' && titleMap[item.name]
+        ? `${titleMap[item.name]} (${item.name})`
+        : item.name;
     const span = document.createElement('span');
-    span.textContent = `● ${item.name}`;
+    span.textContent = `● ${label}`;
     if (item.enabled) span.style.color = 'var(--accent-color)';
 
     const chk = document.createElement('input');
@@ -496,6 +521,7 @@ async function loadExtensions() {
     chk.addEventListener('change', async () => {
       await apiFetch('/api/extensions/toggle', 'POST', {
         name: item.name,
+        type: item.type,
         enabled: chk.checked,
       });
       loadExtensions();

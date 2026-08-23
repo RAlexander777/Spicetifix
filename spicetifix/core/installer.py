@@ -106,6 +106,17 @@ class Installer:
         self._close_spotify()
         self.log(f"[{label}] {t(l, 'step_start')}")
 
+        # Older Spicetifix builds rebuilt config-xpui.ini without spicetify's
+        # [Backup]/[Patch] sections, which makes spicetify refuse to apply with a
+        # "version mismatch" error. Regenerate the missing metadata so the
+        # recovery cascade below can actually run.
+        try:
+            from spicetifix.core.config import repair_backup_metadata
+            if repair_backup_metadata():
+                self.log("Backup metadata reparado en config-xpui.ini")
+        except Exception:
+            pass
+
         # Ensure configured theme exists before recovering
         from spicetifix.core.config import load_user_config
         user_config = load_user_config()

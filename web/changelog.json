@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.7.2",
+    "date": "2026-08-23",
+    "title": "Marketplace reliability & accurate extension state",
+    "changes": [
+      "Writing the spicetify config no longer wipes the [Patch] and [Backup] sections, so installs and uninstalls keep working without the 'version and backup version are mismatched' error.",
+      "The app self-heals a missing backup version metadata, so 'Recover System' repairs the state after a Spotify update.",
+      "Detected extensions & custom apps now reflect what spicetify actually loads, so apps enabled directly in Spotify are no longer shown as disabled.",
+      "The extension grid shows friendly names (e.g. 'Lyric Miniplayer') instead of raw file names.",
+      "Toggling an extension checkbox now updates the real spicetify config, not only the internal list."
+    ]
+  },
+  {
     "version": "1.7.1",
     "date": "2026-08-23",
     "title": "Console, uninstall & instant close fixes",
