@@ -1,8 +1,22 @@
 import os
+import struct
 import subprocess
 import sys
 import zipfile
 from pathlib import Path
+
+
+def _add_file_to_zip(zf, file, arcname):
+    """Write a file into the zip with a UTC extended-timestamp (0x5455) extra
+    field so extraction tools display the correct local time regardless of
+    timezone. Without it, DOS timestamps are interpreted ambiguously and some
+    tools shift them by the UTC offset."""
+    info = zipfile.ZipInfo.from_file(file, arcname)
+    info.compress_type = zipfile.ZIP_DEFLATED
+    mtime = int(os.stat(file).st_mtime)
+    info.extra += b"\x55\x54\x05\x00\x01" + struct.pack("<I", mtime)
+    with open(file, "rb") as fh:
+        zf.writestr(info, fh.read())
 
 
 def build_standalone_exe(console=False):
@@ -66,7 +80,7 @@ def build_standalone_exe(console=False):
         for file in app_dir.rglob("*"):
             if file.is_file():
                 arcname = str(file.relative_to(dist_dir))
-                zf.write(file, arcname)
+                _add_file_to_zip(zf, file, arcname)
 
     print(f"ZIP archive: {zip_path} ({os.path.getsize(zip_path) / 1024 / 1024:.1f} MB)")
     print("\nBUILD SUCCESSFUL!")
@@ -92,7 +106,7 @@ def build_zip_only():
         for file in app_dir.rglob("*"):
             if file.is_file():
                 arcname = str(file.relative_to(dist_dir))
-                zf.write(file, arcname)
+                _add_file_to_zip(zf, file, arcname)
 
     print(f"ZIP created: {zip_path} ({os.path.getsize(zip_path) / 1024 / 1024:.1f} MB)")
     return True
