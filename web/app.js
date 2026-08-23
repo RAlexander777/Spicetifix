@@ -308,7 +308,7 @@ function applyUITheme(themeKey) {
 // Fetch and render status
 async function pollStatus() {
   const data = await apiFetch('/api/status');
-  if (!data) {
+  if (!data || data.error) {
     if (consecutiveErrors > 0) {
       const badge = document.getElementById('system-badge');
       if (consecutiveErrors === 1) {
@@ -319,7 +319,7 @@ async function pollStatus() {
         badge.className = 'badge badge-disconnected';
       }
       const trackInfo = document.getElementById('track-info');
-      trackInfo.textContent = t('conn_error');
+      trackInfo.textContent = I18N[currentLang].conn_error;
     }
     isConnected = false;
     return;

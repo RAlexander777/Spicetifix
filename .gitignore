@@ -72,3 +72,6 @@ Thumbs.db
 ehthumbs.db
 Desktop.ini
 *.log
+
+# Playwright MCP artifacts
+.playwright-mcp/
