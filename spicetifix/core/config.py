@@ -29,7 +29,13 @@ DEFAULT_OPTIONS = {
 
 
 def get_installed_extensions() -> list[str]:
-    """Scans Spicetify Extensions directory for .js/.mjs files only."""
+    """Scans Spicetify Extensions directory for .js/.mjs files only.
+
+    Extensions are reported by their file basename. Subfolders are flattened
+    because Spicetify v2 only injects extensions listed by basename; a nested
+    path like ``adblock/adblock.js`` would end up with a mismatched <script>
+    tag after ``spicetify apply`` and never load.
+    """
     from spicetifix.core.utils import get_spicetify_extensions_dir
     ext_dir = get_spicetify_extensions_dir()
     extensions = set()
@@ -41,7 +47,7 @@ def get_installed_extensions() -> list[str]:
             elif item.is_dir():
                 for subitem in item.iterdir():
                     if subitem.is_file() and subitem.suffix in (".js", ".mjs"):
-                        extensions.add(f"{item.name}/{subitem.name}")
+                        extensions.add(subitem.name)
 
     return sorted(list(extensions))
 

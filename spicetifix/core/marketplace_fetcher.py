@@ -1,5 +1,6 @@
 import json
 import os
+import posixpath
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
@@ -140,7 +141,7 @@ def _extract_extensions(repo_data, blacklist):
             "type": "extension",
             "author": _parse_authors(m) or user,
             "description": m["description"],
-            "filename": fn,
+            "filename": posixpath.basename(fn),
             "url": _resolve_url(user, repo, branch, fn),
             "user": user,
             "repo": repo,

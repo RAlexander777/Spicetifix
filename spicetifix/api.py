@@ -110,7 +110,7 @@ def _enrich_catalog_item(item: dict) -> dict:
 
     typ = item.get("type", "")
     if typ == "extension":
-        filename = item.get("filename", "")
+        filename = Path(item.get("filename", "")).name
         installed = (ext_dir / filename).exists() or filename in user_exts
     elif typ == "theme":
         theme_dirname = item.get("filename", "")
@@ -305,7 +305,9 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 from spicetifix.core.themer import install_themes, set_theme
 
                 if item_type == "extension":
+                    import posixpath
                     import requests
+                    filename = posixpath.basename(filename)
                     ext_dir = get_spicetify_extensions_dir()
                     ext_dir.mkdir(parents=True, exist_ok=True)
                     resp = requests.get(url, timeout=30)
@@ -411,6 +413,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 from spicetifix.core.themer import set_theme
 
                 if item_type == "extension":
+                    import posixpath
+                    filename = posixpath.basename(filename)
                     ext_dir = get_spicetify_extensions_dir()
                     target_file = ext_dir / filename
                     if target_file.exists():

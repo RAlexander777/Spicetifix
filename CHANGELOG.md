@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.4] - 2026-08-26
+
+### Fixed
+- Extensions with nested paths (e.g. `adblock/adblock.js`) are now installed flattened
+  to `adblock.js`, matching how Spicetify v2 injects extensions. The patched client
+  previously referenced a subfolder path that does not exist after `apply`, so the
+  extension was silently skipped — adblock showed as active while audio ads kept playing.
+- Extension detection now reports file basenames only, and the marketplace catalog shows
+  flattened filenames, so installed state stays accurate.
+
 ## [1.7.0] - 2026-08-20
 
 ### Added

@@ -60,7 +60,7 @@ class TestMarketplaceInstall(unittest.TestCase):
             run_spicetify=lambda *a, **k: (0, "", ""),
         )
 
-    def test_install_extension_with_subfolder_creates_parent(self):
+    def test_install_extension_with_subfolder_is_flattened(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             with self._patch_env(tmpdir), \
                  patch("requests.get", return_value=FakeResponse()), \
@@ -73,9 +73,10 @@ class TestMarketplaceInstall(unittest.TestCase):
                     "url": "https://raw.githubusercontent.com/rxri/spicetify-extensions/main/adblock/adblock.js",
                 })
             self.assertEqual(res.get("status"), "ok")
-            target = Path(tmpdir) / "adblock" / "adblock.js"
+            target = Path(tmpdir) / "adblock.js"
             self.assertTrue(target.exists())
             self.assertEqual(target.read_bytes(), b"/* js */")
+            self.assertFalse((Path(tmpdir) / "adblock").exists())
 
     def test_install_extension_top_level(self):
         with tempfile.TemporaryDirectory() as tmpdir:

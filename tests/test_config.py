@@ -40,6 +40,29 @@ class TestConfigExtensionDetection(unittest.TestCase):
         self.assertIn("trashbin.mjs", exts)
         self.assertEqual(len(exts), 2)
 
+    @patch("spicetifix.core.utils.get_spicetify_extensions_dir")
+    def test_get_installed_extensions_flattens_subfolders(self, mock_ext_dir):
+        mock_dir = MagicMock(spec=Path)
+        mock_dir.exists.return_value = True
+        mock_dir.is_dir.return_value = True
+
+        subfolder = MagicMock(spec=Path)
+        subfolder.is_file.return_value = False
+        subfolder.is_dir.return_value = True
+        subfolder.name = "adblock"
+
+        nested_file = MagicMock(spec=Path)
+        nested_file.is_file.return_value = True
+        nested_file.suffix = ".js"
+        nested_file.name = "adblock.js"
+
+        subfolder.iterdir.return_value = [nested_file]
+        mock_dir.iterdir.return_value = [subfolder]
+        mock_ext_dir.return_value = mock_dir
+
+        exts = get_installed_extensions()
+        self.assertEqual(exts, ["adblock.js"])
+
     @patch("spicetifix.core.config.get_installed_extensions")
     @patch("spicetifix.core.config.get_user_config_path")
     @patch("spicetifix.core.config.read_spicetify_config", return_value=None)
@@ -58,21 +81,21 @@ class TestMergeLiveEntries(unittest.TestCase):
     def setUp(self):
         self.live = {
             "AdditionalOptions": {
-                "extensions": "popupLyrics.js|adblock/adblock.js|externalApp.js",
+                "extensions": "popupLyrics.js|adblock.js|externalApp.js",
                 "custom_apps": "marketplace|lyrics-plus",
             }
         }
-        self.disk_exts = {"popupLyrics.js", "adblock/adblock.js", "externalApp.js"}
+        self.disk_exts = {"popupLyrics.js", "adblock.js", "externalApp.js"}
         self.disk_apps = {"marketplace", "lyrics-plus"}
 
     def test_preserves_external_entries_not_in_yaml(self):
         with patch("spicetifix.core.config.read_spicetify_config", return_value=self.live), \
              patch("spicetifix.core.config.get_installed_extensions", return_value=list(self.disk_exts)), \
              patch("spicetifix.core.config.get_installed_custom_apps", return_value=list(self.disk_apps)):
-            cfg = _merge_live_entries({"extensions": ["adblock/adblock.js"], "custom_apps": []})
+            cfg = _merge_live_entries({"extensions": ["adblock.js"], "custom_apps": []})
         self.assertEqual(
             set(cfg["extensions"]),
-            {"adblock/adblock.js", "popupLyrics.js", "externalApp.js"},
+            {"adblock.js", "popupLyrics.js", "externalApp.js"},
         )
         self.assertEqual(set(cfg["custom_apps"]), {"marketplace", "lyrics-plus"})
 
