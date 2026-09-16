@@ -12,6 +12,7 @@ let appVersion = '';
 
 let isSpotifyInstalled = false;
 let isSpicetifyInstalled = false;
+let currentAction = null;
 
 let I18N = { es: {}, en: {} };
 let I18N_READY = false;
@@ -306,6 +307,34 @@ function applyUITheme(themeKey) {
   }
 }
 
+function updateActionButtons(isWorking) {
+  const t = I18N[currentLang] || {};
+  const btnInstall = document.getElementById('btn-install');
+  const btnRecover = document.getElementById('btn-recover');
+
+  if (isWorking) {
+    if (currentAction === 'recover' && btnRecover) {
+      btnRecover.classList.add('is-busy');
+      btnRecover.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span> <span>${t.btn_recovering || 'RECUPERANDO...'}</span>`;
+    } else if (btnInstall) {
+      btnInstall.classList.add('is-busy');
+      btnInstall.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span> <span>${t.btn_installing || 'INSTALANDO...'}</span>`;
+    }
+  } else {
+    currentAction = null;
+    if (btnInstall && btnInstall.classList.contains('is-busy')) {
+      btnInstall.classList.remove('is-busy');
+      btnInstall.innerHTML = `<i data-lucide="download-cloud"></i> <span id="lbl-btn-install">${t.btn_install || 'INSTALACIÓN / ACTUALIZACIÓN COMPLETA'}</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+    if (btnRecover && btnRecover.classList.contains('is-busy')) {
+      btnRecover.classList.remove('is-busy');
+      btnRecover.innerHTML = `<i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">${t.btn_recover || 'RECUPERAR SISTEMA (POST-UPDATE)'}</span>`;
+      if (window.lucide) window.lucide.createIcons();
+    }
+  }
+}
+
 // Fetch and render status
 async function pollStatus() {
   const data = await apiFetch('/api/status');
@@ -327,7 +356,6 @@ async function pollStatus() {
   }
   isConnected = true;
   const badge = document.getElementById('system-badge');
-  badge.className = 'badge';
 
   if (data.version) {
     appVersion = data.version;
@@ -343,7 +371,13 @@ async function pollStatus() {
   }
 
   const t = I18N[currentLang];
-  badge.textContent = t.system_ready;
+  if (data.is_working) {
+    badge.textContent = t.system_working || '[ TRABAJANDO... ]';
+    badge.className = 'badge badge-connecting';
+  } else {
+    badge.textContent = t.system_ready;
+    badge.className = 'badge';
+  }
 
   // Now Playing
   const trackInfo = document.getElementById('track-info');
@@ -412,10 +446,19 @@ async function pollStatus() {
     consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
   }
 
-  if (data.progress !== undefined) {
-    const pBar = document.getElementById('progress-bar');
-    pBar.style.width = `${Math.round(data.progress * 100)}%`;
+  const pBar = document.getElementById('progress-bar');
+  if (data.is_working && (!data.progress || data.progress <= 0)) {
+    if (pBar) pBar.classList.add('is-indeterminate');
+  } else {
+    if (pBar) {
+      pBar.classList.remove('is-indeterminate');
+      if (data.progress !== undefined) {
+        pBar.style.width = `${Math.round(data.progress * 100)}%`;
+      }
+    }
   }
+
+  updateActionButtons(!!data.is_working);
 
   // Disable action buttons while operations are running
   const workingBtns = [
@@ -850,6 +893,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       );
     } else {
+      currentAction = 'install';
+      updateActionButtons(true);
       await apiFetch('/api/install', 'POST');
       pollStatus();
     }
@@ -870,6 +915,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       );
     } else {
+      currentAction = 'install';
+      updateActionButtons(true);
       await apiFetch('/api/install', 'POST');
       pollStatus();
     }
@@ -892,11 +939,19 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Action buttons
   document.getElementById('btn-install').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-install');
+    if (btn && (btn.disabled || btn.classList.contains('is-busy'))) return;
+    currentAction = 'install';
+    updateActionButtons(true);
     await apiFetch('/api/install', 'POST');
     pollStatus();
   });
 
   document.getElementById('btn-recover').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-recover');
+    if (btn && (btn.disabled || btn.classList.contains('is-busy'))) return;
+    currentAction = 'recover';
+    updateActionButtons(true);
     await apiFetch('/api/recover', 'POST');
     pollStatus();
   });

@@ -31,6 +31,9 @@ MARKETPLACE_INSTALL_PS1 = (
 )
 SPOTIFY_DOWNLOAD_URL = "https://download.scdn.co/SpotifySetup.exe"
 SPICETIFY_THEMES_REPO = "https://github.com/spicetify/spicetify-themes.git"
+ADBLOCK_EXTENSION_URL = (
+    "https://raw.githubusercontent.com/rxri/spicetify-extensions/main/adblock/adblock.js"
+)
 
 
 def get_spotify_path() -> str | None:
@@ -161,6 +164,124 @@ def find_executable(name: str) -> str | None:
     if candidate.exists():
         return str(candidate)
     return None
+
+
+def add_to_user_path(directory: Path | str) -> bool:
+    """Safely adds directory to User PATH in Windows Registry if not already present."""
+    if sys.platform != "win32":
+        return True
+    try:
+        import winreg
+        directory_str = str(directory)
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, r"Environment", 0, winreg.KEY_READ | winreg.KEY_WRITE) as key:
+            try:
+                current_path, path_type = winreg.QueryValueEx(key, "Path")
+            except FileNotFoundError:
+                current_path = ""
+                path_type = winreg.REG_EXPAND_SZ
+
+            parts = [p.strip() for p in current_path.split(";") if p.strip()]
+            if directory_str.lower() not in [p.lower() for p in parts]:
+                parts.append(directory_str)
+                new_path = ";".join(parts)
+                winreg.SetValueEx(key, "Path", 0, path_type, new_path)
+                try:
+                    import ctypes
+                    HWND_BROADCAST = 0xFFFF
+                    WM_SETTINGCHANGE = 0x001A
+                    SMTO_ABORTIFHUNG = 0x0002
+                    result = ctypes.c_long()
+                    ctypes.windll.user32.SendMessageTimeoutW(
+                        HWND_BROADCAST, WM_SETTINGCHANGE, 0, "Environment", SMTO_ABORTIFHUNG, 5000, ctypes.byref(result)
+                    )
+                except Exception:
+                    pass
+        return True
+    except Exception:
+        return False
+
+
+def download_and_extract_spicetify(dest_dir: Path | None = None, log_callback=None) -> bool:
+    """Downloads and extracts spicetify-cli directly from GitHub releases without PowerShell."""
+    import platform
+    import zipfile
+    import io
+    import requests
+
+    def log(msg: str):
+        if log_callback:
+            log_callback(msg)
+
+    dest_dir = dest_dir or get_spicetify_dir()
+    dest_dir.mkdir(parents=True, exist_ok=True)
+
+    machine = platform.machine().lower()
+    if "arm" in machine or "aarch" in machine:
+        arch = "arm64"
+    elif "64" in machine:
+        arch = "x64"
+    else:
+        arch = "x32"
+
+    headers = {"User-Agent": "Spicetifix"}
+    tag = ""
+    version = ""
+
+    try:
+        resp = requests.get("https://api.github.com/repos/spicetify/cli/releases/latest", headers=headers, timeout=20)
+        if resp.status_code == 200:
+            data = resp.json()
+            tag = data.get("tag_name", "")
+            version = tag.lstrip("v")
+    except Exception:
+        pass
+
+    if not tag:
+        try:
+            resp = requests.get("https://github.com/spicetify/cli/releases/latest", headers=headers, allow_redirects=True, timeout=20)
+            tag = resp.url.split("/")[-1]
+            version = tag.lstrip("v")
+        except Exception as e:
+            log(f"Error resolviendo versión de Spicetify: {e}")
+            return False
+
+    download_url = f"https://github.com/spicetify/cli/releases/download/{tag}/spicetify-{version}-windows-{arch}.zip"
+    log(f"Descargando Spicetify {version} ({arch})...")
+    try:
+        with requests.get(download_url, headers=headers, stream=True, timeout=180) as r:
+            r.raise_for_status()
+            with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
+                zf.extractall(dest_dir)
+        log("Spicetify descargado y extraído.")
+        add_to_user_path(dest_dir)
+        return True
+    except Exception as e:
+        log(f"Error descargando o extrayendo Spicetify: {e}")
+        return False
+
+
+def ensure_adblock_extension(log_callback=None) -> bool:
+    """Ensures adblock.js is downloaded into Spicetify Extensions directory."""
+    import requests
+    ext_dir = get_spicetify_extensions_dir()
+    ext_dir.mkdir(parents=True, exist_ok=True)
+    target = ext_dir / "adblock.js"
+    if target.exists() and target.stat().st_size > 0:
+        return True
+
+    if log_callback:
+        log_callback("Descargando extensión adblock.js...")
+    try:
+        resp = requests.get(ADBLOCK_EXTENSION_URL, headers={"User-Agent": "Spicetifix"}, timeout=30)
+        resp.raise_for_status()
+        target.write_bytes(resp.content)
+        if log_callback:
+            log_callback("Extensión adblock.js lista.")
+        return True
+    except Exception as e:
+        if log_callback:
+            log_callback(f"Error descargando adblock.js: {e}")
+        return False
 
 
 def run_ps1(script_url: str) -> tuple[int, str, str]:

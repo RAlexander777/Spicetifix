@@ -8,9 +8,9 @@ import requests
 
 from spicetifix.core.utils import (
     SPOTIFY_DOWNLOAD_URL,
-    SPICETIFY_INSTALL_PS1,
-    MARKETPLACE_INSTALL_PS1,
     close_spotify,
+    download_and_extract_spicetify,
+    ensure_adblock_extension,
     ensure_spotify_prefs,
     find_executable,
     get_spotify_path,
@@ -18,7 +18,6 @@ from spicetifix.core.utils import (
     get_spicetify_themes_dir,
     parse_progress,
     run_cmd,
-    run_ps1,
     run_spicetify,
     run_spicetify_apply,
     strip_ansi,
@@ -39,7 +38,15 @@ class Installer:
         self._lang = lang
 
     def log(self, msg: str) -> None:
-        self._log(msg)
+        try:
+            self._log(msg)
+        except UnicodeEncodeError:
+            try:
+                self._log(msg.encode("ascii", errors="replace").decode("ascii"))
+            except Exception:
+                pass
+        except Exception:
+            pass
 
     def _clean_log(self, text: str) -> None:
         clean = strip_ansi(text).strip()
@@ -70,6 +77,17 @@ class Installer:
             text = text.format(**kwargs)
         return text
 
+    def _ensure_extensions(self, user_config: dict | None = None) -> None:
+        cfg = user_config or {}
+        exts = cfg.get("extensions", [])
+        ext_file = get_spicetify_dir() / "Extensions" / "adblock.js"
+        if not ext_file.exists() or "adblock.js" in exts:
+            ensure_adblock_extension(log_callback=self.log)
+
+    def _step_marketplace_and_extensions(self, user_config: dict) -> bool:
+        self._ensure_extensions(user_config)
+        return self._install_marketplace(user_config)
+
     def install_all(self, user_config: dict) -> bool:
         l = self._lang
         steps = [
@@ -78,7 +96,7 @@ class Installer:
             (t(l, "step_config"), lambda: self._configure_spicetify(user_config)),
             (t(l, "step_backup"), self._run_backup),
             (t(l, "step_themes"), lambda: self._install_themes(user_config)),
-            (t(l, "step_marketplace"), lambda: self._install_marketplace(user_config)),
+            (t(l, "step_marketplace"), lambda: self._step_marketplace_and_extensions(user_config)),
             (t(l, "step_apply"), self._run_apply),
         ]
 
@@ -117,9 +135,17 @@ class Installer:
         except Exception:
             pass
 
-        # Ensure configured theme exists before recovering
+        # Ensure configured theme and essential components exist before recovering
         from spicetifix.core.config import load_user_config
         user_config = load_user_config()
+        self._ensure_extensions(user_config)
+
+        sp_dir = get_spicetify_dir()
+        apps_dir = sp_dir / "CustomApps" / "marketplace"
+        if not apps_dir.is_dir() or not any(apps_dir.iterdir()):
+            self.log("Marketplace no encontrado en CustomApps. Descargando...")
+            self._install_marketplace(user_config)
+
         theme_name = user_config.get("spicetify", {}).get("theme", "")
         if theme_name:
             from spicetifix.core.themer import get_all_theme_dirs, install_themes, set_theme
@@ -292,13 +318,13 @@ class Installer:
         if existing:
             self.log(f"{self._tl('spicetify_already')} {existing}")
             return True
-        code, out, err = run_ps1(SPICETIFY_INSTALL_PS1)
-        self._clean_log(out)
-        if err and "PromptForChoice" not in err:
-            self._clean_log(err)
+        success = download_and_extract_spicetify(log_callback=self.log)
+        if not success:
+            self.log("Spicetify install failed")
+            return False
         installed = find_executable("spicetify")
         if not installed:
-            self.log(f"Spicetify install failed (exit code {code})")
+            self.log("Spicetify executable not found after extraction")
             return False
         self.log(f"Spicetify installed at: {installed}")
         self._close_spotify()

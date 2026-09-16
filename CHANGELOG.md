@@ -4,6 +4,17 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.5] - 2026-09-15
+
+### Added
+- Immediate visual loading feedback: `FULL INSTALL / UPDATE` and `RECOVER SYSTEM` buttons now display an animated spinner with busy labels (`INSTALLING...` / `RECOVERING...`) instantly on click.
+- Indeterminate glowing progress bar animation during the initialization phase of long background operations.
+
+### Fixed
+- Fixed Windows Defender detection: replaced PowerShell `iwr | iex` script execution with native GitHub release zip download and extraction via `requests`.
+- Disabled UPX compression in build scripts and PyInstaller spec to avoid antivirus heuristic false positives.
+- Fixed Spicetify re-apply post-Spotify-update: recovery cascade now automatically restores `marketplace` custom app and `adblock.js` extension if missing on disk.
+
 ## [1.7.4] - 2026-08-26
 
 ### Fixed

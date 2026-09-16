@@ -1,5 +1,17 @@
 [
   {
+    "version": "1.7.5",
+    "date": "2026-09-15",
+    "title": "Antivirus fix, post-update recovery & loading spinner",
+    "changes": [
+      "Fixed Windows Defender detection: replaced PowerShell script execution with native GitHub release zip download via requests.",
+      "Disabled UPX compression in build scripts to prevent antivirus heuristic false positives.",
+      "Post-update recovery automatically restores missing marketplace custom app and adblock.js extension.",
+      "FULL INSTALL / UPDATE and RECOVER SYSTEM buttons now display an immediate animated spinner and busy label on click.",
+      "Added indeterminate glowing progress bar animation during the initialization phase of background operations."
+    ]
+  },
+  {
     "version": "1.7.4",
     "date": "2026-08-26",
     "title": "Fix subfolder extensions never loading",

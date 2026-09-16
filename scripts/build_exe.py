@@ -41,6 +41,7 @@ def build_standalone_exe(console=False):
         "--noconfirm",
         "--onedir",
         "--clean",
+        "--noupx",
         f"--name={app_name}",
         f"--add-data={web_dir}{os.pathsep}web",
         "--hidden-import=tkinter",

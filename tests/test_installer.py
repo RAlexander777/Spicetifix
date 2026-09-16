@@ -76,6 +76,25 @@ class TestInstaller(unittest.TestCase):
             self.assertTrue(ok)
             self.assertFalse(sp_dir.exists())
 
+    @patch("spicetifix.core.installer.find_executable")
+    @patch("spicetifix.core.installer.download_and_extract_spicetify")
+    @patch("spicetifix.core.installer.run_spicetify")
+    def test_install_spicetify_uses_native_downloader(self, mock_run, mock_download, mock_find):
+        mock_find.side_effect = [None, "C:\\spicetify\\spicetify.exe"]
+        mock_download.return_value = True
+        mock_run.return_value = (0, "", "")
+        with patch.object(self.installer, "_close_spotify"):
+            ok = self.installer._install_spicetify()
+        self.assertTrue(ok)
+        mock_download.assert_called_once()
+        mock_run.assert_called_once_with([])
+
+    @patch("spicetifix.core.installer.ensure_adblock_extension")
+    def test_ensure_extensions_downloads_adblock_if_configured(self, mock_ensure):
+        mock_ensure.return_value = True
+        self.installer._ensure_extensions({"extensions": ["adblock.js", "bookmark.js"]})
+        mock_ensure.assert_called_once()
+
 
 if __name__ == "__main__":
     unittest.main()

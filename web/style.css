@@ -533,6 +533,18 @@ svg[data-lucide], i[data-lucide] {
   filter: brightness(1.15);
 }
 
+.btn.is-busy {
+  opacity: 0.85;
+  cursor: wait !important;
+  pointer-events: none;
+}
+
+.btn.is-busy .btn-spinner {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+
 .btn-accent {
   background-color: var(--accent-color);
   color: #08090d;
@@ -696,6 +708,18 @@ button .gh-icon,
   height: 100%;
   background-color: var(--accent-color);
   transition: width 0.3s ease;
+}
+
+.progress-bar.is-indeterminate {
+  width: 100% !important;
+  background: linear-gradient(90deg, var(--card-bg) 0%, var(--accent-color) 50%, var(--card-bg) 100%);
+  background-size: 200% 100%;
+  animation: progress-indeterminate 1.5s infinite linear;
+}
+
+@keyframes progress-indeterminate {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* MODAL STYLES */
