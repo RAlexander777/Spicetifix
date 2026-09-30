@@ -8,6 +8,7 @@ let currentLang = 'es';
 let systemConfig = {};
 let isConnected = true;
 let consecutiveErrors = 0;
+let statusErrors = 0;
 let appVersion = '';
 
 let isSpotifyInstalled = false;
@@ -339,21 +340,21 @@ function updateActionButtons(isWorking) {
 async function pollStatus() {
   const data = await apiFetch('/api/status');
   if (!data || data.error) {
-    if (consecutiveErrors > 0) {
-      const badge = document.getElementById('system-badge');
-      if (consecutiveErrors === 1) {
-        badge.textContent = I18N[currentLang].system_connecting;
-        badge.className = 'badge badge-connecting';
-      } else {
-        badge.textContent = I18N[currentLang].system_disconnected;
-        badge.className = 'badge badge-disconnected';
-      }
-      const trackInfo = document.getElementById('track-info');
-      trackInfo.textContent = I18N[currentLang].conn_error;
+    statusErrors++;
+    const badge = document.getElementById('system-badge');
+    if (statusErrors <= 1) {
+      badge.textContent = I18N[currentLang].system_connecting;
+      badge.className = 'badge badge-connecting';
+    } else {
+      badge.textContent = I18N[currentLang].system_disconnected;
+      badge.className = 'badge badge-disconnected';
     }
+    const trackInfo = document.getElementById('track-info');
+    trackInfo.textContent = I18N[currentLang].conn_error;
     isConnected = false;
     return;
   }
+  statusErrors = 0;
   isConnected = true;
   const badge = document.getElementById('system-badge');
 
@@ -682,8 +683,10 @@ async function loadChangelogInfo() {
   const listEl = document.getElementById('changelog-list');
   if (!listEl) return;
 
+  listEl.innerHTML = `<div class="empty-msg">${t('changelog_loading')}</div>`;
+
   try {
-    const res = await fetch('changelog.json');
+    const res = await fetch('changelog.json', { cache: 'no-store' });
     if (!res.ok) throw new Error('changelog not found');
     const entries = await res.json();
 
@@ -711,7 +714,13 @@ async function loadChangelogInfo() {
     });
     if (window.lucide && lucide.createIcons) lucide.createIcons();
   } catch (err) {
-    listEl.textContent = '';
+    listEl.innerHTML = `
+      <div class="empty-msg">${t('changelog_error')}</div>
+      <div style="text-align:center;margin-top:12px;">
+        <button type="button" class="btn btn-small btn-outline" id="btn-changelog-retry">${t('changelog_retry')}</button>
+      </div>`;
+    const retry = document.getElementById('btn-changelog-retry');
+    if (retry) retry.addEventListener('click', loadChangelogInfo);
   }
 }
 

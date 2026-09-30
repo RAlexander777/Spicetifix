@@ -4,6 +4,13 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.6] - 2026-09-30
+
+### Fixed
+- Multi-threaded API server: a slow request no longer freezes `/api/status` and the UI.
+- Connection badge now reflects only `/api/status`, fixing false `[ DISCONNECTED ]`.
+- CHANGES dialog shows a loading state and a RETRY button instead of loading empty.
+
 ## [1.7.5] - 2026-09-15
 
 ### Added

@@ -363,7 +363,7 @@ def spicetify_error_hint(out: str = "", err: str = "") -> str | None:
         return (
             "El respaldo de Spicetify quedó desincronizado con tu versión de "
             "Spotify (probablemente por una actualización automática de Spotify). "
-            "Para repararlo: reinstalá Spotify y luego ejecutá 'RECUPERAR SISTEMA' "
+            "Para repararlo: reinstala Spotify y luego ejecuta 'RECUPERAR SISTEMA' "
             "en Spicetifix."
         )
     return None

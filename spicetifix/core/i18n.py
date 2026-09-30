@@ -89,11 +89,11 @@ STRINGS = {
         "uninstall_spicetify": "Desinstalar Spicetify",
         "uninstall_spotify": "Desinstalar Spotify",
         "uninstall_section": "ZONA DE PELIGRO",
-        "confirm_uninstall_spicetify": "Esto eliminará la configuración de Spicetify y extensiones.\nEjecutá 'spicetify restore' primero para revertir Spotify.\n\n¿Continuar?",
+        "confirm_uninstall_spicetify": "Esto eliminará la configuración de Spicetify y extensiones.\nEjecuta 'spicetify restore' primero para revertir Spotify.\n\n¿Continuar?",
         "confirm_uninstall_spotify": "Esto desinstalará Spotify por completo.\nSe perderán datos locales y playlists.\n\n¿Continuar?",
         "install_start": "=== Iniciando instalación completa ===",
         "install_done": "=== Todo listo ===",
-        "install_failed": "=== Instalación fallida — revisá el log ===",
+        "install_failed": "=== Instalación fallida — revisa el log ===",
         "recover_start": "=== Iniciando recuperación post-update ===",
         "recover_done": "=== Recuperación completada ===",
         "recover_failed": "=== Recuperación fallida ===",
@@ -135,7 +135,7 @@ STRINGS = {
         "spotify_installed": "Spotify instalado correctamente",
         "spotify_install_error": "Error al instalar Spotify:",
         "spicetify_already": "Spicetify ya instalado en:",
-        "no_theme": "Sin tema configurado, salteando...",
+        "no_theme": "Sin tema configurado, se omite...",
     },
 }
 

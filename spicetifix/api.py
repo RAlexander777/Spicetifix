@@ -3,7 +3,7 @@ import os
 import sys
 import threading
 import time
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
 _last_request_time = time.time()
@@ -440,7 +440,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
                     still_present = target_file.exists() or filename in cfg["extensions"]
                     if still_present:
-                        self._send_json({"error": f"La extensión {filename} se marcó para desinstalar pero sigue presente. Reintentá o usá Recover System."}, 500)
+                        self._send_json({"error": f"La extensión {filename} se marcó para desinstalar pero sigue presente. Reintenta o usa Recover System."}, 500)
                         return
                     _launch_spotify()
                     self._send_json({"status": "ok", "message": f"Extensión {filename} desinstalada"})
@@ -788,7 +788,7 @@ def run_api_server(port: int = 8765, auth_token: str = "", idle_timeout: int = 3
     if auth_token:
         set_auth_token(auth_token)
     _start_heartbeat_checker(idle_timeout)
-    server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
+    server = ThreadingHTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
     server.serve_forever()
 
@@ -797,7 +797,7 @@ def make_server(port: int = 8765, auth_token: str = "", idle_timeout: int = 300)
     if auth_token:
         set_auth_token(auth_token)
     _start_heartbeat_checker(idle_timeout)
-    server = HTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
+    server = ThreadingHTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
     return server
 

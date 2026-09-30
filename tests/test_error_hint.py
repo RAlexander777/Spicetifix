@@ -31,7 +31,7 @@ class TestSpicetifyErrorHint(unittest.TestCase):
 
     def test_hint_mentions_reinstall_recovery(self):
         hint = spicetify_error_hint("version and backup version are mismatched")
-        self.assertIn("reinstalá Spotify", hint)
+        self.assertIn("reinstala Spotify", hint)
 
 
 if __name__ == "__main__":
