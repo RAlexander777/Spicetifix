@@ -89,6 +89,88 @@ class TestInstaller(unittest.TestCase):
         mock_download.assert_called_once()
         mock_run.assert_called_once_with([])
 
+    @patch("spicetifix.core.installer.get_latest_spicetify_version", return_value="2.45.3")
+    @patch("spicetifix.core.installer.get_installed_spicetify_version", return_value="2.45.3")
+    @patch("spicetifix.core.installer.find_executable", return_value="C:\\spicetify\\spicetify.exe")
+    @patch("spicetifix.core.installer.download_and_extract_spicetify")
+    def test_install_spicetify_skips_download_when_up_to_date(
+        self, mock_download, mock_find, mock_installed, mock_latest
+    ):
+        ok = self.installer._install_spicetify()
+        self.assertTrue(ok)
+        mock_download.assert_not_called()
+
+    @patch("spicetifix.core.installer.get_latest_spicetify_version", return_value="2.45.3")
+    @patch("spicetifix.core.installer.get_installed_spicetify_version", return_value="2.45.1")
+    @patch("spicetifix.core.installer.run_spicetify")
+    @patch("spicetifix.core.installer.download_and_extract_spicetify")
+    @patch("spicetifix.core.installer.find_executable")
+    def test_install_spicetify_updates_existing_outdated_install(
+        self, mock_find, mock_download, mock_run, mock_installed, mock_latest
+    ):
+        mock_find.side_effect = [
+            "C:\\spicetify\\spicetify.exe",
+            "C:\\spicetify\\spicetify.exe",
+        ]
+        mock_download.return_value = True
+        mock_run.return_value = (0, "", "")
+        with patch.object(self.installer, "_close_spotify"):
+            ok = self.installer._install_spicetify()
+        self.assertTrue(ok)
+        mock_download.assert_called_once()
+        mock_run.assert_called_once_with([])
+
+    @patch("spicetifix.core.installer.get_latest_spicetify_version", return_value="")
+    @patch("spicetifix.core.installer.get_installed_spicetify_version", return_value="")
+    @patch("spicetifix.core.installer.find_executable", return_value="C:\\spicetify\\spicetify.exe")
+    @patch("spicetifix.core.installer.download_and_extract_spicetify")
+    def test_install_spicetify_keeps_existing_when_update_fails(
+        self, mock_download, mock_find, mock_installed, mock_latest
+    ):
+        mock_download.return_value = False
+        ok = self.installer._install_spicetify()
+        self.assertTrue(ok)
+
+    def test_reinstall_marketplace_overwrites_existing_files(self):
+        import io
+        import zipfile
+        import tempfile
+        from pathlib import Path
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            zf.writestr("marketplace-dist/index.js", "NEW")
+            zf.writestr("marketplace-dist/manifest.json", "{}")
+
+        class FakeResponse:
+            def __init__(self, content):
+                self.content = content
+                self.status_code = 200
+
+            def raise_for_status(self):
+                return None
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp = Path(tmpdir)
+            (tmp / "CustomApps" / "marketplace").mkdir(parents=True)
+            (tmp / "CustomApps" / "marketplace" / "index.js").write_text("OLD", encoding="utf-8")
+
+            with patch("spicetifix.core.installer.requests.get", return_value=FakeResponse(buf.getvalue())), \
+                 patch("spicetifix.core.installer.run_spicetify", return_value=(0, "", "")), \
+                 patch("spicetifix.core.installer.get_spicetify_dir", return_value=tmp), \
+                 patch("spicetifix.core.installer.get_spicetify_themes_dir", return_value=tmp / "Themes"), \
+                 patch.object(self.installer, "_close_spotify"), \
+                 patch("spicetifix.core.config.save_user_config"), \
+                 patch("spicetifix.core.config.write_spicetify_config"):
+                ok = self.installer._install_marketplace({})
+
+            self.assertTrue(ok)
+            self.assertEqual(
+                (tmp / "CustomApps" / "marketplace" / "index.js").read_text(encoding="utf-8"),
+                "NEW",
+            )
+            self.assertFalse((tmp / "CustomApps" / "marketplace" / "marketplace-dist").exists())
+
     @patch("spicetifix.core.installer.ensure_adblock_extension")
     def test_ensure_extensions_downloads_adblock_if_configured(self, mock_ensure):
         mock_ensure.return_value = True

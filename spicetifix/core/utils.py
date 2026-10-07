@@ -319,6 +319,46 @@ def run_spicetify(args: list[str], timeout: int = 300) -> tuple[int, str, str]:
     return run_cmd([exe, *args], timeout=timeout)
 
 
+def get_installed_spicetify_version() -> str:
+    """Return the installed Spicetify CLI version (e.g. ``"2.45.3"``) or ``""``
+    when spicetify is missing or its version cannot be parsed."""
+    code, out, _err = run_spicetify(["--version"], timeout=30)
+    if code != 0 or not out.strip():
+        return ""
+    match = re.search(r"(\d+\.\d+\.\d+)", out)
+    return match.group(1) if match else ""
+
+
+def get_latest_spicetify_version() -> str:
+    """Return the latest Spicetify CLI release version (e.g. ``"2.45.3"``) or
+    ``""`` when it cannot be resolved (offline / rate limited)."""
+    import requests
+
+    headers = {"User-Agent": "Spicetifix"}
+    try:
+        resp = requests.get(
+            "https://api.github.com/repos/spicetify/cli/releases/latest",
+            headers=headers,
+            timeout=20,
+        )
+        if resp.status_code == 200:
+            tag = resp.json().get("tag_name", "")
+            if tag:
+                return tag.lstrip("v")
+    except Exception:
+        pass
+    try:
+        resp = requests.get(
+            "https://github.com/spicetify/cli/releases/latest",
+            headers=headers,
+            allow_redirects=True,
+            timeout=20,
+        )
+        return resp.url.rstrip("/").split("/")[-1].lstrip("v")
+    except Exception:
+        return ""
+
+
 def run_spicetify_apply(timeout: int = 300) -> tuple[int, str, str]:
     """Runs spicetify apply with a recovery cascade.
 

@@ -672,6 +672,17 @@ button .gh-icon,
   font-size: 0.82rem;
 }
 
+.ext-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ext-item-version {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
 .ext-item input[type="checkbox"] {
   accent-color: var(--accent-color);
   cursor: pointer;
@@ -1363,12 +1374,35 @@ button .gh-icon,
   border: 1px solid var(--accent-color);
 }
 
+.mp-badge-app {
+  background: rgba(199, 146, 234, 0.15);
+  color: #c792ea;
+  border: 1px solid #c792ea;
+}
+
 .mp-card-desc {
   font-size: 0.8rem;
   color: var(--text-muted);
   line-height: 1.4;
   margin-bottom: 12px;
   flex: 1;
+}
+
+.mp-card-version {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.mp-update-badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: bold;
+  padding: 1px 6px;
+  border-radius: 8px;
+  color: #ffb454;
+  border: 1px solid #ffb454;
+  background: rgba(255, 180, 84, 0.12);
 }
 
 .mp-card-author {

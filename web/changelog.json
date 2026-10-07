@@ -1,5 +1,21 @@
 [
   {
+    "version": "1.7.7",
+    "date": "2026-10-07",
+    "title": "Update Spicetify CLI, add Custom Apps and version comparison",
+    "changes": [
+      "Spicetify CLI is now updated when a newer release exists instead of being skipped when already installed.",
+      "The bundled CustomApps (lyrics-plus, reddit, new-releases) and built-in Extensions ship inside the CLI release zip, so they now update together with the CLI instead of staying frozen.",
+      "Marketplace reinstall now overwrites the existing files, so an installed Marketplace actually updates.",
+      "The Marketplace catalog now lists Custom Apps (GitHub topic spicetify-apps) under a new Apps category; app cards are browse-only and open the repository.",
+      "Marketplace cards and the extension/app manager now show the installed version next to the latest available version, flagging when an update is available (GitHub release tag, or the repo's last-updated date when there is no release).",
+      "Extensions and Custom Apps load immediately instead of waiting for the slow Marketplace catalog build, which is also much faster now.",
+      "Marketplace catalog requests now retry transient timeouts, so one flaky GitHub call no longer leaves a whole category (usually Extensions) empty.",
+      "Version lookups no longer hit the GitHub REST API (limited to 60 requests/hour without a token), which was getting exhausted and making the Marketplace fail; tags now come from the github.com redirect and the catalog falls back to its last cached copy when rate limited.",
+      "The Open Spotify button is guarded (disabled while opening + cooldown) so spamming it no longer launches multiple instances and spikes CPU."
+    ]
+  },
+  {
     "version": "1.7.6",
     "date": "2026-09-30",
     "title": "Fix false DISCONNECTED badge and empty CHANGES dialog",

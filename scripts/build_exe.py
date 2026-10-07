@@ -115,8 +115,9 @@ def build_zip_only():
 
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "--zip-only":
-        build_zip_only()
+        ok = build_zip_only()
     elif len(sys.argv) > 1 and sys.argv[1] == "--console":
-        build_standalone_exe(console=True)
+        ok = build_standalone_exe(console=True)
     else:
-        build_standalone_exe()
+        ok = build_standalone_exe()
+    sys.exit(0 if ok else 1)

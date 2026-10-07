@@ -37,7 +37,7 @@ function t(key) {
   return dict[key] !== undefined ? dict[key] : key;
 }
 
-async function apiFetch(endpoint, method = 'GET', body = null) {
+async function apiFetch(endpoint, method = 'GET', body = null, timeoutMs = 30000) {
   const options = {
     method,
     headers: { 'Content-Type': 'application/json' },
@@ -48,6 +48,10 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
   if (body) {
     options.body = JSON.stringify(body);
   }
+  // Never let a single request hang the UI forever (e.g. a slow catalog build).
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  options.signal = controller.signal;
   try {
     const res = await fetch(`${API_BASE}${endpoint}`, options);
     let data = null;
@@ -67,6 +71,8 @@ async function apiFetch(endpoint, method = 'GET', body = null) {
     consecutiveErrors++;
     console.warn(`API error (${endpoint}):`, err);
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
@@ -255,6 +261,7 @@ async function applyLanguage(lang) {
   setTxt('lbl-mp-filter-all', t.mp_filter_all);
   setTxt('lbl-mp-filter-ext', t.mp_filter_ext);
   setTxt('lbl-mp-filter-theme', t.mp_filter_theme);
+  setTxt('lbl-mp-filter-app', t.mp_filter_app);
   setTxt('lbl-mp-filter-installed', t.mp_filter_installed);
   setTxt('lbl-mp-prev', t.mp_prev);
   setTxt('lbl-mp-next', t.mp_next);
@@ -528,19 +535,74 @@ let extTitleMap = null;
 
 async function getExtTitleMap() {
   if (extTitleMap) return extTitleMap;
-  const map = {};
-  const seed = list => (list || []).forEach(i => {
-    if (i.filename && i.title) map[i.filename] = i.title;
-  });
-  seed(currentMarketplaceCatalog);
-  if (Object.keys(map).length === 0) {
-    try {
-      const data = await apiFetch('/api/marketplace/catalog');
-      if (data && data.catalog) seed(data.catalog);
-    } catch (e) { /* keep raw filenames */ }
+
+  const buildMap = (list) => {
+    const map = {};
+    (list || []).forEach(i => {
+      if (i.filename && i.title) map[i.filename] = i.title;
+    });
+    return map;
+  };
+
+  if (currentMarketplaceCatalog.length > 0) {
+    extTitleMap = buildMap(currentMarketplaceCatalog);
+    return extTitleMap;
   }
-  extTitleMap = map;
-  return map;
+
+  // Never block the extension list on the (possibly slow) catalog build: show
+  // raw filenames now and upgrade them to friendly titles in the background.
+  extTitleMap = {};
+  requestCatalog().then(catalog => {
+    const map = buildMap(catalog);
+    if (Object.keys(map).length) {
+      extTitleMap = map;
+      loadExtensions();
+    }
+  });
+  return extTitleMap;
+}
+
+// ---- Version / update comparison ---------------------------------------
+let repoVersions = {};
+const versionFetchTried = new Set();
+
+function fmtRepoDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const locale = currentLang === 'es' ? 'es-ES' : 'en-US';
+  return d.toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Prefer the release tag; fall back to the last-updated date.
+function versionLabel(info) {
+  info = info || {};
+  return info.tag || fmtRepoDate(info.updated_at);
+}
+
+function versionOutdated(installed, latest) {
+  if (!installed) return false;
+  const iTag = installed.tag || '';
+  const lTag = (latest || {}).tag || '';
+  if (iTag && lTag) return iTag !== lTag;
+  const iDate = installed.updated_at || '';
+  const lDate = (latest || {}).updated_at || '';
+  return Boolean(iDate && lDate && lDate > iDate);
+}
+
+async function fetchRepoVersions(repos) {
+  const clean = (repos || []).filter(r => {
+    const key = `${r.user}/${r.repo}`;
+    return r.user && r.repo && !repoVersions[key] && !versionFetchTried.has(key);
+  });
+  if (clean.length === 0) return {};
+  clean.forEach(r => versionFetchTried.add(`${r.user}/${r.repo}`));
+  const res = await apiFetch('/api/marketplace/versions', 'POST', { repos: clean });
+  if (res && res.versions) {
+    Object.assign(repoVersions, res.versions);
+    return res.versions;
+  }
+  return {};
 }
 
 async function loadExtensions() {
@@ -565,10 +627,14 @@ async function loadExtensions() {
   }
 
   const titleMap = await getExtTitleMap();
+  const versionTargets = [];
 
   allItems.forEach(item => {
     const div = document.createElement('div');
     div.className = 'ext-item';
+
+    const left = document.createElement('div');
+    left.className = 'ext-item-main';
 
     const label =
       item.type === 'ext' && titleMap[item.name]
@@ -577,6 +643,11 @@ async function loadExtensions() {
     const span = document.createElement('span');
     span.textContent = `● ${label}`;
     if (item.enabled) span.style.color = 'var(--accent-color)';
+
+    const ver = document.createElement('span');
+    ver.className = 'ext-item-version';
+    left.appendChild(span);
+    left.appendChild(ver);
 
     const chk = document.createElement('input');
     chk.type = 'checkbox';
@@ -596,10 +667,38 @@ async function loadExtensions() {
       loadExtensions();
     });
 
-    div.appendChild(span);
+    div.appendChild(left);
     div.appendChild(chk);
     extGrid.appendChild(div);
+
+    if (item.meta && item.meta.user && item.meta.repo) {
+      versionTargets.push({ item, el: ver });
+    } else {
+      const local = item.meta ? fmtRepoDate(item.meta.updated_at) || fmtRepoDate(item.meta.installed_at) : '';
+      if (local) ver.textContent = `${t('mp_version_installed')}: ${local}`;
+    }
   });
+
+  if (versionTargets.length) {
+    await fetchRepoVersions(versionTargets.map(v => ({ user: v.item.meta.user, repo: v.item.meta.repo })));
+    versionTargets.forEach(({ item, el }) => {
+      const key = `${item.meta.user}/${item.meta.repo}`;
+      const latest = repoVersions[key] || {};
+      const instLabel = versionLabel(item.meta) || fmtRepoDate(item.meta.installed_at);
+      const latestLabel = versionLabel(latest);
+      const parts = [];
+      if (instLabel) parts.push(`${t('mp_version_installed')}: ${instLabel}`);
+      if (latestLabel) parts.push(`${t('mp_version_latest')}: ${latestLabel}`);
+      el.textContent = parts.join(' · ');
+      if (versionOutdated(item.meta, latest)) {
+        el.appendChild(document.createTextNode(' '));
+        const badge = document.createElement('span');
+        badge.className = 'mp-update-badge';
+        badge.textContent = t('mp_update_available');
+        el.appendChild(badge);
+      }
+    });
+  }
 }
 
 // Load themes info & populate options modal
@@ -801,11 +900,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Open Spotify App button
+  // Open Spotify App button (guarded: repeated clicks must not spawn several
+  // Spotify launches / burn CPU)
   const btnOpenSpotify = document.getElementById('btn-open-spotify');
   if (btnOpenSpotify) {
+    let openingSpotify = false;
     btnOpenSpotify.addEventListener('click', async () => {
-      await apiFetch('/api/open/spotify', 'POST');
+      if (openingSpotify) return;
+      openingSpotify = true;
+      btnOpenSpotify.disabled = true;
+      btnOpenSpotify.classList.add('is-busy');
+      const original = btnOpenSpotify.innerHTML;
+      btnOpenSpotify.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span>';
+      try {
+        await apiFetch('/api/open/spotify', 'POST');
+      } finally {
+        setTimeout(() => {
+          openingSpotify = false;
+          btnOpenSpotify.disabled = false;
+          btnOpenSpotify.classList.remove('is-busy');
+          btnOpenSpotify.innerHTML = original;
+          if (window.lucide && lucide.createIcons) lucide.createIcons();
+        }, 3000);
+      }
     });
   }
 
@@ -1107,6 +1224,27 @@ let currentMarketplaceFilter = 'all';
 let currentPage = 1;
 const ITEMS_PER_PAGE = 12;
 let isLoadingCatalog = false;
+let catalogPromise = null;
+
+// Single shared catalog request: the extension list and the Marketplace tab both
+// need it, so they must not each trigger a (slow) rebuild.
+function requestCatalog() {
+  if (currentMarketplaceCatalog.length > 0) {
+    return Promise.resolve(currentMarketplaceCatalog);
+  }
+  if (!catalogPromise) {
+    catalogPromise = apiFetch('/api/marketplace/catalog', 'GET', null, 90000)
+      .then(data => {
+        if (data && Array.isArray(data.catalog)) {
+          currentMarketplaceCatalog = data.catalog;
+        }
+        return currentMarketplaceCatalog;
+      })
+      .catch(() => currentMarketplaceCatalog)
+      .finally(() => { catalogPromise = null; });
+  }
+  return catalogPromise;
+}
 
 function switchTab(tabId) {
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1129,6 +1267,7 @@ async function loadMarketplaceCatalog() {
   if (isLoadingCatalog) return;
   isLoadingCatalog = true;
   currentPage = 1;
+  versionFetchTried.clear();
   const grid = document.getElementById('mp-catalog-grid');
   if (grid) {
     grid.innerHTML = `
@@ -1139,9 +1278,9 @@ async function loadMarketplaceCatalog() {
   }
 
   try {
-    const data = await apiFetch('/api/marketplace/catalog');
-    if (data && data.catalog) {
-      currentMarketplaceCatalog = data.catalog;
+    const catalog = await requestCatalog();
+    if (catalog && catalog.length) {
+      currentMarketplaceCatalog = catalog;
       renderMarketplaceCatalog();
     } else if (grid) {
       grid.innerHTML = `<div class="empty-msg">${t('mp_error')}</div>`;
@@ -1166,6 +1305,20 @@ function getFilteredCatalog() {
       item.description.toLowerCase().includes(searchQuery) || 
       item.author.toLowerCase().includes(searchQuery);
     return matchesFilter && matchesSearch;
+  });
+}
+
+function ensureMarketplaceVersions(items) {
+  const repos = (items || [])
+    .filter(i => i.user && i.repo)
+    .map(i => ({ user: i.user, repo: i.repo, updated_at: i.updated_at || '' }));
+  const pending = repos.some(r => {
+    const key = `${r.user}/${r.repo}`;
+    return !repoVersions[key] && !versionFetchTried.has(key);
+  });
+  if (!pending) return;
+  fetchRepoVersions(repos).then(versions => {
+    if (versions && Object.keys(versions).length) renderMarketplaceCatalog();
   });
 }
 
@@ -1195,17 +1348,56 @@ function renderMarketplaceCatalog() {
     const card = document.createElement('div');
     card.className = 'mp-card';
     card.id = `mp-card-${item.id}`;
-    const isExt = item.type === 'extension';
-    const badgeClass = isExt ? 'mp-badge-ext' : 'mp-badge-theme';
-    const badgeText = isExt ? t('mp_badge_ext') : t('mp_badge_theme');
+
+    const isApp = item.type === 'app';
+    let badgeClass = 'mp-badge-ext';
+    let badgeText = t('mp_badge_ext');
+    if (item.type === 'theme') {
+      badgeClass = 'mp-badge-theme';
+      badgeText = t('mp_badge_theme');
+    } else if (isApp) {
+      badgeClass = 'mp-badge-app';
+      badgeText = t('mp_badge_app');
+    }
+
     const statusText = item.installed ? t('mp_status_installed') : t('mp_status_available');
     const statusClass = item.installed ? 'mp-status-installed' : 'mp-status-available';
-
-    const btnClass = item.installed ? 'btn-danger' : 'btn-accent';
-    const btnText = item.installed ? t('mp_uninstall') : t('mp_install');
-    const btnIcon = item.installed ? 'trash-2' : 'download';
+    const statusHtml = isApp ? '' : `<span class="mp-status-tag ${statusClass}">${statusText}</span>`;
 
     const repoUrl = `https://github.com/${item.user}/${item.repo}`;
+
+    // Custom apps have no standard entry point/install layout, so they are
+    // browse-only (like the official Marketplace): the action opens the repo
+    // instead of installing.
+    let actionHtml;
+    if (isApp) {
+      actionHtml = `
+          <button class="btn btn-small btn-mp-open" data-id="${item.id}">
+            <i data-lucide="external-link"></i> ${t('mp_view')}
+          </button>`;
+    } else {
+      const btnClass = item.installed ? 'btn-danger' : 'btn-accent';
+      const btnText = item.installed ? t('mp_uninstall') : t('mp_install');
+      const btnIcon = item.installed ? 'trash-2' : 'download';
+      actionHtml = `
+          <button class="btn btn-small ${btnClass} btn-mp-action" data-id="${item.id}">
+            <i data-lucide="${btnIcon}"></i> ${btnText}
+          </button>`;
+    }
+
+    const repoKey = `${item.user}/${item.repo}`;
+    const latest = repoVersions[repoKey] || {};
+    const latestInfo = { tag: latest.tag || '', updated_at: latest.updated_at || item.updated_at || '' };
+    const latestLabel = versionLabel(latestInfo);
+    const installedLabel = item.installed ? versionLabel(item.meta) : '';
+    const outdated = item.installed && versionOutdated(item.meta, latestInfo);
+
+    const versionParts = [];
+    if (installedLabel) versionParts.push(`${t('mp_version_installed')}: ${installedLabel}`);
+    if (latestLabel) versionParts.push(`${t('mp_version_latest')}: ${latestLabel}`);
+    const versionHtml = (versionParts.length || outdated)
+      ? `<div class="mp-card-version">${versionParts.join(' · ')}${outdated ? ` <span class="mp-update-badge">${t('mp_update_available')}</span>` : ''}</div>`
+      : '';
 
     card.innerHTML = `
       <div>
@@ -1215,16 +1407,15 @@ function renderMarketplaceCatalog() {
         </div>
         <div class="mp-card-author">${t('mp_by')} ${item.author}</div>
         <div class="mp-card-desc">${item.description}</div>
+        ${versionHtml}
       </div>
       <div class="mp-card-footer">
-        <span class="mp-status-tag ${statusClass}">${statusText}</span>
+        ${statusHtml}
         <div class="mp-card-actions">
           <button class="btn btn-small btn-mp-gh" title="${t('mp_gh_title')}">
             ${GITHUB_ICON_SVG}
           </button>
-          <button class="btn btn-small ${btnClass} btn-mp-action" data-id="${item.id}">
-            <i data-lucide="${btnIcon}"></i> ${btnText}
-          </button>
+          ${actionHtml}
         </div>
       </div>
     `;
@@ -1235,25 +1426,38 @@ function renderMarketplaceCatalog() {
       openExternal(repoUrl);
     });
 
+    const openBtn = card.querySelector('.btn-mp-open');
+    if (openBtn) {
+      openBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openExternal(repoUrl);
+      });
+    }
+
     const actionBtn = card.querySelector('.btn-mp-action');
-    actionBtn.addEventListener('click', async () => {
-      actionBtn.disabled = true;
-      actionBtn.classList.add('is-busy');
-      actionBtn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span class="btn-busy-label">...</span>';
-      if (window.lucide) lucide.createIcons();
-      try {
-        if (item.installed) {
-          await uninstallMarketplaceItem(item);
-        } else {
-          await installMarketplaceItem(item);
+    if (actionBtn) {
+      actionBtn.addEventListener('click', async () => {
+        actionBtn.disabled = true;
+        actionBtn.classList.add('is-busy');
+        actionBtn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span class="btn-busy-label">...</span>';
+        if (window.lucide) lucide.createIcons();
+        try {
+          if (item.installed) {
+            await uninstallMarketplaceItem(item);
+          } else {
+            await installMarketplaceItem(item);
+          }
+        } finally {
+          actionBtn.classList.remove('is-busy');
         }
-      } finally {
-        actionBtn.classList.remove('is-busy');
-      }
-    });
+      });
+    }
 
     grid.appendChild(card);
   });
+
+  // Lazily resolve release tags / dates for the visible page, then re-render.
+  ensureMarketplaceVersions(pageItems);
 
   // Update pagination info
   const pageInfo = document.getElementById('mp-page-info');
@@ -1268,6 +1472,7 @@ function renderMarketplaceCatalog() {
 }
 
 async function installMarketplaceItem(item) {
+  const cached = repoVersions[`${item.user}/${item.repo}`] || {};
   const res = await apiFetch('/api/marketplace/install', 'POST', {
     type: item.type,
     filename: item.filename,
@@ -1278,6 +1483,8 @@ async function installMarketplaceItem(item) {
     css_url: item.css_url,
     schemes_url: item.schemes_url,
     include: item.include,
+    updated_at: cached.updated_at || item.updated_at || '',
+    tag: cached.tag || '',
   });
   const consoleBox = document.getElementById('console-output');
   if (res && res.status === 'ok') {

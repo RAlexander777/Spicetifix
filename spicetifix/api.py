@@ -3,11 +3,14 @@ import os
 import sys
 import threading
 import time
+from datetime import datetime, timezone
 from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import parse_qs, urlparse
 
 _last_request_time = time.time()
 _server_start_time = time.time()
+_last_spotify_open = 0.0
+SPOTIFY_OPEN_COOLDOWN = 3.0
 
 _AUTH_TOKEN = ""
 
@@ -20,9 +23,12 @@ from spicetifix.core.config import (
     load_user_config,
     save_user_config,
     check_config_health,
+    get_install_meta,
     get_installed_extensions,
     get_installed_custom_apps,
     read_spicetify_config,
+    remove_install_meta,
+    set_install_meta,
 )
 from spicetifix.core.installer import Installer
 from spicetifix.core.themer import list_available_themes, set_theme
@@ -100,13 +106,19 @@ def _resolve_static_file(path: str):
 
 def _enrich_catalog_item(item: dict) -> dict:
     from pathlib import Path
-    from spicetifix.core.utils import get_spicetify_extensions_dir, get_spicetify_themes_dir
+    from spicetifix.core.utils import (
+        get_spicetify_custom_apps_dir,
+        get_spicetify_extensions_dir,
+        get_spicetify_themes_dir,
+    )
     from spicetifix.core.config import load_user_config
 
     ext_dir = get_spicetify_extensions_dir()
     themes_dir = get_spicetify_themes_dir()
+    apps_dir = get_spicetify_custom_apps_dir()
     cfg = load_user_config()
     user_exts = set(cfg.get("extensions", []))
+    user_apps = set(cfg.get("custom_apps", []))
 
     typ = item.get("type", "")
     if typ == "extension":
@@ -115,10 +127,14 @@ def _enrich_catalog_item(item: dict) -> dict:
     elif typ == "theme":
         theme_dirname = item.get("filename", "")
         installed = (themes_dir / theme_dirname).is_dir()
+    elif typ == "app":
+        app_name = Path(item.get("filename", "")).name
+        installed = bool(app_name) and ((apps_dir / app_name).is_dir() or app_name in user_apps)
     else:
         installed = False
 
     item["installed"] = installed
+    item["meta"] = get_install_meta(cfg, typ, item.get("filename", "")) if typ in ("extension", "theme", "app") else None
     return item
 
 
@@ -217,7 +233,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             all_exts = sorted(list(set(detected_exts) | user_exts))
 
             ext_list = [
-                {"name": name, "enabled": name in user_exts}
+                {"name": name, "enabled": name in user_exts, "meta": get_install_meta(cfg, "extension", name)}
                 for name in all_exts
             ]
 
@@ -226,7 +242,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             all_apps = sorted(list(set(detected_apps) | user_apps))
 
             app_list = [
-                {"name": name, "enabled": name in user_apps}
+                {"name": name, "enabled": name in user_apps, "meta": get_install_meta(cfg, "app", name)}
                 for name in all_apps
             ]
 
@@ -265,7 +281,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "Endpoint or file not found"}, 404)
 
     def do_POST(self):
-        global _last_request_time
+        global _last_request_time, _last_spotify_open
         _last_request_time = time.time()
         parsed = urlparse(self.path)
         path = parsed.path
@@ -281,7 +297,21 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         except Exception:
             body = {}
 
-        if path == "/api/marketplace/install":
+        if path == "/api/marketplace/versions":
+            from spicetifix.core.marketplace_fetcher import resolve_versions
+            repos = body.get("repos", []) or []
+            clean = [
+                {
+                    "user": r.get("user", ""),
+                    "repo": r.get("repo", ""),
+                    "updated_at": r.get("updated_at", ""),
+                }
+                for r in repos
+                if isinstance(r, dict) and r.get("user") and r.get("repo")
+            ]
+            self._send_json({"status": "ok", "versions": resolve_versions(clean)})
+
+        elif path == "/api/marketplace/install":
             item_type = body.get("type", "")
             filename = body.get("filename", "")
             url = body.get("url", "")
@@ -320,6 +350,14 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     exts = set(cfg.get("extensions", []))
                     exts.add(filename)
                     cfg["extensions"] = list(exts)
+                    set_install_meta(cfg, "extension", filename, {
+                        "user": body.get("user", ""),
+                        "repo": body.get("repo", ""),
+                        "branch": body.get("branch", ""),
+                        "updated_at": body.get("updated_at", ""),
+                        "tag": body.get("tag", ""),
+                        "installed_at": datetime.now(timezone.utc).isoformat(),
+                    })
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     repair_backup_metadata()
@@ -374,6 +412,14 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
                     cfg = load_user_config()
                     cfg.setdefault("spicetify", {})["theme"] = filename
+                    set_install_meta(cfg, "theme", filename, {
+                        "user": body.get("user", ""),
+                        "repo": body.get("repo", ""),
+                        "branch": body.get("branch", ""),
+                        "updated_at": body.get("updated_at", ""),
+                        "tag": body.get("tag", ""),
+                        "installed_at": datetime.now(timezone.utc).isoformat(),
+                    })
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     repair_backup_metadata()
@@ -429,6 +475,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     exts = set(cfg.get("extensions", []))
                     exts.discard(filename)
                     cfg["extensions"] = list(exts)
+                    remove_install_meta(cfg, "extension", filename)
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
                     repair_backup_metadata()
@@ -456,6 +503,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     if cfg.get("spicetify", {}).get("theme", "") == filename:
                         cfg["spicetify"]["theme"] = "SpicetifyDefault"
                         set_theme("SpicetifyDefault")
+                    remove_install_meta(cfg, "theme", filename)
 
                     save_user_config(cfg)
                     write_spicetify_config(cfg)
@@ -570,6 +618,13 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             self._send_json({"status": "started"})
 
         elif path == "/api/open/spotify":
+            # Guard against spamming the button: ignore rapid repeat requests so
+            # several Spotify instances are not launched at once (CPU spike).
+            now = time.time()
+            if now - _last_spotify_open < SPOTIFY_OPEN_COOLDOWN:
+                self._send_json({"status": "ok", "throttled": True})
+                return
+            _last_spotify_open = now
             try:
                 import os
                 spotify_exe = os.path.expanduser(r"~\AppData\Roaming\Spotify\Spotify.exe")

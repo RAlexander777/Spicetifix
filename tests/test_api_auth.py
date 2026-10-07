@@ -1,4 +1,7 @@
+import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from spicetifix import api
 
@@ -102,6 +105,60 @@ class TestApiWorkingState(unittest.TestCase):
         self.assertTrue(is_working)
         self.assertEqual(progress, 0.3)
         self.assertEqual(logs, ["a"])
+
+
+class TestEnrichCatalogItem(unittest.TestCase):
+    def _patch_dirs(self, tmp):
+        return patch.multiple(
+            "spicetifix.core.utils",
+            get_spicetify_extensions_dir=lambda: Path(tmp) / "Extensions",
+            get_spicetify_themes_dir=lambda: Path(tmp) / "Themes",
+            get_spicetify_custom_apps_dir=lambda: Path(tmp) / "CustomApps",
+        )
+
+    def test_app_installed_when_folder_exists(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            (Path(tmp) / "CustomApps" / "My App").mkdir(parents=True)
+            with self._patch_dirs(tmp), \
+                 patch("spicetifix.core.config.load_user_config",
+                       return_value={"extensions": [], "custom_apps": []}):
+                item = api._enrich_catalog_item({"type": "app", "filename": "My App"})
+        self.assertTrue(item["installed"])
+
+    def test_app_not_installed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self._patch_dirs(tmp), \
+                 patch("spicetifix.core.config.load_user_config",
+                       return_value={"extensions": [], "custom_apps": []}):
+                item = api._enrich_catalog_item({"type": "app", "filename": "Nope"})
+        self.assertFalse(item["installed"])
+
+    def test_app_installed_when_listed_in_user_config(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self._patch_dirs(tmp), \
+                 patch("spicetifix.core.config.load_user_config",
+                       return_value={"extensions": [], "custom_apps": ["Nope"]}):
+                item = api._enrich_catalog_item({"type": "app", "filename": "Nope"})
+        self.assertTrue(item["installed"])
+
+    def test_install_meta_attached_to_item(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self._patch_dirs(tmp), \
+                 patch("spicetifix.core.config.load_user_config",
+                       return_value={
+                           "extensions": [], "custom_apps": [],
+                           "installed_meta": {"extension:x.js": {"user": "u", "repo": "r", "tag": "v2"}},
+                       }):
+                item = api._enrich_catalog_item({"type": "extension", "filename": "x.js"})
+        self.assertEqual(item["meta"]["tag"], "v2")
+
+    def test_meta_none_when_unknown(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            with self._patch_dirs(tmp), \
+                 patch("spicetifix.core.config.load_user_config",
+                       return_value={"extensions": [], "custom_apps": []}):
+                item = api._enrich_catalog_item({"type": "extension", "filename": "x.js"})
+        self.assertIsNone(item["meta"])
 
 
 if __name__ == "__main__":

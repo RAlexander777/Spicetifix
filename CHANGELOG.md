@@ -4,6 +4,48 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.7] - 2026-10-07
+
+### Added
+- The Marketplace catalog now also lists **Custom Apps** (GitHub topic
+  `spicetify-apps`) under a new **Apps** category. App cards are browse-only and
+  open the repository, matching the official Marketplace, which does not install
+  apps (their manifests have no standard entry point/install layout).
+- Marketplace cards and the extension/app manager now show the **installed
+  version** next to the **latest available version**, with an "update available"
+  flag. The version is the GitHub release tag when the repo publishes releases,
+  otherwise the repo's last-updated date. Install metadata (source repo, branch,
+  dates and tag) is now recorded in `spicetify.yaml` when installing.
+
+### Fixed
+- Marketplace catalog requests now retry transient network timeouts (with
+  backoff). A single flaky GitHub call was enough to drop a whole category —
+  usually Extensions, since it is fetched first — leaving it empty in the
+  Marketplace.
+- Version lookups no longer call the GitHub REST API. Without a token that API
+  allows only 60 requests/hour, and the per-item requests were exhausting it,
+  which made the catalog search (and therefore the whole Marketplace) return
+  errors/empty. Release tags are now read from the github.com HTML redirect,
+  and a rate-limited catalog search falls back to the last cached catalog
+  instead of showing nothing. Set a `GITHUB_TOKEN` env var to raise the search
+  limit further.
+- Extensions and Custom Apps no longer wait for the (slow) Marketplace catalog
+  build to finish: the list renders immediately and upgrades the friendly titles
+  in the background, so a cold/slow catalog can't leave the list empty.
+- Marketplace catalog builds are much faster (shared HTTP session with connection
+  reuse + higher fetch concurrency), and API requests now time out instead of
+  hanging the UI indefinitely.
+- The "Open Spotify" button is now guarded: it disables while opening, has a short
+  cooldown, and the server ignores rapid repeats, so spamming it no longer
+  launches several instances and spikes CPU.
+- Spicetify CLI is now updated on install when a newer release exists, instead of
+  being skipped when already present. The CLI release zip also ships the bundled
+  CustomApps (*lyrics-plus*, *reddit*, *new-releases*) and the built-in Extensions,
+  so those stayed frozen on the first installed version and never updated.
+- Marketplace reinstall now overwrites the existing files, so an already-installed
+  Marketplace actually updates (previously the freshly downloaded files were
+  discarded and the old version was kept).
+
 ## [1.7.6] - 2026-09-30
 
 ### Fixed

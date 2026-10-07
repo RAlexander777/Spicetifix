@@ -101,6 +101,31 @@ def save_user_config(config: dict) -> None:
         yaml.safe_dump(config, f, default_flow_style=False, allow_unicode=True)
 
 
+def install_meta_key(item_type: str, filename: str) -> str:
+    return f"{item_type}:{filename}"
+
+
+def get_install_meta(config: dict, item_type: str, filename: str) -> dict | None:
+    """Return the recorded install metadata (source repo, dates, tag) for an
+    installed extension/theme/app, or None when it was installed outside
+    Spicetifix or before metadata was tracked."""
+    store = config.get("installed_meta") or {}
+    return store.get(install_meta_key(item_type, filename))
+
+
+def set_install_meta(config: dict, item_type: str, filename: str, data: dict) -> None:
+    config.setdefault("installed_meta", {})[install_meta_key(item_type, filename)] = data
+
+
+def remove_install_meta(config: dict, item_type: str, filename: str) -> None:
+    store = config.get("installed_meta") or {}
+    store.pop(install_meta_key(item_type, filename), None)
+    if store:
+        config["installed_meta"] = store
+    else:
+        config.pop("installed_meta", None)
+
+
 def _default_config() -> dict:
     return {
         "language": "en",

@@ -13,6 +13,8 @@ from spicetifix.core.utils import (
     ensure_adblock_extension,
     ensure_spotify_prefs,
     find_executable,
+    get_installed_spicetify_version,
+    get_latest_spicetify_version,
     get_spotify_path,
     get_spicetify_dir,
     get_spicetify_themes_dir,
@@ -316,10 +318,26 @@ class Installer:
     def _install_spicetify(self) -> bool:
         existing = find_executable("spicetify")
         if existing:
-            self.log(f"{self._tl('spicetify_already')} {existing}")
-            return True
+            installed = get_installed_spicetify_version()
+            latest = get_latest_spicetify_version()
+            if installed and latest and installed == latest:
+                self.log(f"{self._tl('spicetify_already')} {existing} (v{installed})")
+                return True
+            # An existing install must not short-circuit the download: the CLI
+            # release zip also ships the bundled CustomApps (lyrics-plus,
+            # reddit, new-releases) and built-in Extensions, so skipping the
+            # update left those apps frozen on whatever version was installed
+            # first.
+            if installed and latest:
+                self.log(f"Actualizando Spicetify {installed} → {latest} (apps y extensiones integradas incluidas)...")
+            else:
+                self.log(f"{self._tl('spicetify_already')} {existing}")
+
         success = download_and_extract_spicetify(log_callback=self.log)
         if not success:
+            if existing:
+                self.log("No se pudo actualizar Spicetify; se mantiene la versión instalada.")
+                return True
             self.log("Spicetify install failed")
             return False
         installed = find_executable("spicetify")
@@ -404,13 +422,12 @@ class Installer:
             self.log(f"Failed to download Marketplace: {e}")
             return False
 
-        # Move files from nested dist folder to apps root
+        # Move files from nested dist folder to apps root, overwriting the
+        # previous version so an already-installed Marketplace actually updates
+        # instead of staying frozen on its first extraction.
         dist_dir = apps_dir / "marketplace-dist"
         if dist_dir.exists():
-            for item in dist_dir.iterdir():
-                target = apps_dir / item.name
-                if not target.exists():
-                    shutil.move(str(item), str(target))
+            shutil.copytree(dist_dir, apps_dir, dirs_exist_ok=True)
             shutil.rmtree(dist_dir, ignore_errors=True)
 
         self.log("Downloading Marketplace placeholder theme...")

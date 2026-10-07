@@ -58,15 +58,18 @@ class TestMarketplaceInstall(unittest.TestCase):
             get_spicetify_dir=fake_dir,
             get_spicetify_themes_dir=fake_dir,
             run_spicetify=lambda *a, **k: (0, "", ""),
+            close_spotify=lambda *a, **k: None,
         )
 
     def test_install_extension_with_subfolder_is_flattened(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             with self._patch_env(tmpdir), \
                  patch("requests.get", return_value=FakeResponse()), \
-                 patch("spicetifix.core.config.save_user_config"), \
+                 patch("spicetifix.api.save_user_config"), \
+                 patch("spicetifix.api._launch_spotify"), \
                  patch("spicetifix.core.config.write_spicetify_config"), \
-                 patch("spicetifix.core.config.load_user_config", return_value={"extensions": []}):
+                 patch("spicetifix.core.config.repair_backup_metadata"), \
+                 patch("spicetifix.api.load_user_config", return_value={"extensions": []}):
                 res = self._post("/api/marketplace/install", {
                     "type": "extension",
                     "filename": "adblock/adblock.js",
@@ -82,9 +85,11 @@ class TestMarketplaceInstall(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmpdir:
             with self._patch_env(tmpdir), \
                  patch("requests.get", return_value=FakeResponse()), \
-                 patch("spicetifix.core.config.save_user_config"), \
+                 patch("spicetifix.api.save_user_config"), \
+                 patch("spicetifix.api._launch_spotify"), \
                  patch("spicetifix.core.config.write_spicetify_config"), \
-                 patch("spicetifix.core.config.load_user_config", return_value={"extensions": []}):
+                 patch("spicetifix.core.config.repair_backup_metadata"), \
+                 patch("spicetifix.api.load_user_config", return_value={"extensions": []}):
                 res = self._post("/api/marketplace/install", {
                     "type": "extension",
                     "filename": "bookmark.js",
@@ -92,6 +97,34 @@ class TestMarketplaceInstall(unittest.TestCase):
                 })
             self.assertEqual(res.get("status"), "ok")
             self.assertTrue((Path(tmpdir) / "bookmark.js").exists())
+
+    def test_versions_endpoint_returns_resolved(self):
+        with patch(
+            "spicetifix.core.marketplace_fetcher.resolve_versions",
+            return_value={"a/b": {"tag": "v1.0.0", "updated_at": "2026-01-01T00:00:00Z"}},
+        ) as mock_resolve:
+            res = self._post("/api/marketplace/versions", {
+                "repos": [{"user": "a", "repo": "b"}, {"user": "", "repo": "ignored"}],
+            })
+        self.assertEqual(res.get("status"), "ok")
+        self.assertEqual(res["versions"]["a/b"]["tag"], "v1.0.0")
+        # entries without user/repo are dropped before resolving
+        passed = mock_resolve.call_args[0][0]
+        self.assertEqual(passed, [{"user": "a", "repo": "b", "updated_at": ""}])
+
+    def test_versions_endpoint_handles_empty(self):
+        with patch("spicetifix.core.marketplace_fetcher.resolve_versions", return_value={}):
+            res = self._post("/api/marketplace/versions", {"repos": []})
+        self.assertEqual(res.get("status"), "ok")
+        self.assertEqual(res["versions"], {})
+
+    def test_open_spotify_is_throttled(self):
+        with patch("os.startfile") as mock_start:
+            first = self._post("/api/open/spotify", {})
+            second = self._post("/api/open/spotify", {})
+        self.assertEqual(first.get("status"), "ok")
+        self.assertTrue(second.get("throttled"))
+        self.assertEqual(mock_start.call_count, 1)
 
 
 if __name__ == "__main__":

@@ -10,6 +10,10 @@ from spicetifix.core.config import (
     save_user_config,
     write_spicetify_config,
     repair_backup_metadata,
+    install_meta_key,
+    get_install_meta,
+    set_install_meta,
+    remove_install_meta,
     _default_config,
     _merge_live_entries,
 )
@@ -291,6 +295,26 @@ class TestRepairBackupMetadata(unittest.TestCase):
         result = repair_backup_metadata()
         self.assertFalse(result)
         self.assertNotIn("[Backup]", self.cfg_path.read_text(encoding="utf-8"))
+
+
+class TestInstallMeta(unittest.TestCase):
+    def test_key_uses_type_and_filename(self):
+        self.assertEqual(install_meta_key("extension", "adblock.js"), "extension:adblock.js")
+
+    def test_set_get_remove(self):
+        cfg = {}
+        set_install_meta(cfg, "extension", "adblock.js", {"user": "rxri", "repo": "spicetify-extensions"})
+        self.assertEqual(get_install_meta(cfg, "extension", "adblock.js")["user"], "rxri")
+        self.assertIsNone(get_install_meta(cfg, "theme", "adblock.js"))
+
+        remove_install_meta(cfg, "extension", "adblock.js")
+        self.assertIsNone(get_install_meta(cfg, "extension", "adblock.js"))
+        self.assertNotIn("installed_meta", cfg)
+
+    def test_remove_missing_key_is_safe(self):
+        cfg = {"installed_meta": {"extension:keep.js": {"user": "x"}}}
+        remove_install_meta(cfg, "extension", "gone.js")
+        self.assertIn("extension:keep.js", cfg["installed_meta"])
 
 
 if __name__ == "__main__":
