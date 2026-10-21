@@ -223,7 +223,8 @@ async function applyLanguage(lang) {
   setTxt('lbl-import-backup', t.import_backup);
   setTxt('lbl-tab-dashboard', t.tab_dashboard);
   setTxt('lbl-tab-marketplace', t.tab_marketplace);
-  setTxt('lbl-player-header', t.now_playing_title);
+  setTxt('lbl-player-header', 'SPOTIFY');
+  setTxt('lbl-dock-spotify', t.open_spotify || 'ABRIR SPOTIFY');
   setTxt('lbl-prev', t.prev_btn);
   setTxt('lbl-play', t.play_btn);
   setTxt('lbl-next', t.next_btn);
@@ -387,13 +388,52 @@ async function pollStatus() {
     badge.className = 'badge';
   }
 
-  // Now Playing
+  // Now Playing (Bottom Dock Mini-Player)
   const trackInfo = document.getElementById('track-info');
+  const dockIcon = document.getElementById('player-dock-icon');
+  const playIcon = document.getElementById('icon-play-state');
+  const dockStatusBadge = document.getElementById('dock-status-badge');
+  const trackStatusText = document.getElementById('track-status-text');
+
   if (data.now_playing) {
     if (data.now_playing.playing) {
-      trackInfo.textContent = `${data.now_playing.artist} — ${data.now_playing.title}`;
+      const trackString = `${data.now_playing.artist} — ${data.now_playing.title}`;
+      if (trackInfo) {
+        trackInfo.textContent = trackString;
+        trackInfo.title = trackString;
+      }
+      if (trackStatusText) trackStatusText.textContent = data.now_playing.artist;
+      if (dockIcon) {
+        dockIcon.classList.remove('icon-pulse');
+        dockIcon.classList.add('icon-spin-slow');
+      }
+      if (playIcon && playIcon.getAttribute('data-lucide') !== 'pause') {
+        playIcon.setAttribute('data-lucide', 'pause');
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+      if (dockStatusBadge) {
+        dockStatusBadge.textContent = currentLang === 'es' ? 'REPRODUCIENDO' : 'PLAYING';
+        dockStatusBadge.className = 'dock-badge dock-badge-active';
+      }
     } else {
-      trackInfo.textContent = `${data.now_playing.title || 'Spotify: Not Playing'}`;
+      const pausedString = data.now_playing.title || (currentLang === 'es' ? 'Spotify: En pausa / Sin reproducir' : 'Spotify: Paused / Inactive');
+      if (trackInfo) {
+        trackInfo.textContent = pausedString;
+        trackInfo.title = pausedString;
+      }
+      if (trackStatusText) trackStatusText.textContent = 'Spotify';
+      if (dockIcon) {
+        dockIcon.classList.remove('icon-spin-slow');
+        dockIcon.classList.add('icon-pulse');
+      }
+      if (playIcon && playIcon.getAttribute('data-lucide') !== 'play') {
+        playIcon.setAttribute('data-lucide', 'play');
+        if (window.lucide && lucide.createIcons) lucide.createIcons();
+      }
+      if (dockStatusBadge) {
+        dockStatusBadge.textContent = currentLang === 'es' ? 'PAUSA' : 'PAUSED';
+        dockStatusBadge.className = 'dock-badge';
+      }
     }
   }
 
@@ -1062,6 +1102,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById('btn-next').addEventListener('click', () => {
     apiFetch('/api/player', 'POST', { action: 'next' }).then(pollStatus);
   });
+
+  const btnDockSpotify = document.getElementById('btn-dock-spotify');
+  if (btnDockSpotify) {
+    btnDockSpotify.addEventListener('click', () => {
+      const btnOpen = document.getElementById('btn-open-spotify');
+      if (btnOpen) btnOpen.click();
+    });
+  }
 
   // Action buttons
   document.getElementById('btn-install').addEventListener('click', async () => {

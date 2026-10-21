@@ -206,6 +206,7 @@ body {
   transition: background-color 0.3s ease, color 0.3s ease;
   user-select: none;
   min-height: 100vh;
+  padding-bottom: 74px; /* Ensure content is never hidden under the player dock */
 }
 
 .app-container {
@@ -230,6 +231,10 @@ svg[data-lucide], i[data-lucide] {
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
+}
+
+.icon-spin-slow {
+  animation: spin 6s linear infinite;
 }
 
 .icon-spin:hover {
@@ -1479,4 +1484,239 @@ button .gh-icon,
 .mp-card-working {
   opacity: 0.5;
   pointer-events: none;
+}
+
+
+/* FIXED BOTTOM MINI-PLAYER DOCK */
+.player-dock {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--card-border);
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.45);
+  z-index: 900;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+.player-dock-inner {
+  width: 100%;
+  max-width: 1500px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* Left: Track Information */
+.player-dock-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+  max-width: 360px;
+}
+
+.player-dock-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--card-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--accent-color);
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.player-dock-icon-box svg {
+  margin-right: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.player-dock-meta {
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+.player-dock-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.25;
+}
+
+.player-dock-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.2;
+}
+
+.dock-subtext {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--text-muted);
+}
+
+.dock-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background-color: var(--bg-color);
+  border: 1px solid var(--card-border);
+  color: var(--text-muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.dock-badge.dock-badge-active {
+  background-color: rgba(0, 255, 157, 0.12);
+  color: var(--accent-color);
+  border-color: rgba(0, 255, 157, 0.35);
+}
+
+/* Center: Compact Controls */
+.player-dock-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.player-controls-compact {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-dock-control {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--bg-color);
+  border: 1px solid var(--card-border);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  outline: none;
+}
+
+.btn-dock-control svg {
+  margin-right: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.btn-dock-control:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+  transform: scale(1.06);
+}
+
+.btn-dock-control:active {
+  transform: scale(0.95);
+}
+
+.btn-dock-play {
+  width: 40px;
+  height: 40px;
+  background-color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  color: var(--bg-color);
+  box-shadow: 0 0 12px rgba(0, 255, 157, 0.25);
+}
+
+.btn-dock-play svg {
+  width: 18px;
+  height: 18px;
+  stroke: var(--bg-color);
+  fill: var(--bg-color);
+}
+
+.btn-dock-play:hover {
+  background-color: var(--accent-hover);
+  border-color: var(--accent-hover);
+  color: var(--bg-color);
+  box-shadow: 0 0 16px rgba(0, 255, 157, 0.45);
+  transform: scale(1.08);
+}
+
+/* Right: Actions */
+.player-dock-right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+  max-width: 360px;
+}
+
+.dock-spotify-btn {
+  font-size: 0.78rem;
+  padding: 6px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dock-spotify-btn svg {
+  margin-right: 0;
+  width: 14px;
+  height: 14px;
+}
+
+/* Screen reader utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+@media (max-width: 768px) {
+  .player-dock-left {
+    max-width: 180px;
+  }
+  .player-dock-right {
+    display: none;
+  }
+  .player-dock-inner {
+    padding: 0 12px;
+  }
 }

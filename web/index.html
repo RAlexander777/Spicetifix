@@ -85,18 +85,6 @@
     <div class="tabs-area">
     <!-- Tab 1: Dashboard View -->
     <div class="tab-content active" id="content-dashboard">
-      <!-- Spotify Now Playing Widget -->
-      <section class="panel player-panel">
-        <div class="panel-header"><i data-lucide="disc" class="icon-pulse"></i> <span id="lbl-player-header">// REPRODUCIENDO EN SPOTIFY</span></div>
-        <div class="player-content">
-          <div class="track-info" id="track-info">Cargando estado de Spotify...</div>
-          <div class="player-controls">
-            <button class="btn btn-control" id="btn-prev"><i data-lucide="skip-back"></i> <span id="lbl-prev">ANTERIOR</span></button>
-            <button class="btn btn-control btn-accent" id="btn-play"><i data-lucide="play"></i> <span id="lbl-play">REPRODUCIR / PAUSAR</span></button>
-            <button class="btn btn-control" id="btn-next"><i data-lucide="skip-forward"></i> <span id="lbl-next">SIGUIENTE</span></button>
-          </div>
-        </div>
-      </section>
 
       <!-- Status Cards -->
       <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA (CLIC PARA INSTALAR / DESINSTALAR)</section>
@@ -204,6 +192,51 @@
     </aside>
     </div>
   </div>
+
+  <!-- Fixed Bottom Mini-Player Dock -->
+  <footer class="player-dock" id="player-dock">
+    <div class="player-dock-inner">
+      <!-- Left: Track & Artist Info -->
+      <div class="player-dock-left">
+        <div class="player-dock-icon-box" id="player-dock-icon-box">
+          <i data-lucide="disc" id="player-dock-icon" class="icon-pulse"></i>
+        </div>
+        <div class="player-dock-meta">
+          <div class="player-dock-title" id="track-info" title="Spotify">Cargando estado de Spotify...</div>
+          <div class="player-dock-subtitle">
+            <span class="dock-badge" id="lbl-player-header">SPOTIFY</span>
+            <span class="dock-subtext" id="track-status-text">Sin reproducción activa</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center: Compact Controls -->
+      <div class="player-dock-center">
+        <div class="player-controls-compact">
+          <button class="btn-dock-control" id="btn-prev" title="Anterior">
+            <i data-lucide="skip-back"></i>
+            <span class="sr-only" id="lbl-prev">ANTERIOR</span>
+          </button>
+          <button class="btn-dock-control btn-dock-play" id="btn-play" title="Reproducir / Pausar">
+            <i data-lucide="play" id="icon-play-state"></i>
+            <span class="sr-only" id="lbl-play">REPRODUCIR / PAUSAR</span>
+          </button>
+          <button class="btn-dock-control" id="btn-next" title="Siguiente">
+            <i data-lucide="skip-forward"></i>
+            <span class="sr-only" id="lbl-next">SIGUIENTE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Status Badge & Open Spotify -->
+      <div class="player-dock-right">
+        <span class="dock-badge" id="dock-status-badge">STANDBY</span>
+        <button class="btn btn-small btn-outline dock-spotify-btn" id="btn-dock-spotify" title="Abrir Spotify">
+          <i data-lucide="external-link"></i> <span id="lbl-dock-spotify">ABRIR SPOTIFY</span>
+        </button>
+      </div>
+    </div>
+  </footer>
 
   <!-- OPTIONS MODAL -->
   <div class="modal-overlay" id="options-modal">
