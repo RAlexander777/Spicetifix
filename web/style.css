@@ -203,20 +203,23 @@ body {
   font-family: var(--font-mono);
   background-color: var(--bg-color);
   color: var(--text-main);
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease, padding-bottom 0.26s ease;
   user-select: none;
   min-height: 100vh;
-  padding-bottom: 74px; /* Ensure content is never hidden under the player dock */
+  padding-bottom: 110px; /* 64px dock + 38px console + margin */
+}
+
+body.has-console-expanded {
+  padding-bottom: 315px; /* 64px dock + 240px console + margin */
 }
 
 .app-container {
-  max-width: 1500px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 24px;
-
+  padding: 14px 20px 20px 20px;
   display: flex;
   flex-direction: column;
-  gap: 22px;
+  gap: 14px;
 }
 
 /* SVG ICON HELPERS & ANIMATIONS */
@@ -256,12 +259,13 @@ svg[data-lucide], i[data-lucide] {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 8px;
-  padding: 16px 20px;
+  padding: 10px 16px;
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
+  gap: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .brand {
@@ -304,8 +308,14 @@ svg[data-lucide], i[data-lucide] {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+}
+
+#btn-header-console.active {
+  border-color: var(--accent-color);
+  background-color: rgba(0, 255, 157, 0.12);
+  color: var(--accent-color);
 }
 
 .header-theme-picker {
@@ -331,13 +341,14 @@ svg[data-lucide], i[data-lucide] {
 .quick-access-bar {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 6px;
-  padding: 10px 14px;
+  border-radius: 8px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: space-between;
+  gap: 10px;
   flex-wrap: wrap;
-  font-size: 0.8rem;
+  font-size: 0.76rem;
 }
 
 .bar-label {
@@ -357,9 +368,9 @@ svg[data-lucide], i[data-lucide] {
   background-color: var(--bg-color);
   color: var(--text-main);
   border: 1px solid var(--card-border);
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 0.78rem;
+  border-radius: 5px;
+  padding: 4px 9px;
+  font-size: 0.74rem;
   font-family: var(--font-mono);
   text-decoration: none;
   cursor: pointer;
@@ -430,12 +441,12 @@ svg[data-lucide], i[data-lucide] {
 }
 
 .section-title {
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   font-weight: bold;
   color: var(--contrast-color);
-  margin-top: 26px;
-  margin-bottom: 12px;
-  padding-bottom: 6px;
+  margin-top: 14px;
+  margin-bottom: 10px;
+  padding-bottom: 4px;
   border-bottom: 1px solid var(--card-border);
   letter-spacing: 0.5px;
 }
@@ -447,19 +458,25 @@ svg[data-lucide], i[data-lucide] {
 /* Cards */
 .status-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  .status-cards-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .card {
   background-color: var(--card-bg);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
-  padding: 20px;
+  border-radius: 8px;
+  padding: 13px 15px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
 }
 
 .card-header {
@@ -513,8 +530,8 @@ svg[data-lucide], i[data-lucide] {
 /* Actions */
 .actions-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 340px));
+  gap: 12px;
 }
 
 .btn {
@@ -605,8 +622,11 @@ button .gh-icon,
 }
 
 .btn-small {
-  padding: 6px 12px;
-  font-size: 0.8rem;
+  padding: 5px 10px;
+  font-size: 0.76rem;
+  border-radius: 6px;
+  gap: 5px;
+  white-space: nowrap;
 }
 
 .btn-small.btn-accent {
@@ -1121,53 +1141,259 @@ button .gh-icon,
   text-decoration: underline;
 }
 
-/* MAIN LAYOUT (tabs left, console right) */
+/* MAIN LAYOUT (tabs take full width, console is docked collapsible at bottom) */
 .main-layout {
-  display: flex;
-  align-items: stretch;
-  gap: 20px;
+  display: block;
+  width: 100%;
 }
 
 .tabs-area {
-  flex: 1;
+  width: 100%;
   min-width: 0;
-}
-
-.console-sidebar {
-  width: 420px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-self: flex-start;
-}
-
-.console-sidebar .section-title {
-  margin-top: 0;
 }
 
 /* MAIN NAVIGATION TABS */
 .main-tabs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 12px;
   border-bottom: 1px solid var(--card-border);
-  padding-bottom: 10px;
+  padding-bottom: 8px;
 }
 
 .tab-btn {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   color: var(--text-muted);
-  padding: 10px 18px;
+  padding: 8px 16px;
   font-family: var(--font-mono);
-  font-size: 0.88rem;
+  font-size: 0.82rem;
   font-weight: bold;
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   transition: all 0.2s ease;
+}
+
+/* ===================================================
+   COLLAPSIBLE CONSOLE DRAWER / PANEL (DESPLEGABLE)
+   =================================================== */
+.console-panel {
+  position: fixed;
+  bottom: 64px; /* Sits flush right above .player-dock */
+  left: 0;
+  right: 0;
+  z-index: 950;
+  background-color: var(--card-bg);
+  border-top: 1px solid var(--card-border);
+  box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.45);
+  transition: height 0.26s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.console-panel.is-collapsed {
+  height: 38px;
+}
+
+.console-panel.is-expanded {
+  height: 240px;
+}
+
+/* Progress bar inside console panel top edge */
+.console-panel .progress-container {
+  height: 3px;
+  background-color: transparent;
+  border-radius: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.console-panel .console-header,
+.console-panel .console-body {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.console-header {
+  height: 38px;
+  min-height: 38px;
+  background-color: var(--card-bg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  cursor: pointer;
+  user-select: none;
+  border-bottom: 1px solid transparent;
+  transition: background-color 0.15s ease;
+  position: relative;
+  z-index: 2;
+}
+
+.console-panel.is-expanded .console-header {
+  border-bottom: 1px solid var(--card-border);
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.console-header:hover {
+  background-color: rgba(255, 255, 255, 0.035);
+}
+
+.console-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.btn-console-toggle {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--accent-color);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-console-toggle:hover {
+  border-color: var(--accent-color);
+  background-color: rgba(0, 255, 157, 0.08);
+}
+
+.console-title {
+  font-size: 0.78rem;
+  font-weight: bold;
+  color: var(--contrast-color);
+  display: inline-flex;
+  align-items: center;
+  white-space: nowrap;
+  letter-spacing: 0.5px;
+}
+
+.console-status-pill {
+  font-size: 0.68rem;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+}
+
+.console-status-pill.pill-ready {
+  background-color: rgba(0, 255, 157, 0.12);
+  color: var(--accent-color);
+  border: 1px solid rgba(0, 255, 157, 0.25);
+}
+
+.console-status-pill.pill-working {
+  background-color: rgba(255, 176, 0, 0.15);
+  color: #ffb000;
+  border: 1px solid rgba(255, 176, 0, 0.3);
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+.console-preview {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 55%;
+  padding-left: 6px;
+}
+
+.console-panel.is-expanded .console-preview {
+  opacity: 0.6;
+}
+
+.console-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+}
+
+.console-actions .btn-small {
+  padding: 3px 8px;
+  font-size: 0.72rem;
+  height: 26px;
+}
+
+.console-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.console-box {
+  flex: 1;
+  min-height: 0;
+  background-color: var(--console-bg);
+  padding: 10px 16px;
+  overflow-y: auto;
+  position: relative;
+}
+
+.console-box pre {
+  color: var(--console-fg);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-all;
+  margin: 0;
+  user-select: text;
+}
+
+/* Floating button to jump to bottom when user scrolled up */
+.btn-scroll-bottom {
+  position: absolute;
+  bottom: 12px;
+  right: 20px;
+  z-index: 15;
+  background: var(--card-bg);
+  color: var(--accent-color);
+  border: 1px solid var(--accent-color);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  border-radius: 18px;
+  padding: 4px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s ease;
+}
+
+.btn-scroll-bottom.visible {
+  display: inline-flex;
+}
+
+.btn-scroll-bottom:hover {
+  background: var(--accent-color);
+  color: #08090d;
+  transform: translateY(-2px);
 }
 
 .tab-btn:hover {
@@ -1507,7 +1733,7 @@ button .gh-icon,
 
 .player-dock-inner {
   width: 100%;
-  max-width: 1500px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 0 24px;
   display: flex;

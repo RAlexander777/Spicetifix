@@ -25,6 +25,9 @@
         <button class="btn btn-small btn-outline" id="btn-refresh-status" title="Refrescar Estados">
           <i data-lucide="refresh-cw" class="icon-spin"></i> <span id="lbl-refresh-status">REFRESCAR</span>
         </button>
+        <button class="btn btn-small btn-outline" id="btn-header-console" title="Desplegar / Plegar Consola">
+          <i data-lucide="terminal"></i> <span id="lbl-toggle-console">CONSOLA</span>
+        </button>
         <button class="btn btn-small btn-outline" id="btn-open-options">
           <i data-lucide="settings"></i> <span id="lbl-open-options">OPCIONES</span>
         </button>
@@ -172,26 +175,44 @@
     </div>
     </div>
 
-    <aside class="console-sidebar">
-      <!-- Terminal Console Output -->
-      <div class="console-header">
-        <span class="section-title" id="sec-title-logs">// CONSOLA DE LOGS DEL SISTEMA</span>
-        <div class="console-actions">
-          <button class="btn btn-small btn-outline" id="btn-copy-logs"><i data-lucide="copy"></i> <span id="lbl-copy-logs">COPIAR LOGS</span></button>
-          <button class="btn btn-small btn-outline" id="btn-clear-logs"><i data-lucide="trash-2"></i> <span id="lbl-clear-logs">LIMPIAR</span></button>
         </div>
-      </div>
-      <div class="console-box">
-        <pre id="console-output">root@spicetifix:~$ sistema inicializado. Listo.</pre>
-      </div>
-
-      <!-- Progress Bar -->
-      <div class="progress-container">
-        <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
-      </div>
-    </aside>
-    </div>
   </div>
+
+  <!-- Collapsible Console Drawer / Panel -->
+  <section class="console-panel is-collapsed" id="console-panel" aria-label="Consola de logs">
+    <!-- Progress Bar on panel top edge -->
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
+    </div>
+
+    <div class="console-header" id="console-header" role="button" tabindex="0" title="Clic para desplegar o plegar consola (Ctrl+`)">
+      <div class="console-header-left">
+        <button class="btn-console-toggle" id="btn-toggle-console" type="button" aria-expanded="false" title="Desplegar / Plegar Consola">
+          <i data-lucide="chevron-up" id="console-toggle-icon"></i>
+        </button>
+        <span class="console-title"><i data-lucide="terminal"></i> <span id="sec-title-logs">// CONSOLA DE LOGS</span></span>
+        <span class="console-status-pill pill-ready" id="console-status-pill">[ LISTO ]</span>
+        <span class="console-preview" id="console-preview-text">root@spicetifix:~$ sistema inicializado. Listo.</span>
+      </div>
+      <div class="console-actions">
+        <button class="btn btn-small btn-outline" id="btn-copy-logs" type="button" title="Copiar logs al portapapeles">
+          <i data-lucide="copy"></i> <span id="lbl-copy-logs">COPIAR</span>
+        </button>
+        <button class="btn btn-small btn-outline" id="btn-clear-logs" type="button" title="Limpiar salida de consola">
+          <i data-lucide="trash-2"></i> <span id="lbl-clear-logs">LIMPIAR</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="console-body" id="console-body">
+      <div class="console-box" id="console-box-container">
+        <pre id="console-output">root@spicetifix:~$ sistema inicializado. Listo.</pre>
+        <button class="btn-scroll-bottom" id="btn-scroll-bottom" type="button" title="Ir al final del registro">
+          <i data-lucide="arrow-down"></i> <span id="lbl-scroll-bottom">Nuevos logs ↓</span>
+        </button>
+      </div>
+    </div>
+  </section>
 
   <!-- Fixed Bottom Mini-Player Dock -->
   <footer class="player-dock" id="player-dock">

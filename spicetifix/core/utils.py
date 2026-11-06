@@ -297,6 +297,7 @@ def run_cmd(cmd: list[str], timeout: int = 300) -> tuple[int, str, str]:
     try:
         proc = subprocess.run(
             cmd,
+            stdin=subprocess.DEVNULL,
             capture_output=True,
             text=True,
             encoding="utf-8",

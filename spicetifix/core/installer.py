@@ -114,6 +114,8 @@ class Installer:
                 self.log(f"[{label}] Error: {e}")
                 return False
 
+        self._reset_progress()
+        self.log(f"=== {t(l, 'step_done')} ===")
         return True
 
     def _close_spotify(self) -> None:

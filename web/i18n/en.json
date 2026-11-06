@@ -137,5 +137,9 @@
   "mp_installed_err": "Error installing",
   "mp_uninstalled_ok": "uninstalled successfully.",
   "mp_uninstalled_err": "Error uninstalling",
-  "mp_failed": "Operation failed"
+  "mp_failed": "Operation failed",
+  "lbl_toggle_console": "CONSOLE",
+  "console_expand": "Expand Console",
+  "console_collapse": "Collapse Console",
+  "lbl_scroll_bottom": "New logs ↓"
 }

@@ -7,6 +7,55 @@ let currentUITheme = 'emerald';
 let currentLang = 'es';
 let systemConfig = {};
 let isConnected = true;
+let isConsoleExpanded = false;
+let isUserScrolledUp = false;
+let lastRenderedLogs = '';
+
+function setConsoleExpanded(expanded, persist = true) {
+  isConsoleExpanded = !!expanded;
+  const panel = document.getElementById('console-panel');
+  const btnToggle = document.getElementById('btn-toggle-console');
+  const btnHeader = document.getElementById('btn-header-console');
+  const toggleIcon = document.getElementById('console-toggle-icon');
+  const bodyEl = document.body;
+
+  if (!panel) return;
+
+  if (isConsoleExpanded) {
+    panel.classList.remove('is-collapsed');
+    panel.classList.add('is-expanded');
+    bodyEl.classList.add('has-console-expanded');
+    if (btnToggle) btnToggle.setAttribute('aria-expanded', 'true');
+    if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-down');
+    if (btnHeader) btnHeader.classList.add('active');
+
+    const container = document.getElementById('console-box-container');
+    if (container && !isUserScrolledUp) {
+      setTimeout(() => {
+        container.scrollTop = container.scrollHeight;
+      }, 50);
+    }
+  } else {
+    panel.classList.remove('is-expanded');
+    panel.classList.add('is-collapsed');
+    bodyEl.classList.remove('has-console-expanded');
+    if (btnToggle) btnToggle.setAttribute('aria-expanded', 'false');
+    if (toggleIcon) toggleIcon.setAttribute('data-lucide', 'chevron-up');
+    if (btnHeader) btnHeader.classList.remove('active');
+  }
+
+  if (window.lucide && lucide.createIcons) lucide.createIcons();
+
+  if (persist) {
+    try {
+      localStorage.setItem('spicetifix_console_expanded', isConsoleExpanded ? 'true' : 'false');
+    } catch (_) {}
+  }
+}
+
+function toggleConsole() {
+  setConsoleExpanded(!isConsoleExpanded);
+}
 let consecutiveErrors = 0;
 let statusErrors = 0;
 let appVersion = '';
@@ -240,6 +289,8 @@ async function applyLanguage(lang) {
   setTxt('sec-title-logs', t.sec_logs);
   setTxt('lbl-copy-logs', t.lbl_copy_logs);
   setTxt('lbl-clear-logs', t.lbl_clear_logs);
+  setTxt('lbl-toggle-console', t.lbl_toggle_console || 'CONSOLA');
+  setTxt('lbl-scroll-bottom', t.lbl_scroll_bottom || 'Nuevos logs ↓');
   setTxt('modal-opt-title', t.modal_opt_title);
   setTxt('opt-sec-gen', t.opt_sec_gen);
   setTxt('lbl-lang', t.lbl_lang);
@@ -331,16 +382,17 @@ function updateActionButtons(isWorking) {
     }
   } else {
     currentAction = null;
-    if (btnInstall && btnInstall.classList.contains('is-busy')) {
+    if (btnInstall) {
       btnInstall.classList.remove('is-busy');
+      btnInstall.disabled = false;
       btnInstall.innerHTML = `<i data-lucide="download-cloud"></i> <span id="lbl-btn-install">${t.btn_install || 'INSTALACIÓN / ACTUALIZACIÓN COMPLETA'}</span>`;
-      if (window.lucide) window.lucide.createIcons();
     }
-    if (btnRecover && btnRecover.classList.contains('is-busy')) {
+    if (btnRecover) {
       btnRecover.classList.remove('is-busy');
+      btnRecover.disabled = false;
       btnRecover.innerHTML = `<i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">${t.btn_recover || 'RECUPERAR SISTEMA (POST-UPDATE)'}</span>`;
-      if (window.lucide) window.lucide.createIcons();
     }
+    if (window.lucide && lucide.createIcons) lucide.createIcons();
   }
 }
 
@@ -490,8 +542,35 @@ async function pollStatus() {
   // Console Output & Progress
   if (data.logs && data.logs.length > 0) {
     const consoleBox = document.getElementById('console-output');
-    consoleBox.textContent = data.logs.join('\n');
-    consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
+    const consoleContainer = document.getElementById('console-box-container') || (consoleBox ? consoleBox.parentElement : null);
+    const newLogsText = data.logs.join('\n');
+
+    const lastLine = data.logs[data.logs.length - 1] || '';
+    const previewEl = document.getElementById('console-preview-text');
+    if (previewEl && lastLine) {
+      previewEl.textContent = lastLine;
+    }
+
+    if (consoleBox && newLogsText !== lastRenderedLogs) {
+      lastRenderedLogs = newLogsText;
+      consoleBox.textContent = newLogsText;
+
+      // Smart auto-scroll: NEVER force scroll down if the user is scrolled up reading past logs!
+      if (!isUserScrolledUp && consoleContainer) {
+        consoleContainer.scrollTop = consoleContainer.scrollHeight;
+      }
+    }
+  }
+
+  const statusPill = document.getElementById('console-status-pill');
+  if (statusPill) {
+    if (data.is_working) {
+      statusPill.textContent = t('system_working') || '[ TRABAJANDO... ]';
+      statusPill.className = 'console-status-pill pill-working';
+    } else {
+      statusPill.textContent = t('system_ready') || '[ LISTO ]';
+      statusPill.className = 'console-status-pill pill-ready';
+    }
   }
 
   const pBar = document.getElementById('progress-bar');
@@ -558,8 +637,17 @@ let extDirty = false;
 function appendConsole(text) {
   const consoleBox = document.getElementById('console-output');
   if (!consoleBox) return;
-  consoleBox.textContent += `\nroot@spicetifix:~$ ${text}`;
-  consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
+  const line = `root@spicetifix:~$ ${text}`;
+  consoleBox.textContent += `\n${line}`;
+  lastRenderedLogs = consoleBox.textContent;
+
+  const previewEl = document.getElementById('console-preview-text');
+  if (previewEl) previewEl.textContent = line;
+
+  const consoleContainer = document.getElementById('console-box-container') || consoleBox.parentElement;
+  if (!isUserScrolledUp && consoleContainer) {
+    consoleContainer.scrollTop = consoleContainer.scrollHeight;
+  }
 }
 
 function setExtApplyPending(pending) {
@@ -1003,6 +1091,72 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
+  // Smart Console Scroll & Collapse Handlers
+  const consoleContainer = document.getElementById('console-box-container');
+  const btnScrollBottom = document.getElementById('btn-scroll-bottom');
+
+  if (consoleContainer) {
+    consoleContainer.addEventListener('scroll', () => {
+      const distanceToBottom = consoleContainer.scrollHeight - consoleContainer.scrollTop - consoleContainer.clientHeight;
+      isUserScrolledUp = distanceToBottom > 35;
+      if (btnScrollBottom) {
+        btnScrollBottom.classList.toggle('visible', isUserScrolledUp);
+      }
+    });
+  }
+
+  if (btnScrollBottom) {
+    btnScrollBottom.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (consoleContainer) {
+        consoleContainer.scrollTo({
+          top: consoleContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+      isUserScrolledUp = false;
+      btnScrollBottom.classList.remove('visible');
+    });
+  }
+
+  const consoleHeader = document.getElementById('console-header');
+  if (consoleHeader) {
+    consoleHeader.addEventListener('click', (e) => {
+      if (e.target.closest('#btn-copy-logs') || e.target.closest('#btn-clear-logs')) {
+        return;
+      }
+      toggleConsole();
+    });
+  }
+
+  const btnHeaderConsole = document.getElementById('btn-header-console');
+  if (btnHeaderConsole) {
+    btnHeaderConsole.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleConsole();
+    });
+  }
+
+  const btnToggleConsole = document.getElementById('btn-toggle-console');
+  if (btnToggleConsole) {
+    btnToggleConsole.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleConsole();
+    });
+  }
+
+  // Restore console expansion preference
+  try {
+    const savedExpanded = localStorage.getItem('spicetifix_console_expanded');
+    if (savedExpanded === 'true') {
+      setConsoleExpanded(true, false);
+    } else {
+      setConsoleExpanded(false, false);
+    }
+  } catch (_) {
+    setConsoleExpanded(false, false);
+  }
+
   // Copy Logs button
   const btnCopyLogs = document.getElementById('btn-copy-logs');
   if (btnCopyLogs) {
@@ -1023,7 +1177,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnClearLogs = document.getElementById('btn-clear-logs');
   if (btnClearLogs) {
     btnClearLogs.addEventListener('click', () => {
-      document.getElementById('console-output').textContent = `root@spicetifix:~$ ${t('console_cleared')}`;
+      const clearedMsg = `root@spicetifix:~$ ${t('console_cleared')}`;
+      const consoleBox = document.getElementById('console-output');
+      if (consoleBox) {
+        consoleBox.textContent = clearedMsg;
+        lastRenderedLogs = clearedMsg;
+        isUserScrolledUp = false;
+        const btnScroll = document.getElementById('btn-scroll-bottom');
+        if (btnScroll) btnScroll.classList.remove('visible');
+        const consoleContainer = document.getElementById('console-box-container') || consoleBox.parentElement;
+        if (consoleContainer) consoleContainer.scrollTop = consoleContainer.scrollHeight;
+      }
+      const previewEl = document.getElementById('console-preview-text');
+      if (previewEl) previewEl.textContent = clearedMsg;
     });
   }
 
@@ -1032,6 +1198,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Escape') {
       closeOptionsModal();
       closeAboutModal();
+    } else if ((e.ctrlKey && (e.key === '`' || e.key === 'j')) || e.key === 'F12') {
+      if (e.key !== 'F12') e.preventDefault();
+      toggleConsole();
     }
   });
 
@@ -1113,20 +1282,28 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Action buttons
   document.getElementById('btn-install').addEventListener('click', async () => {
+    setConsoleExpanded(true);
     const btn = document.getElementById('btn-install');
     if (btn && (btn.disabled || btn.classList.contains('is-busy'))) return;
     currentAction = 'install';
     updateActionButtons(true);
-    await apiFetch('/api/install', 'POST');
+    const res = await apiFetch('/api/install', 'POST');
+    if (!res || res.error) {
+      updateActionButtons(false);
+    }
     pollStatus();
   });
 
   document.getElementById('btn-recover').addEventListener('click', async () => {
+    setConsoleExpanded(true);
     const btn = document.getElementById('btn-recover');
     if (btn && (btn.disabled || btn.classList.contains('is-busy'))) return;
     currentAction = 'recover';
     updateActionButtons(true);
-    await apiFetch('/api/recover', 'POST');
+    const res = await apiFetch('/api/recover', 'POST');
+    if (!res || res.error) {
+      updateActionButtons(false);
+    }
     pollStatus();
   });
 
@@ -1534,15 +1711,12 @@ async function installMarketplaceItem(item) {
     updated_at: cached.updated_at || item.updated_at || '',
     tag: cached.tag || '',
   });
-  const consoleBox = document.getElementById('console-output');
   if (res && res.status === 'ok') {
-    consoleBox.textContent += `\nroot@spicetifix:~$ ${item.title} ${t('mp_installed_ok')}`;
-    consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
+    appendConsole(`${item.title} ${t('mp_installed_ok')}`);
     pollStatus();
     await loadMarketplaceCatalog();
   } else {
-    consoleBox.textContent += `\nroot@spicetifix:~$ ${t('mp_installed_err')} ${item.title}: ${res?.error || t('mp_failed')}`;
-    consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
+    appendConsole(`${t('mp_installed_err')} ${item.title}: ${res?.error || t('mp_failed')}`);
     await loadMarketplaceCatalog();
   }
 }
@@ -1552,15 +1726,12 @@ async function uninstallMarketplaceItem(item) {
     type: item.type,
     filename: item.filename,
   });
-  const consoleBox = document.getElementById('console-output');
   if (res && res.status === 'ok') {
-    consoleBox.textContent += `\nroot@spicetifix:~$ ${item.title} ${t('mp_uninstalled_ok')}`;
-    consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
+    appendConsole(`${item.title} ${t('mp_uninstalled_ok')}`);
     pollStatus();
     await loadMarketplaceCatalog();
   } else {
-    consoleBox.textContent += `\nroot@spicetifix:~$ ${t('mp_uninstalled_err')} ${item.title}: ${res?.error || t('mp_failed')}`;
-    consoleBox.parentElement.scrollTop = consoleBox.parentElement.scrollHeight;
+    appendConsole(`${t('mp_uninstalled_err')} ${item.title}: ${res?.error || t('mp_failed')}`);
     await loadMarketplaceCatalog();
   }
 }

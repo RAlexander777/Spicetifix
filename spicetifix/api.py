@@ -612,6 +612,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 except Exception as e:
                     _append_log(f"ERROR: {e}")
                 finally:
+                    _set_progress(0.0)
                     _end_work()
 
             threading.Thread(target=run, daemon=True).start()
