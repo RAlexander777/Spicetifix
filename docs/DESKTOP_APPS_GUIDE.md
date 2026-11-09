@@ -202,7 +202,7 @@ Notas:
 
 ---
 
-## 9. Caso de estudio: Spicetifix (v1.2.0)
+## 9. Caso de estudio: Spicetifix (v1.7.7)
 
 - Frontend `web/` (HTML/CSS/JS, tema terminal) servido por `http.server` en `spicetifix/api.py`.
 - Ventana nativa con **pywebview** (antes: Edge/Chrome `--app`, inestable).

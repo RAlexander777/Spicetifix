@@ -74,6 +74,39 @@ this file for the in-app view).
 - Extension detection now reports file basenames only, and the marketplace catalog shows
   flattened filenames, so installed state stays accurate.
 
+## [1.7.3] - 2026-08-23
+
+### Added
+- "Apply changes" button in the extension manager: pending enable/disable toggles are
+  applied all at once (close Spotify, re-patch, relaunch) instead of restarting Spotify
+  on every single toggle.
+
+## [1.7.2] - 2026-08-23
+
+### Fixed
+- Writing the spicetify config no longer wipes the `[Patch]` and `[Backup]` sections, so
+  installs and uninstalls keep working without the "version and backup version are
+  mismatched" error. The app also self-heals a missing backup version metadata, so
+  "Recover System" repairs the state after a Spotify update.
+- Detected extensions & custom apps now reflect what spicetify actually loads, so apps
+  enabled directly in Spotify are no longer shown as disabled.
+- Toggling an extension checkbox now updates the real spicetify config, not only the
+  internal list.
+
+### Changed
+- The extension grid shows friendly names (e.g. "Lyric Miniplayer") instead of raw file
+  names.
+
+## [1.7.1] - 2026-08-23
+
+### Fixed
+- Console log box now has a maximum height, so long logs no longer stretch the sidebar.
+- Uninstalling an extension or theme now relaunches Spotify after the apply, just like
+  installing does.
+- The app now closes instantly instead of waiting ~2 seconds after the window is closed.
+- Marketplace apply errors now include a hint when the spicetify CLI and Spotify versions
+  mismatch.
+
 ## [1.7.0] - 2026-08-20
 
 ### Added

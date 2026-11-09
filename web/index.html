@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,35 +15,35 @@
       <div class="brand">
         <span class="prompt-icon">❯</span>
         <h1 class="title">SPICETIFIX</h1>
-        <span class="badge badge-online" id="system-badge">[ SISTEMA_LISTO ]</span>
+        <span class="badge badge-online" id="system-badge">[ SYSTEM_READY ]</span>
       </div>
 
       <div class="header-actions">
-        <button class="btn btn-small btn-outline" id="btn-open-spotify" title="Abrir App Spotify">
-          <i data-lucide="play-circle"></i> <span id="lbl-open-spotify">ABRIR SPOTIFY</span>
+        <button class="btn btn-small btn-outline" id="btn-open-spotify" title="Open Spotify App">
+          <i data-lucide="play-circle"></i> <span id="lbl-open-spotify">OPEN SPOTIFY</span>
         </button>
-        <button class="btn btn-small btn-outline" id="btn-refresh-status" title="Refrescar Estados">
-          <i data-lucide="refresh-cw" class="icon-spin"></i> <span id="lbl-refresh-status">REFRESCAR</span>
+        <button class="btn btn-small btn-outline" id="btn-refresh-status" title="Refresh Status">
+          <i data-lucide="refresh-cw" class="icon-spin"></i> <span id="lbl-refresh-status">REFRESH</span>
         </button>
-        <button class="btn btn-small btn-outline" id="btn-header-console" title="Desplegar / Plegar Consola">
-          <i data-lucide="terminal"></i> <span id="lbl-toggle-console">CONSOLA</span>
+        <button class="btn btn-small btn-outline" id="btn-header-console" title="Expand / Collapse Console">
+          <i data-lucide="terminal"></i> <span id="lbl-toggle-console">CONSOLE</span>
         </button>
         <button class="btn btn-small btn-outline" id="btn-open-options">
-          <i data-lucide="settings"></i> <span id="lbl-open-options">OPCIONES</span>
+          <i data-lucide="settings"></i> <span id="lbl-open-options">OPTIONS</span>
         </button>
         <button class="btn btn-small btn-outline" id="btn-open-about">
-          <i data-lucide="info"></i> <span id="lbl-open-about">ACERCA DE</span>
+          <i data-lucide="info"></i> <span id="lbl-open-about">ABOUT</span>
         </button>
-        <button class="btn btn-small btn-outline" id="btn-open-changelog" title="Historial de versiones">
-          <i data-lucide="history"></i> <span id="lbl-open-changelog">CAMBIOS</span>
+        <button class="btn btn-small btn-outline" id="btn-open-changelog" title="Version history">
+          <i data-lucide="history"></i> <span id="lbl-open-changelog">CHANGES</span>
         </button>
-        <button class="btn btn-small btn-update" id="btn-update-check" style="display:none" title="Nueva versión disponible">
-          <i data-lucide="download-cloud"></i> <span id="lbl-update-check">NUEVA VERSIÓN</span>
+        <button class="btn btn-small btn-update" id="btn-update-check" style="display:none" title="New version available">
+          <i data-lucide="download-cloud"></i> <span id="lbl-update-check">NEW VERSION</span>
         </button>
       </div>
 
       <div class="header-theme-picker">
-        <label for="ui-theme-select"><i data-lucide="palette"></i> <span id="lbl-ui-theme">Tema UI:</span></label>
+        <label for="ui-theme-select"><i data-lucide="palette"></i> <span id="lbl-ui-theme">UI Theme:</span></label>
         <select id="ui-theme-select" class="theme-dropdown">
           <option value="emerald">Cyber Emerald</option>
           <option value="gruvbox">Gruvbox Dark</option>
@@ -65,22 +65,22 @@
 
     <!-- Quick Access Folder & Backup Bar -->
     <div class="quick-access-bar">
-      <span class="bar-label"><i data-lucide="folder-open"></i> <span id="lbl-quick-access">ACCESOS Y RESPALDOS:</span></span>
+      <span class="bar-label"><i data-lucide="folder-open"></i> <span id="lbl-quick-access">QUICK ACCESS & BACKUPS:</span></span>
       <div class="quick-links">
-        <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> <span id="lbl-spicetify-dir">Carpeta Spicetify</span></button>
-        <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> <span id="lbl-themes-dir">Carpeta Temas</span></button>
-        <button class="btn-chip btn-chip-accent" id="btn-export-backup"><i data-lucide="archive"></i> <span id="lbl-export-backup">Exportar Respaldo (.zip)</span></button>
-        <button class="btn-chip btn-chip-accent" id="btn-import-backup"><i data-lucide="upload-cloud"></i> <span id="lbl-import-backup">Importar Respaldo (.zip)</span></button>
+        <button class="btn-chip" id="btn-open-spicetify-dir"><i data-lucide="folder"></i> <span id="lbl-spicetify-dir">Spicetify Folder</span></button>
+        <button class="btn-chip" id="btn-open-themes-dir"><i data-lucide="folder-plus"></i> <span id="lbl-themes-dir">Themes Folder</span></button>
+        <button class="btn-chip btn-chip-accent" id="btn-export-backup"><i data-lucide="archive"></i> <span id="lbl-export-backup">Export Backup (.zip)</span></button>
+        <button class="btn-chip btn-chip-accent" id="btn-import-backup"><i data-lucide="upload-cloud"></i> <span id="lbl-import-backup">Import Backup (.zip)</span></button>
       </div>
     </div>
 
     <!-- Main Navigation Tabs -->
     <nav class="main-tabs">
       <button class="tab-btn active" id="tab-dashboard" data-tab="dashboard">
-        <i data-lucide="terminal"></i> <span id="lbl-tab-dashboard">[ CENTRO DE CONTROL ]</span>
+        <i data-lucide="terminal"></i> <span id="lbl-tab-dashboard">[ CONTROL CENTER ]</span>
       </button>
       <button class="tab-btn" id="tab-marketplace" data-tab="marketplace">
-        <i data-lucide="shopping-bag"></i> <span id="lbl-tab-marketplace">[ MARKETPLACE / CATÁLOGO ]</span>
+        <i data-lucide="shopping-bag"></i> <span id="lbl-tab-marketplace">[ MARKETPLACE / CATALOG ]</span>
       </button>
     </nav>
 
@@ -90,87 +90,87 @@
     <div class="tab-content active" id="content-dashboard">
 
       <!-- Status Cards -->
-      <section class="section-title" id="sec-title-status">// ESTADO DEL SISTEMA (CLIC PARA INSTALAR / DESINSTALAR)</section>
+      <section class="section-title" id="sec-title-status">// SYSTEM STATUS</section>
       <div class="status-cards-grid">
         <div class="card card-interactive" id="card-spotify">
           <div class="card-header">
             <span class="card-title"><i data-lucide="music"></i> 1. Spotify</span>
-            <span class="card-tag" id="tag-spotify">[ VERIFICANDO ]</span>
+            <span class="card-tag" id="tag-spotify">[ CHECKING ]</span>
           </div>
-          <div class="card-sub" id="sub-spotify">Detectando instalación...</div>
-          <div class="card-action" id="action-spotify">Haz clic para instalar Spotify</div>
+          <div class="card-sub" id="sub-spotify">Detecting installation...</div>
+          <div class="card-action" id="action-spotify">Click to install Spotify</div>
         </div>
 
         <div class="card card-interactive" id="card-spicetify">
           <div class="card-header">
             <span class="card-title"><i data-lucide="code"></i> 2. Spicetify CLI</span>
-            <span class="card-tag" id="tag-spicetify">[ VERIFICANDO ]</span>
+            <span class="card-tag" id="tag-spicetify">[ CHECKING ]</span>
           </div>
-          <div class="card-sub" id="sub-spicetify">Verificando config-xpui.ini...</div>
-          <div class="card-action" id="action-spicetify">Haz clic para instalar Spicetify</div>
+          <div class="card-sub" id="sub-spicetify">Checking config-xpui.ini...</div>
+          <div class="card-action" id="action-spicetify">Click to install Spicetify</div>
         </div>
 
         <div class="card card-interactive" id="card-theme">
           <div class="card-header">
-            <span class="card-title"><i data-lucide="palette"></i> <span id="lbl-card-theme-title">3. Tema Activo</span></span>
-            <span class="card-tag" id="tag-theme">[ VERIFICANDO ]</span>
+            <span class="card-title"><i data-lucide="palette"></i> <span id="lbl-card-theme-title">3. Active Theme</span></span>
+            <span class="card-tag" id="tag-theme">[ CHECKING ]</span>
           </div>
-          <div class="card-sub" id="sub-theme">Verificando tema...</div>
-          <div class="card-action" id="action-theme">Haz clic para cambiar tema</div>
+          <div class="card-sub" id="sub-theme">Checking theme...</div>
+          <div class="card-action" id="action-theme">Click to change theme</div>
         </div>
       </div>
 
       <!-- Actions Section -->
-      <section class="section-title" id="sec-title-actions">// ACCIONES GENERALES</section>
+      <section class="section-title" id="sec-title-actions">// GENERAL ACTIONS</section>
       <div class="actions-grid">
         <button class="btn btn-action btn-accent" id="btn-install">
-          <i data-lucide="download-cloud"></i> <span id="lbl-btn-install">INSTALACIÓN / ACTUALIZACIÓN COMPLETA</span>
+          <i data-lucide="download-cloud"></i> <span id="lbl-btn-install">FULL INSTALL / UPDATE</span>
         </button>
         <button class="btn btn-action btn-outline" id="btn-recover">
-          <i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">RECUPERAR SISTEMA (POST-UPDATE)</span>
+          <i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">RECOVER SYSTEM (POST-UPDATE)</span>
         </button>
       </div>
 
       <!-- Extension Manager -->
-      <section class="section-title" id="sec-title-exts">// GESTOR DE EXTENSIONES SPICETIFY</section>
+      <section class="section-title" id="sec-title-exts">// SPICETIFY EXTENSION MANAGER</section>
       <div class="panel ext-panel">
         <div class="ext-header">
-          <span id="lbl-exts-header">Extensiones y Apps Detectadas:</span>
+          <span id="lbl-exts-header">Detected Extensions & Custom Apps:</span>
           <div class="ext-actions">
-            <button class="btn btn-small" id="btn-apply-exts" disabled><i data-lucide="check"></i> <span id="lbl-btn-apply-exts">APLICAR CAMBIOS</span></button>
-            <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> <span id="lbl-btn-refresh-exts">RECARGAR</span></button>
+            <button class="btn btn-small" id="btn-apply-exts" disabled><i data-lucide="check"></i> <span id="lbl-btn-apply-exts">APPLY CHANGES</span></button>
+            <button class="btn btn-small" id="btn-refresh-exts"><i data-lucide="refresh-cw"></i> <span id="lbl-btn-refresh-exts">REFRESH</span></button>
           </div>
         </div>
         <div class="ext-grid" id="ext-grid">
-          <div class="empty-msg">Cargando extensiones...</div>
+          <div class="empty-msg">Loading extensions...</div>
         </div>
       </div>
     </div>
 
     <!-- Tab 2: Marketplace View -->
     <div class="tab-content" id="content-marketplace">
-      <section class="section-title" id="sec-title-mp"><span id="lbl-sec-title-mp">// CATÁLOGO DE EXTENSIONES Y TEMAS SPICETIFY</span></section>      
+      <section class="section-title" id="sec-title-mp"><span id="lbl-sec-title-mp">// SPICETIFY EXTENSIONS, THEMES & APPS CATALOG</span></section>      
       <div class="mp-bar">
         <div class="mp-search-box">
           <i data-lucide="search"></i>
-          <input type="text" id="mp-search-input" placeholder="Buscar extensiones o temas..." autocomplete="off">        </div>
+          <input type="text" id="mp-search-input" placeholder="Search extensions, themes or apps..." autocomplete="off">        </div>
         <div class="mp-filter-chips">
-          <button class="chip-filter active" data-filter="all" id="btn-mp-filter-all"><span id="lbl-mp-filter-all">Todos</span></button>
-          <button class="chip-filter" data-filter="extension" id="btn-mp-filter-ext"><span id="lbl-mp-filter-ext">Extensiones</span></button>
-          <button class="chip-filter" data-filter="theme" id="btn-mp-filter-theme"><span id="lbl-mp-filter-theme">Temas</span></button>
+          <button class="chip-filter active" data-filter="all" id="btn-mp-filter-all"><span id="lbl-mp-filter-all">All</span></button>
+          <button class="chip-filter" data-filter="extension" id="btn-mp-filter-ext"><span id="lbl-mp-filter-ext">Extensions</span></button>
+          <button class="chip-filter" data-filter="theme" id="btn-mp-filter-theme"><span id="lbl-mp-filter-theme">Themes</span></button>
           <button class="chip-filter" data-filter="app" id="btn-mp-filter-app"><span id="lbl-mp-filter-app">Apps</span></button>
-          <button class="chip-filter" data-filter="installed" id="btn-mp-filter-installed"><span id="lbl-mp-filter-installed">Instaladas</span></button>
+          <button class="chip-filter" data-filter="installed" id="btn-mp-filter-installed"><span id="lbl-mp-filter-installed">Installed</span></button>
         </div>
-        <button class="btn btn-small" id="btn-refresh-catalog"><i data-lucide="refresh-cw"></i> <span id="lbl-refresh-catalog">RECARGAR CATÁLOGO</span></button>
+        <button class="btn btn-small" id="btn-refresh-catalog"><i data-lucide="refresh-cw"></i> <span id="lbl-refresh-catalog">REFRESH CATALOG</span></button>
       </div>
 
       <div class="mp-catalog-grid" id="mp-catalog-grid">
-        <div class="empty-msg" id="mp-loading-msg">Cargando catálogo...</div>
+        <div class="empty-msg" id="mp-loading-msg">Loading catalog...</div>
       </div>
       <div class="mp-pagination" id="mp-pagination" style="display:none">
-        <button class="btn btn-small" id="btn-mp-prev"><i data-lucide="chevron-left"></i> <span id="lbl-mp-prev">ANTERIOR</span></button>
-        <span class="mp-page-info" id="mp-page-info">Página 1 / 1</span>
-        <button class="btn btn-small" id="btn-mp-next"><span id="lbl-mp-next">SIGUIENTE</span> <i data-lucide="chevron-right"></i></button>
+        <button class="btn btn-small" id="btn-mp-prev"><i data-lucide="chevron-left"></i> <span id="lbl-mp-prev">PREV</span></button>
+        <span class="mp-page-info" id="mp-page-info">Page 1 / 1</span>
+        <button class="btn btn-small" id="btn-mp-next"><span id="lbl-mp-next">NEXT</span> <i data-lucide="chevron-right"></i></button>
       </div>
     </div>
     </div>
@@ -179,36 +179,36 @@
   </div>
 
   <!-- Collapsible Console Drawer / Panel -->
-  <section class="console-panel is-collapsed" id="console-panel" aria-label="Consola de logs">
+  <section class="console-panel is-collapsed" id="console-panel" aria-label="Logs console">
     <!-- Progress Bar on panel top edge -->
     <div class="progress-container">
       <div class="progress-bar" id="progress-bar" style="width: 0%;"></div>
     </div>
 
-    <div class="console-header" id="console-header" role="button" tabindex="0" title="Clic para desplegar o plegar consola (Ctrl+`)">
+    <div class="console-header" id="console-header" role="button" tabindex="0" title="Click to expand or collapse console (Ctrl+`)">
       <div class="console-header-left">
-        <button class="btn-console-toggle" id="btn-toggle-console" type="button" aria-expanded="false" title="Desplegar / Plegar Consola">
+        <button class="btn-console-toggle" id="btn-toggle-console" type="button" aria-expanded="false" title="Expand / Collapse Console">
           <i data-lucide="chevron-up" id="console-toggle-icon"></i>
         </button>
-        <span class="console-title"><i data-lucide="terminal"></i> <span id="sec-title-logs">// CONSOLA DE LOGS</span></span>
-        <span class="console-status-pill pill-ready" id="console-status-pill">[ LISTO ]</span>
-        <span class="console-preview" id="console-preview-text">root@spicetifix:~$ sistema inicializado. Listo.</span>
+        <span class="console-title"><i data-lucide="terminal"></i> <span id="sec-title-logs">// SYSTEM LOGS</span></span>
+        <span class="console-status-pill pill-ready" id="console-status-pill">[ SYSTEM_READY ]</span>
+        <span class="console-preview" id="console-preview-text">root@spicetifix:~$ system initialized. Ready.</span>
       </div>
       <div class="console-actions">
-        <button class="btn btn-small btn-outline" id="btn-copy-logs" type="button" title="Copiar logs al portapapeles">
-          <i data-lucide="copy"></i> <span id="lbl-copy-logs">COPIAR</span>
+        <button class="btn btn-small btn-outline" id="btn-copy-logs" type="button" title="Copy logs to clipboard">
+          <i data-lucide="copy"></i> <span id="lbl-copy-logs">COPY</span>
         </button>
-        <button class="btn btn-small btn-outline" id="btn-clear-logs" type="button" title="Limpiar salida de consola">
-          <i data-lucide="trash-2"></i> <span id="lbl-clear-logs">LIMPIAR</span>
+        <button class="btn btn-small btn-outline" id="btn-clear-logs" type="button" title="Clear console output">
+          <i data-lucide="trash-2"></i> <span id="lbl-clear-logs">CLEAR</span>
         </button>
       </div>
     </div>
 
     <div class="console-body" id="console-body">
       <div class="console-box" id="console-box-container">
-        <pre id="console-output">root@spicetifix:~$ sistema inicializado. Listo.</pre>
-        <button class="btn-scroll-bottom" id="btn-scroll-bottom" type="button" title="Ir al final del registro">
-          <i data-lucide="arrow-down"></i> <span id="lbl-scroll-bottom">Nuevos logs ↓</span>
+        <pre id="console-output">root@spicetifix:~$ system initialized. Ready.</pre>
+        <button class="btn-scroll-bottom" id="btn-scroll-bottom" type="button" title="Go to end of log">
+          <i data-lucide="arrow-down"></i> <span id="lbl-scroll-bottom">New logs ↓</span>
         </button>
       </div>
     </div>
@@ -223,10 +223,10 @@
           <i data-lucide="disc" id="player-dock-icon" class="icon-pulse"></i>
         </div>
         <div class="player-dock-meta">
-          <div class="player-dock-title" id="track-info" title="Spotify">Cargando estado de Spotify...</div>
+          <div class="player-dock-title" id="track-info" title="Spotify">Loading Spotify status...</div>
           <div class="player-dock-subtitle">
             <span class="dock-badge" id="lbl-player-header">SPOTIFY</span>
-            <span class="dock-subtext" id="track-status-text">Sin reproducción activa</span>
+            <span class="dock-subtext" id="track-status-text">No active playback</span>
           </div>
         </div>
       </div>
@@ -234,17 +234,17 @@
       <!-- Center: Compact Controls -->
       <div class="player-dock-center">
         <div class="player-controls-compact">
-          <button class="btn-dock-control" id="btn-prev" title="Anterior">
+          <button class="btn-dock-control" id="btn-prev" title="Previous">
             <i data-lucide="skip-back"></i>
-            <span class="sr-only" id="lbl-prev">ANTERIOR</span>
+            <span class="sr-only" id="lbl-prev">PREV</span>
           </button>
-          <button class="btn-dock-control btn-dock-play" id="btn-play" title="Reproducir / Pausar">
+          <button class="btn-dock-control btn-dock-play" id="btn-play" title="Play / Pause">
             <i data-lucide="play" id="icon-play-state"></i>
-            <span class="sr-only" id="lbl-play">REPRODUCIR / PAUSAR</span>
+            <span class="sr-only" id="lbl-play">PLAY / PAUSE</span>
           </button>
-          <button class="btn-dock-control" id="btn-next" title="Siguiente">
+          <button class="btn-dock-control" id="btn-next" title="Next">
             <i data-lucide="skip-forward"></i>
-            <span class="sr-only" id="lbl-next">SIGUIENTE</span>
+            <span class="sr-only" id="lbl-next">NEXT</span>
           </button>
         </div>
       </div>
@@ -252,8 +252,8 @@
       <!-- Right: Status Badge & Open Spotify -->
       <div class="player-dock-right">
         <span class="dock-badge" id="dock-status-badge">STANDBY</span>
-        <button class="btn btn-small btn-outline dock-spotify-btn" id="btn-dock-spotify" title="Abrir Spotify">
-          <i data-lucide="external-link"></i> <span id="lbl-dock-spotify">ABRIR SPOTIFY</span>
+        <button class="btn btn-small btn-outline dock-spotify-btn" id="btn-dock-spotify" title="Open Spotify">
+          <i data-lucide="external-link"></i> <span id="lbl-dock-spotify">OPEN SPOTIFY</span>
         </button>
       </div>
     </div>
@@ -263,16 +263,16 @@
   <div class="modal-overlay" id="options-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="modal-opt-title"><i data-lucide="sliders"></i> OPCIONES Y CONFIGURACIÓN DEL SISTEMA</h2>
+        <h2 id="modal-opt-title"><i data-lucide="sliders"></i> SYSTEM OPTIONS & CONFIGURATION</h2>
         <button class="modal-close" id="btn-close-options">✕</button>
       </div>
 
       <div class="modal-body">
         <!-- Section: General -->
         <div class="modal-section">
-          <h3 id="opt-sec-gen">AJUSTES GENERALES</h3>
+          <h3 id="opt-sec-gen">GENERAL SETTINGS</h3>
           <div class="form-row">
-            <label for="select-lang" id="lbl-lang">Idioma / Language:</label>
+            <label for="select-lang" id="lbl-lang">Language / Idioma:</label>
             <select id="select-lang" class="theme-dropdown">
               <option value="es">Español</option>
               <option value="en">English</option>
@@ -280,14 +280,14 @@
           </div>
 
           <div class="form-row">
-            <label for="select-spicetify-theme" id="lbl-spicetify-theme">Tema de Spicetify:</label>
+            <label for="select-spicetify-theme" id="lbl-spicetify-theme">Spicetify Theme:</label>
             <select id="select-spicetify-theme" class="theme-dropdown">
               <!-- Dynamically populated -->
             </select>
           </div>
 
           <div class="form-row">
-            <label for="select-color-scheme" id="lbl-color-scheme">Esquema de Color (Color Scheme):</label>
+            <label for="select-color-scheme" id="lbl-color-scheme">Color Scheme:</label>
             <select id="select-color-scheme" class="theme-dropdown">
               <!-- Dynamically populated -->
             </select>
@@ -296,29 +296,29 @@
 
         <!-- Section: Advanced Spicetify Flags -->
         <div class="modal-section">
-          <h3 id="opt-sec-flags">BANDERAS AVANZADAS DE SPICETIFY</h3>
+          <h3 id="opt-sec-flags">ADVANCED SPICETIFY FLAGS</h3>
           <div class="flags-grid">
-            <label class="checkbox-label"><input type="checkbox" id="chk-inject-css" checked> <span id="lbl-flag-css">Inyectar CSS</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-replace-colors" checked> <span id="lbl-flag-colors">Reemplazar Colores</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-overwrite-assets"> <span id="lbl-flag-assets">Sobrescribir Assets</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-devtools"> <span id="lbl-flag-devtools">DevTools Siempre Activo</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-sentry"> <span id="lbl-flag-sentry">Telemetría Sentry</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-inject-css" checked> <span id="lbl-flag-css">Inject CSS</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-replace-colors" checked> <span id="lbl-flag-colors">Replace Colors</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-overwrite-assets"> <span id="lbl-flag-assets">Overwrite Assets</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-devtools"> <span id="lbl-flag-devtools">Always Enable DevTools</span></label>
+            <label class="checkbox-label"><input type="checkbox" id="chk-sentry"> <span id="lbl-flag-sentry">Sentry Telemetry</span></label>
           </div>
         </div>
 
         <!-- Section: Danger Zone -->
         <div class="modal-section danger-zone">
-          <h3 id="opt-sec-danger">ZONA DE PELIGRO (DESINSTALACIÓN Y RECUPERACIÓN)</h3>
+          <h3 id="opt-sec-danger">DANGER ZONE (UNINSTALL & RECOVERY)</h3>
           <div class="danger-actions">
-            <button class="btn btn-outline" id="btn-spicetify-apply"><i data-lucide="zap"></i> <span id="lbl-btn-spicetify-apply">APLICAR CAMBIOS DE SPICETIFY</span></button>
-            <button class="btn btn-danger" id="btn-uninstall-spicetify"><i data-lucide="trash-2"></i> <span id="lbl-btn-uninstall-spicetify">DESINSTALAR SPICETIFY</span></button>
-            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify"><i data-lucide="flame"></i> <span id="lbl-btn-uninstall-spotify">DESINSTALAR SPOTIFY Y SPICETIFY</span></button>
+            <button class="btn btn-outline" id="btn-spicetify-apply"><i data-lucide="zap"></i> <span id="lbl-btn-spicetify-apply">APPLY SPICETIFY CHANGES</span></button>
+            <button class="btn btn-danger" id="btn-uninstall-spicetify"><i data-lucide="trash-2"></i> <span id="lbl-btn-uninstall-spicetify">UNINSTALL SPICETIFY</span></button>
+            <button class="btn btn-danger-heavy" id="btn-uninstall-spotify"><i data-lucide="flame"></i> <span id="lbl-btn-uninstall-spotify">UNINSTALL SPOTIFY & SPICETIFY</span></button>
           </div>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-accent" id="btn-save-options">GUARDAR Y APLICAR OPCIONES</button>
+        <button class="btn btn-accent" id="btn-save-options">SAVE & APPLY OPTIONS</button>
       </div>
     </div>
   </div>
@@ -327,44 +327,44 @@
   <div class="modal-overlay" id="about-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2><i data-lucide="info"></i> ACERCA DE SPICETIFIX</h2>
+        <h2><i data-lucide="info"></i> ABOUT SPICETIFIX</h2>
         <button class="modal-close" id="btn-close-about">✕</button>
       </div>
 
       <div class="modal-body about-body">
         <div class="about-hero">
           <span class="about-logo">❯ SPICETIFIX</span>
-          <span class="about-version" id="about-version">v1.7.6 (Spicetifix / pywebview)</span>
+          <span class="about-version" id="about-version">v1.7.7 (Spicetifix / pywebview)</span>
         </div>
 
         <p class="about-desc">
-          Spicetifix es un centro de control terminal de diseño minimalista e instalador automatizado para 
-          <strong>Spotify</strong> y <strong>Spicetify</strong> en Windows.
+          Spicetifix is a minimalist terminal-styled control center and automated installer for
+          <strong>Spotify</strong> and <strong>Spicetify</strong> on Windows.
         </p>
 
         <div class="about-details">
-          <div class="detail-item"><strong>Autor / Creador:</strong> RAlexander777</div>
-          <div class="detail-item"><strong>Licencia:</strong> MIT Open Source License</div>
-          <div class="detail-item"><strong>Motor:</strong> Python 3.11 + Win32 Media API + Web Engine</div>
-          <div class="detail-item"><strong>Repositorio GitHub:</strong> <a href="https://github.com/RAlexander777/Spicetifix.git" target="_blank" class="about-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="gh-icon"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg> RAlexander777/Spicetifix</a></div>
-          <div class="detail-item"><strong>Web de Spicetify:</strong> <a href="https://spicetify.app" target="_blank" class="about-link"><i data-lucide="globe"></i> spicetify.app</a></div>
-          <div class="detail-item"><strong>Web de Spotify:</strong> <a href="https://www.spotify.com" target="_blank" class="about-link"><i data-lucide="globe"></i> spotify.com</a></div>
+          <div class="detail-item"><strong>Author / Creator:</strong> RAlexander777</div>
+          <div class="detail-item"><strong>License:</strong> MIT Open Source License</div>
+          <div class="detail-item"><strong>Engine:</strong> Python 3.11 + Win32 Media API + Web Engine</div>
+          <div class="detail-item"><strong>GitHub Repository:</strong> <a href="https://github.com/RAlexander777/Spicetifix.git" target="_blank" class="about-link"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="gh-icon"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg> RAlexander777/Spicetifix</a></div>
+          <div class="detail-item"><strong>Spicetify Website:</strong> <a href="https://spicetify.app" target="_blank" class="about-link"><i data-lucide="globe"></i> spicetify.app</a></div>
+          <div class="detail-item"><strong>Spotify Website:</strong> <a href="https://www.spotify.com" target="_blank" class="about-link"><i data-lucide="globe"></i> spotify.com</a></div>
         </div>
 
         <div class="about-features">
-          <h4>Funcionalidades Principales:</h4>
+          <h4>Key Features:</h4>
           <ul>
-            <li>Instalación paso a paso o en 1-clic de Spotify, Spicetify CLI, Marketplace y Temas.</li>
-            <li>Gestor visual de extensiones con interruptores en vivo.</li>
-            <li>Reproductor integrado de Spotify mediante llamadas nativas Win32 API.</li>
-            <li>Recuperación automatizada post-actualización de Spotify (spicetify restore backup apply).</li>
-            <li>Respaldo e Importación completa de configuraciones y temas (.zip).</li>
+            <li>Step-by-step or 1-Click installation for Spotify, Spicetify CLI, Marketplace & Themes.</li>
+            <li>Visual extension manager with live toggles.</li>
+            <li>Integrated Spotify player using native Win32 API calls.</li>
+            <li>Automated post-update recovery for Spotify.</li>
+            <li>Full backup export and import (.zip).</li>
           </ul>
         </div>
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-outline" id="btn-close-about-footer">CERRAR</button>
+        <button class="btn btn-outline" id="btn-close-about-footer">CLOSE</button>
       </div>
     </div>
   </div>
@@ -373,7 +373,7 @@
   <div class="modal-overlay" id="changelog-modal">
     <div class="modal-content">
       <div class="modal-header">
-        <h2><i data-lucide="history"></i> <span id="changelog-title">Cambios Recientes</span></h2>
+        <h2><i data-lucide="history"></i> <span id="changelog-title">Release Notes</span></h2>
         <button class="modal-close" id="btn-close-changelog">✕</button>
       </div>
 
@@ -382,7 +382,7 @@
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-outline" id="btn-close-changelog-footer">CERRAR</button>
+        <button class="btn btn-outline" id="btn-close-changelog-footer">CLOSE</button>
       </div>
     </div>
   </div>

@@ -152,14 +152,6 @@ def get_theme_color_schemes(theme_name: str) -> list[str]:
     return list(dict.fromkeys(schemes))
 
 
-def set_color_scheme(scheme_name: str) -> bool:
-    """Sets current color_scheme in Spicetify configuration."""
-    if not scheme_name:
-        return True
-    code, out, err = run_spicetify(["config", "color_scheme", scheme_name])
-    return code == 0
-
-
 def list_available_themes() -> list[str]:
     """Scans all theme directories and config files to return all available Spicetify themes."""
     themes = set()
