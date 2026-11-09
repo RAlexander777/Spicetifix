@@ -286,6 +286,7 @@ async function applyLanguage(lang) {
   setTxt('lbl-play', t.play_btn);
   setTxt('lbl-next', t.next_btn);
   setTxt('sec-title-status', t.sec_status);
+  setTxt('sec-title-health', t.sec_health);
   setTxt('lbl-card-theme-title', t.card_theme_title);
   setTxt('sec-title-actions', t.sec_actions);
   setTxt('lbl-btn-install', t.btn_install);
@@ -429,6 +430,27 @@ function updateActionButtons(isWorking) {
   }
 }
 
+function renderHealth(health) {
+  const grid = document.getElementById('health-grid');
+  if (!grid || !Array.isArray(health)) return;
+  grid.innerHTML = '';
+  health.forEach(h => {
+    const row = document.createElement('div');
+    row.className = `health-item ${h.ok ? 'ok' : 'err'}`;
+    const dot = document.createElement('span');
+    dot.className = 'health-dot';
+    const label = document.createElement('span');
+    label.className = 'health-label';
+    label.textContent = h.label;
+    const detail = document.createElement('span');
+    detail.className = 'health-detail';
+    detail.textContent = h.detail || '';
+    detail.title = h.detail || '';
+    row.append(dot, label, detail);
+    grid.appendChild(row);
+  });
+}
+
 // Fetch and render status
 async function pollStatus() {
   const data = await apiFetch('/api/status');
@@ -569,8 +591,10 @@ async function pollStatus() {
   const actTheme = document.getElementById('action-theme');
   tagTheme.textContent = t.tag_active;
   tagTheme.style.color = 'var(--contrast-color)';
-  subTheme.textContent = data.current_theme || 'None';
+  subTheme.textContent = data.current_theme || t('none');
   if (actTheme) actTheme.textContent = t.act_change_theme;
+
+  renderHealth(data.health);
 
   // Console Output & Progress
   if (data.logs && data.logs.length > 0) {
