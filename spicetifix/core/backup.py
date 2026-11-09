@@ -52,7 +52,7 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
                 zf.write(config_ini, arcname="config-xpui.ini")
 
             if spicetifix_cfg and spicetifix_cfg.exists():
-                zf.write(spicetifix_cfg, arcname="spicetifix_config.json")
+                zf.write(spicetifix_cfg, arcname="spicetifix.yaml")
 
             _log(i18n.t("backup_compress_themes"))
             _prog(0.5)
@@ -122,7 +122,7 @@ def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None)
                     with zf.open(member) as src, open(config_ini, "wb") as dst:
                         shutil.copyfileobj(src, dst)
 
-                elif name == "spicetifix_config.json" and spicetifix_cfg:
+                elif name in ("spicetifix.yaml", "spicetifix_config.json") and spicetifix_cfg:
                     spicetifix_cfg.parent.mkdir(parents=True, exist_ok=True)
                     with zf.open(member) as src, open(spicetifix_cfg, "wb") as dst:
                         shutil.copyfileobj(src, dst)

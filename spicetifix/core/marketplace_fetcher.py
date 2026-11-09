@@ -7,6 +7,8 @@ from pathlib import Path
 
 import requests
 
+from spicetifix import USER_AGENT
+
 _IN_MEMORY_CACHE = {}
 MEMORY_TTL = 300  # 5 min
 DISK_TTL = 3600   # 1 h
@@ -38,7 +40,7 @@ def _cache_dir():
 
 
 def _headers():
-    h = {"User-Agent": "Spicetifix/1.0"}
+    h = {"User-Agent": USER_AGENT}
     if GITHUB_TOKEN:
         h["Authorization"] = f"token {GITHUB_TOKEN}"
     return h
@@ -339,7 +341,7 @@ def resolve_repo_version(user: str, repo: str, known_updated_at: str = "") -> di
     try:
         resp = _SESSION.get(
             f"https://github.com/{user}/{repo}/releases/latest",
-            headers={"User-Agent": "Spicetifix/1.0"},
+            headers={"User-Agent": USER_AGENT},
             timeout=10,
             allow_redirects=True,
         )

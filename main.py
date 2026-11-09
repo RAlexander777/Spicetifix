@@ -47,8 +47,9 @@ def _launch_browser_fallback(url: str):
 def start():
     from spicetifix.api import make_server
     from spicetifix.core import i18n
-    from spicetifix.core.config import get_language
+    from spicetifix.core.config import get_language, migrate_legacy_config
 
+    migrate_legacy_config()
     i18n.set_lang(get_language())
     token = secrets.token_hex(16)
 

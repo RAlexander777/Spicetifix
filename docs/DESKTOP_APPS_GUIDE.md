@@ -57,7 +57,7 @@ def start():
     server = make_server(port=8765, auth_token=token)   # bindea puerto SÍNCRONO
     threading.Thread(target=server.serve_forever, daemon=True).start()
 
-    url = f"http://127.0.0.1:8765/?token={token}"
+    url = f"http://127.0.0.1:8765/#token={token}"
     window = webview.create_window("MI APP", url, width=900, height=700,
                                    resizable=True, min_size=(700, 600))
     window.events.closed += lambda: os._exit(0)          # cierre limpio
@@ -69,7 +69,8 @@ if __name__ == "__main__":
 
 Puntos clave:
 - `HTTPServer(...)` **vincula el puerto en el constructor** → no necesitas `sleep()` para "esperar el servidor".
-- El evento `closed` reemplaza hacks tipo "heartbeat con `os._exit(0)`".
+- El evento `closed` da un cierre limpio. En Spicetifix, además, un heartbeat/idle-timeout actúa
+  como red de seguridad (termina el sidecar si el frontend deja de hacer polling).
 - Nunca pongas `webview.start()` en un hilo: GUI = hilo principal.
 
 ---
@@ -80,7 +81,7 @@ Un servidor HTTP local expone superficie de ataque. Mitigaciones mínimas:
 
 1. **Bind a `127.0.0.1`** — nunca `0.0.0.0`.
 2. **Token de sesión aleatorio** — generado al arrancar (`secrets.token_hex(16)`), entregado al
-   frontend por query param (`?token=...`), enviado en cada petición como header `X-Auth-Token`.
+   frontend en el fragmento de la URL (`#token=...`), enviado en cada petición como header `X-Auth-Token`.
 3. **Validar token en todos los endpoints `/api/*`** → 401 si falla. Los estáticos (`/`, `.css`, `.js`) pueden ser públicos (mismo origen).
 4. **CORS restringido** — no usar `Access-Control-Allow-Origin: *`. Reflejar solo orígenes locales
    (`null` para `file://` y `127.0.0.1`). Si el frontend se sirve desde el mismo origen, ni siquiera necesitas CORS.

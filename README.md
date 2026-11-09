@@ -70,8 +70,10 @@ Output: `dist/Spicetifix/` (onedir) + `dist/Spicetifix.zip` (compressed archive)
 ```
 spicetifix/
 ├── spicetifix/
+│   ├── __init__.py            # Package version + shared User-Agent
 │   ├── api.py                 # Python HTTP API server (sidecar, token auth)
 │   ├── core/
+│   │   ├── backup.py          # Backup export/import (.zip)
 │   │   ├── config.py          # Spicetify INI & YAML config handling
 │   │   ├── i18n.py            # English / Spanish strings
 │   │   ├── installer.py       # Installation & recovery engine
@@ -85,6 +87,7 @@ spicetifix/
 │   ├── index.html             # Main UI (loaded in pywebview window)
 │   ├── app.js                 # Frontend logic
 │   ├── style.css              # Terminal-styled CSS
+│   ├── changelog.json         # In-app release notes (mirrors CHANGELOG.md)
 │   └── i18n/
 │       ├── es.json            # Spanish translations
 │       └── en.json            # English translations
@@ -93,9 +96,11 @@ spicetifix/
 ├── docs/
 │   └── DESKTOP_APPS_GUIDE.md  # Reusable desktop-app development guide
 ├── tests/                     # Unit tests
+├── .github/                   # CI + release workflows
 ├── main.py                    # Entry point (pywebview window + API server)
 ├── pyproject.toml             # Python packaging metadata
 ├── requirements.txt           # Python dependencies
+├── spicetifix.yaml.example    # Example config (live copy: %APPDATA%\Spicetifix\spicetifix.yaml)
 └── LICENSE                    # MIT License
 ```
 

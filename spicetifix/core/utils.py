@@ -6,6 +6,7 @@ import shutil
 from pathlib import Path
 
 from spicetifix.core import i18n
+from spicetifix import USER_AGENT
 
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
@@ -145,6 +146,11 @@ def get_spicetify_custom_apps_dir() -> Path:
 
 
 def get_user_config_path() -> Path:
+    base = os.environ.get("APPDATA") or str(Path.home())
+    return Path(base) / "Spicetifix" / "spicetifix.yaml"
+
+
+def get_legacy_user_config_path() -> Path:
     return Path(__file__).parent.parent.parent / "spicetifix.yaml"
 
 
@@ -219,7 +225,7 @@ def download_and_extract_spicetify(dest_dir: Path | None = None, log_callback=No
     else:
         arch = "x32"
 
-    headers = {"User-Agent": "Spicetifix"}
+    headers = {"User-Agent": USER_AGENT}
     tag = ""
     version = ""
 
@@ -268,7 +274,7 @@ def ensure_adblock_extension(log_callback=None) -> bool:
     if log_callback:
         log_callback(i18n.t("adblock_downloading"))
     try:
-        resp = requests.get(ADBLOCK_EXTENSION_URL, headers={"User-Agent": "Spicetifix"}, timeout=30)
+        resp = requests.get(ADBLOCK_EXTENSION_URL, headers={"User-Agent": USER_AGENT}, timeout=30)
         resp.raise_for_status()
         target.write_bytes(resp.content)
         if log_callback:
@@ -322,7 +328,7 @@ def get_latest_spicetify_version() -> str:
     ``""`` when it cannot be resolved (offline / rate limited)."""
     import requests
 
-    headers = {"User-Agent": "Spicetifix"}
+    headers = {"User-Agent": USER_AGENT}
     try:
         resp = requests.get(
             "https://api.github.com/repos/spicetify/cli/releases/latest",

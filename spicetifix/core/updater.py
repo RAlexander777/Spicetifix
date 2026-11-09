@@ -5,6 +5,8 @@ from pathlib import Path
 
 import requests
 
+from spicetifix import USER_AGENT
+
 GITHUB_REPO = "RAlexander777/Spicetifix"
 RELEASES_URL = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 ZIP_ASSET_NAME = "Spicetifix.zip"
@@ -46,7 +48,7 @@ def check_for_update(current_version: str | None = None) -> dict | None:
     """
     current = current_version or get_current_version()
 
-    headers = {"User-Agent": "Spicetifix/1.0", "Accept": "application/vnd.github+json"}
+    headers = {"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"}
     if GITHUB_TOKEN:
         headers["Authorization"] = f"Bearer {GITHUB_TOKEN}"
 

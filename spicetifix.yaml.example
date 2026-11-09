@@ -1,0 +1,28 @@
+# Spicetifix user configuration (example).
+#
+# The app stores its live settings in:
+#   Windows: %APPDATA%\Spicetifix\spicetifix.yaml
+# This file documents the defaults; copy it there only if you want to seed a
+# fresh install. The app rewrites the real file whenever you change a setting.
+
+language: en              # "en" or "es"
+ui_theme: emerald         # e.g. emerald, gruvbox, dracula, tokyo_night, matrix...
+
+spicetify:
+  theme: text
+  color_scheme: ""
+  spotify_launch_flags: --no-update
+
+extensions: []            # e.g. [adblock.js]
+custom_apps: []           # e.g. [marketplace, lyrics-plus]
+
+preprocesses:
+  disable_sentry: true
+  disable_ui_logging: true
+  remove_rtl_rule: true
+  expose_apis: true
+
+options:
+  inject_css: true
+  replace_colors: true
+  check_spicetify_update: false

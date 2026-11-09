@@ -1,5 +1,7 @@
 from configparser import ConfigParser
 
+import shutil
+
 import yaml
 
 from spicetifix.core.utils import (
@@ -9,6 +11,7 @@ from spicetifix.core.utils import (
     get_spicetify_config_dir,
     get_spicetify_dir,
     get_user_config_path,
+    get_legacy_user_config_path,
 )
 from spicetifix.core import i18n
 
@@ -82,8 +85,24 @@ def load_user_config() -> dict:
 
 def save_user_config(config: dict) -> None:
     path = get_user_config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         yaml.safe_dump(config, f, default_flow_style=False, allow_unicode=True)
+
+
+def migrate_legacy_config() -> None:
+    """Move a config left next to the source tree into the per-user config dir so
+    settings survive the relocation (dev/portable setups)."""
+    dest = get_user_config_path()
+    if dest.exists():
+        return
+    legacy = get_legacy_user_config_path()
+    try:
+        if legacy.exists() and legacy.is_file():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(legacy, dest)
+    except Exception:
+        pass
 
 
 def get_language() -> str:
