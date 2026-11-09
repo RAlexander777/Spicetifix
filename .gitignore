@@ -60,6 +60,9 @@ venv.bak/
 spicetifix.yaml
 backups/
 
+# Command Code local agent config & taste
+.commandcode/
+
 # IDEs and Editors
 .vscode/
 .idea/
