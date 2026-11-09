@@ -565,10 +565,10 @@ async function pollStatus() {
   const statusPill = document.getElementById('console-status-pill');
   if (statusPill) {
     if (data.is_working) {
-      statusPill.textContent = t('system_working') || '[ TRABAJANDO... ]';
+      statusPill.textContent = t.system_working || '[ TRABAJANDO... ]';
       statusPill.className = 'console-status-pill pill-working';
     } else {
-      statusPill.textContent = t('system_ready') || '[ LISTO ]';
+      statusPill.textContent = t.system_ready || '[ LISTO ]';
       statusPill.className = 'console-status-pill pill-ready';
     }
   }
@@ -603,7 +603,7 @@ async function pollStatus() {
   if (data.is_working) {
     const consoleBox = document.getElementById('console-output');
     if (!data.logs || data.logs.length === 0) {
-      consoleBox.textContent = `root@spicetifix:~$ ${t('console_working')}\n`;
+      consoleBox.textContent = `root@spicetifix:~$ ${t.console_working}\n`;
     }
   }
 }
