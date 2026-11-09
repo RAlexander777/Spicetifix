@@ -22,6 +22,7 @@ def set_auth_token(token: str) -> None:
 from spicetifix.core.config import (
     load_user_config,
     save_user_config,
+    get_language,
     check_config_health,
     get_install_meta,
     get_installed_extensions,
@@ -34,6 +35,7 @@ from spicetifix.core.installer import Installer
 from spicetifix.core.themer import list_available_themes, set_theme
 from spicetifix.core.ui_theme import list_ui_theme_names, get_ui_theme, THEMES
 from spicetifix.core import spotify_control
+from spicetifix.core import i18n
 from spicetifix import __version__
 
 
@@ -61,6 +63,14 @@ def _append_log(msg: str):
     global _install_logs
     with _state_lock:
         _install_logs.append(msg)
+
+
+def _apply_lang() -> None:
+    """Sync the process-wide UI language from the user config for this request."""
+    try:
+        i18n.set_lang(get_language())
+    except Exception:
+        i18n.set_lang("en")
 
 
 def _set_progress(pct: float):
@@ -188,6 +198,9 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
 
+        if path.startswith("/api/"):
+            _apply_lang()
+
         if path.startswith("/api/") and not self._is_authorized():
             self._send_json({"error": "Unauthorized"}, 401)
             return
@@ -198,9 +211,9 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             now_playing = spotify_control.get_spotify_now_playing()
             sc = read_spicetify_config()
 
-            theme_name = "None"
+            theme_name = i18n.t("none")
             if sc and "Setting" in sc:
-                theme_name = sc["Setting"].get("current_theme", "None")
+                theme_name = sc["Setting"].get("current_theme", i18n.t("none"))
 
             is_working, progress, logs = _get_state()
             self._send_json({
@@ -286,6 +299,9 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         parsed = urlparse(self.path)
         path = parsed.path
 
+        if path.startswith("/api/"):
+            _apply_lang()
+
         if path.startswith("/api/") and not self._is_authorized():
             self._send_json({"error": "Unauthorized"}, 401)
             return
@@ -316,7 +332,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             filename = body.get("filename", "")
             url = body.get("url", "")
             if not filename or not url:
-                self._send_json({"error": "Parámetros inválidos"}, 400)
+                self._send_json({"error": i18n.t("invalid_params")}, 400)
                 return
 
             try:
@@ -372,13 +388,13 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                         code, out, err = run_spicetify_apply()
                     if code != 0:
                         hint = spicetify_error_hint(out, err)
-                        msg = f"spicetify apply falló (código {code}): {err or out}"
+                        msg = i18n.t("spicetify_apply_failed", code=code, msg=err or out)
                         if hint:
                             msg = f"{msg} {hint}"
                         self._send_json({"error": msg}, 500)
                         return
                     _launch_spotify()
-                    self._send_json({"status": "ok", "message": f"Extensión {filename} instalada y aplicada"})
+                    self._send_json({"status": "ok", "message": i18n.t("extension_installed", name=filename)})
 
                 elif item_type == "theme":
                     import requests
@@ -427,13 +443,13 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     close_spotify()
                     code, out, err = run_spicetify_apply()
                     if code != 0:
-                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        self._send_json({"error": i18n.t("spicetify_apply_failed", code=code, msg=err or out)}, 500)
                         return
                     _launch_spotify()
-                    self._send_json({"status": "ok", "message": f"Tema {filename} instalado y aplicado"})
+                    self._send_json({"status": "ok", "message": i18n.t("theme_installed", name=filename)})
 
                 else:
-                    self._send_json({"error": "Tipo no soportado"}, 400)
+                    self._send_json({"error": i18n.t("unsupported_type")}, 400)
 
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
@@ -442,7 +458,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             item_type = body.get("type", "")
             filename = body.get("filename", "")
             if not filename:
-                self._send_json({"error": "Parámetros inválidos"}, 400)
+                self._send_json({"error": i18n.t("invalid_params")}, 400)
                 return
 
             try:
@@ -482,15 +498,15 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     close_spotify()
                     code, out, err = run_spicetify_apply()
                     if code != 0:
-                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        self._send_json({"error": i18n.t("spicetify_apply_failed", code=code, msg=err or out)}, 500)
                         return
 
                     still_present = target_file.exists() or filename in cfg["extensions"]
                     if still_present:
-                        self._send_json({"error": f"La extensión {filename} se marcó para desinstalar pero sigue presente. Reintenta o usa Recover System."}, 500)
+                        self._send_json({"error": i18n.t("extension_still_present", name=filename)}, 500)
                         return
                     _launch_spotify()
-                    self._send_json({"status": "ok", "message": f"Extensión {filename} desinstalada"})
+                    self._send_json({"status": "ok", "message": i18n.t("extension_uninstalled", name=filename)})
 
                 elif item_type == "theme":
                     themes_dir = get_spicetify_themes_dir()
@@ -511,13 +527,13 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     close_spotify()
                     code, out, err = run_spicetify_apply()
                     if code != 0:
-                        self._send_json({"error": f"spicetify apply falló (código {code}): {err or out}"}, 500)
+                        self._send_json({"error": i18n.t("spicetify_apply_failed", code=code, msg=err or out)}, 500)
                         return
                     _launch_spotify()
-                    self._send_json({"status": "ok", "message": f"Tema {filename} desinstalado"})
+                    self._send_json({"status": "ok", "message": i18n.t("theme_uninstalled", name=filename)})
 
                 else:
-                    self._send_json({"error": "Tipo no soportado"}, 400)
+                    self._send_json({"error": i18n.t("unsupported_type")}, 400)
 
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
@@ -555,7 +571,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 write_spicetify_config(cfg, merge_live=False)
             except Exception as e:
                 self._send_json(
-                    {"error": f"No se pudo aplicar el cambio en la configuración de Spicetify: {e}"},
+                    {"error": i18n.t("ext_config_write_failed", err=e)},
                     500,
                 )
                 return
@@ -576,7 +592,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 code, out, err = run_spicetify_apply()
                 if code != 0:
                     hint = spicetify_error_hint(out, err)
-                    msg = f"spicetify apply falló (código {code}): {err or out}"
+                    msg = i18n.t("spicetify_apply_failed", code=code, msg=err or out)
                     if hint:
                         msg = f"{msg} {hint}"
                     self._send_json({"error": msg}, 500)
@@ -585,7 +601,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             except Exception as e:
                 self._send_json({"error": str(e)}, 500)
                 return
-            self._send_json({"status": "ok", "message": "Cambios aplicados"})
+            self._send_json({"status": "ok", "message": i18n.t("changes_applied")})
 
         elif path == "/api/config/save":
             cfg = load_user_config()
@@ -610,7 +626,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer.set_lang(cfg.get("language", "en"))
                     installer.install_all(cfg)
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _set_progress(0.0)
                     _end_work()
@@ -676,10 +692,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             def run():
                 try:
+                    i18n.set_lang(get_language())
                     from spicetifix.core.backup import export_backup_zip
                     export_backup_zip(progress_callback=_set_progress, log_callback=_append_log)
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _end_work()
 
@@ -694,6 +711,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             def run():
                 try:
+                    i18n.set_lang(get_language())
                     from spicetifix.core.backup import import_backup_zip, pick_and_import_backup
                     from pathlib import Path
                     if zip_path_str:
@@ -701,7 +719,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     else:
                         pick_and_import_backup(progress_callback=_set_progress, log_callback=_append_log)
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _end_work()
 
@@ -724,14 +742,15 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             def run():
                 try:
+                    i18n.set_lang(get_language())
                     from spicetifix.core.utils import run_spicetify_apply
-                    _append_log("Running spicetify apply...")
+                    _append_log(i18n.t("running_spicetify_apply"))
                     code, out, err = run_spicetify_apply()
                     if out: _append_log(out)
                     if err: _append_log(err)
-                    _append_log(f"Finished with exit code {code}")
+                    _append_log(i18n.t("finished_exit_code", code=code))
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _end_work()
 
@@ -750,7 +769,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer.set_lang(cfg.get("language", "en"))
                     installer.uninstall_spicetify()
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _end_work()
 
@@ -770,7 +789,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer.uninstall_spicetify()
                     installer.uninstall_spotify()
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _end_work()
 
@@ -788,14 +807,15 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
             def run():
                 try:
+                    i18n.set_lang(get_language())
                     from spicetifix.core.updater import download_release_zip
-                    _append_log("Descargando nueva versión...")
+                    _append_log(i18n.t("update_downloading"))
                     target = download_release_zip(asset_url)
-                    _append_log(f"Descargado: {target}")
+                    _append_log(i18n.t("update_downloaded", path=target))
                     import os
                     os.startfile(str(target.parent))
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _end_work()
 
@@ -814,7 +834,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer.set_lang(cfg.get("language", "en"))
                     installer.recover()
                 except Exception as e:
-                    _append_log(f"ERROR: {e}")
+                    _append_log(f"{i18n.t('log_error')} {e}")
                 finally:
                     _end_work()
 

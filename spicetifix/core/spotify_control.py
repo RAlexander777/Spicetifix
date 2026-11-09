@@ -1,6 +1,8 @@
 import ctypes
 import sys
 
+from spicetifix.core import i18n
+
 # Correct Win32 Virtual-Key Codes for Media Control
 VK_MEDIA_NEXT_TRACK = 0xB0  # 176
 VK_MEDIA_PREV_TRACK = 0xB1  # 177
@@ -60,7 +62,7 @@ def _get_process_name(hwnd: int) -> str:
 def get_spotify_now_playing() -> dict:
     """Queries Spotify window title on Windows to extract current track and artist strictly from Spotify.exe."""
     if sys.platform != "win32":
-        return {"playing": False, "artist": "Spotify", "title": "Not active", "raw": ""}
+        return {"playing": False, "artist": "Spotify", "title": i18n.t("np_not_active"), "raw": ""}
 
     spotify_title = None
 
@@ -96,13 +98,13 @@ def get_spotify_now_playing() -> dict:
         return {
             "playing": False,
             "artist": "Spotify",
-            "title": "Paused / Active",
+            "title": i18n.t("np_paused_active"),
             "raw": spotify_title,
         }
 
     return {
         "playing": False,
         "artist": "Spotify",
-        "title": "Not Playing",
+        "title": i18n.t("np_not_playing"),
         "raw": "",
     }

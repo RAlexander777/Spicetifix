@@ -12,6 +12,7 @@ from spicetifix.core.utils import (
     get_spicetify_custom_apps_dir,
 )
 from spicetifix.core.config import get_user_config_path
+from spicetifix.core import i18n
 
 
 def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callback=None) -> tuple[bool, str]:
@@ -25,7 +26,7 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
         def _prog(pct):
             if progress_callback: progress_callback(pct)
 
-        _log("Iniciando exportación de respaldo ZIP...")
+        _log(i18n.t("backup_export_start"))
         _prog(0.1)
 
         if dest_dir is None:
@@ -45,7 +46,7 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
         spicetifix_cfg = get_user_config_path()
 
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
-            _log("Comprimiendo archivos de configuración...")
+            _log(i18n.t("backup_compress_config"))
             _prog(0.3)
             if config_ini and config_ini.exists():
                 zf.write(config_ini, arcname="config-xpui.ini")
@@ -53,7 +54,7 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
             if spicetifix_cfg and spicetifix_cfg.exists():
                 zf.write(spicetifix_cfg, arcname="spicetifix_config.json")
 
-            _log("Comprimiendo carpeta de Temas...")
+            _log(i18n.t("backup_compress_themes"))
             _prog(0.5)
             def add_dir_to_zip(folder_path: Path, arc_prefix: str):
                 if folder_path and folder_path.exists() and folder_path.is_dir():
@@ -65,12 +66,12 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
 
             add_dir_to_zip(themes_dir, "Themes")
 
-            _log("Comprimiendo extensiones y aplicaciones...")
+            _log(i18n.t("backup_compress_exts"))
             _prog(0.8)
             add_dir_to_zip(extensions_dir, "Extensions")
             add_dir_to_zip(custom_apps_dir, "CustomApps")
 
-        _log(f"Respaldo creado con éxito en: {zip_path}")
+        _log(i18n.t("backup_export_ok", path=zip_path))
         _prog(1.0)
 
         if os.name == "nt":
@@ -96,12 +97,12 @@ def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None)
         def _prog(pct):
             if progress_callback: progress_callback(pct)
 
-        _log(f"Iniciando importación de respaldo: {zip_path}")
+        _log(i18n.t("backup_import_start", path=zip_path))
         _prog(0.1)
 
         zip_path = Path(zip_path)
         if not zip_path.exists():
-            return False, "El archivo de respaldo ZIP no existe."
+            return False, i18n.t("backup_zip_missing")
 
         config_ini = get_spicetify_config_path()
         themes_dir = get_spicetify_themes_dir()
@@ -156,9 +157,9 @@ def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None)
                         with zf.open(member) as src, open(dest, "wb") as dst:
                             shutil.copyfileobj(src, dst)
 
-        _log("Importación de respaldo completada con éxito.")
+        _log(i18n.t("backup_import_ok"))
         _prog(1.0)
-        return True, "Respaldo importado correctamente."
+        return True, i18n.t("backup_imported")
     except Exception as e:
         return False, str(e)
 
@@ -180,14 +181,14 @@ def pick_and_import_backup(progress_callback=None, log_callback=None) -> tuple[b
         initial_dir = str(backups_dir) if backups_dir.exists() else None
 
         zip_file = filedialog.askopenfilename(
-            title="Seleccionar respaldo de Spicetifix / Spicetify (.zip)",
+            title=i18n.t("backup_dialog_title"),
             initialdir=initial_dir,
-            filetypes=[("Archivos ZIP", "*.zip"), ("Todos los archivos", "*.*")]
+            filetypes=[(i18n.t("backup_dialog_zip"), "*.zip"), (i18n.t("backup_dialog_all"), "*.*")]
         )
         root.destroy()
 
         if not zip_file:
-            return False, "Selección cancelada por el usuario."
+            return False, i18n.t("backup_dialog_cancelled")
 
         return import_backup_zip(Path(zip_file), progress_callback=progress_callback, log_callback=log_callback)
     except Exception as e:

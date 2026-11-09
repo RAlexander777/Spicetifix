@@ -24,9 +24,8 @@ from spicetifix.core.utils import (
     run_spicetify_apply,
     strip_ansi,
 )
-from spicetifix.core.config import init_spicetify_config
 from spicetifix.core.themer import install_themes, set_theme
-from spicetifix.core.i18n import t
+from spicetifix.core import i18n
 
 
 class Installer:
@@ -38,6 +37,7 @@ class Installer:
 
     def set_lang(self, lang: str) -> None:
         self._lang = lang
+        i18n.set_lang(lang)
 
     def log(self, msg: str) -> None:
         try:
@@ -74,10 +74,7 @@ class Installer:
         self._last_progress_line = ""
 
     def _tl(self, key: str, **kwargs) -> str:
-        text = t(self._lang, key)
-        if kwargs:
-            text = text.format(**kwargs)
-        return text
+        return i18n.t(key, **kwargs)
 
     def _ensure_extensions(self, user_config: dict | None = None) -> None:
         cfg = user_config or {}
@@ -91,31 +88,30 @@ class Installer:
         return self._install_marketplace(user_config)
 
     def install_all(self, user_config: dict) -> bool:
-        l = self._lang
         steps = [
-            (t(l, "step_spotify"), self._ensure_spotify),
-            (t(l, "step_spicetify"), self._install_spicetify),
-            (t(l, "step_config"), lambda: self._configure_spicetify(user_config)),
-            (t(l, "step_backup"), self._run_backup),
-            (t(l, "step_themes"), lambda: self._install_themes(user_config)),
-            (t(l, "step_marketplace"), lambda: self._step_marketplace_and_extensions(user_config)),
-            (t(l, "step_apply"), self._run_apply),
+            (i18n.t("step_spotify"), self._ensure_spotify),
+            (i18n.t("step_spicetify"), self._install_spicetify),
+            (i18n.t("step_config"), lambda: self._configure_spicetify(user_config)),
+            (i18n.t("step_backup"), self._run_backup),
+            (i18n.t("step_themes"), lambda: self._install_themes(user_config)),
+            (i18n.t("step_marketplace"), lambda: self._step_marketplace_and_extensions(user_config)),
+            (i18n.t("step_apply"), self._run_apply),
         ]
 
         for label, step in steps:
-            self.log(f"[{label}] {t(l, 'step_start')}")
+            self.log(f"[{label}] {i18n.t('step_start')}")
             try:
                 success = step()
                 if not success:
-                    self.log(f"[{label}] {t(l, 'step_failed')}")
+                    self.log(f"[{label}] {i18n.t('step_failed')}")
                     return False
-                self.log(f"[{label}] {t(l, 'step_done')} ✓")
+                self.log(f"[{label}] {i18n.t('step_done')} ✓")
             except Exception as e:
-                self.log(f"[{label}] Error: {e}")
+                self.log(f"[{label}] {i18n.t('step_error')} {e}")
                 return False
 
         self._reset_progress()
-        self.log(f"=== {t(l, 'step_done')} ===")
+        self.log(f"=== {i18n.t('step_done')} ===")
         return True
 
     def _close_spotify(self) -> None:
@@ -123,10 +119,9 @@ class Installer:
         close_spotify()
 
     def recover(self) -> bool:
-        l = self._lang
         label = "spicetify restore backup apply"
         self._close_spotify()
-        self.log(f"[{label}] {t(l, 'step_start')}")
+        self.log(f"[{label}] {i18n.t('step_start')}")
 
         # Older Spicetifix builds rebuilt config-xpui.ini without spicetify's
         # [Backup]/[Patch] sections, which makes spicetify refuse to apply with a
@@ -135,7 +130,7 @@ class Installer:
         try:
             from spicetifix.core.config import repair_backup_metadata
             if repair_backup_metadata():
-                self.log("Backup metadata reparado en config-xpui.ini")
+                self.log(i18n.t("backup_meta_repaired"))
         except Exception:
             pass
 
@@ -147,7 +142,7 @@ class Installer:
         sp_dir = get_spicetify_dir()
         apps_dir = sp_dir / "CustomApps" / "marketplace"
         if not apps_dir.is_dir() or not any(apps_dir.iterdir()):
-            self.log("Marketplace no encontrado en CustomApps. Descargando...")
+            self.log(i18n.t("marketplace_missing_downloading"))
             self._install_marketplace(user_config)
 
         theme_name = user_config.get("spicetify", {}).get("theme", "")
@@ -160,7 +155,7 @@ class Installer:
                     break
 
             if not theme_exists:
-                self.log(f"Theme '{theme_name}' not found. Downloading themes...")
+                self.log(i18n.t("theme_not_found_downloading", theme=theme_name))
                 install_themes()
                 
                 theme_exists = False
@@ -170,7 +165,7 @@ class Installer:
                         break
 
                 if not theme_exists:
-                    self.log(f"Warning: Theme '{theme_name}' not found in Themes directory. Falling back to 'SpicetifyDefault'.")
+                    self.log(i18n.t("theme_warn_fallback", theme=theme_name))
                     theme_name = "SpicetifyDefault"
                     if "spicetify" in user_config:
                         user_config["spicetify"]["theme"] = theme_name
@@ -195,43 +190,42 @@ class Installer:
                 self._clean_log(err)
             if code == 0:
                 self._reset_progress()
-                self.log(f"[{label}] {t(l, 'step_done')} ✓ ({label_short})")
+                self.log(f"[{label}] {i18n.t('step_done')} ✓ ({label_short})")
                 return True
-            self.log(f"spicetify {label_short} failed (código {code}), trying next...")
+            self.log(i18n.t("spicetify_failed_retry", step=label_short, code=code))
         self._reset_progress()
-        self.log(f"[{label}] {t(l, 'step_failed')} (código {code})")
+        self.log(f"[{label}] {i18n.t('step_failed')} {i18n.t('code_suffix', code=code)}")
         return False
 
     def uninstall_spicetify(self) -> bool:
-        l = self._lang
-        self.log("=== Spicetify uninstall ===")
+        self.log(i18n.t("uninstall_spicetify_header"))
 
         code, out, err = run_spicetify(["restore"])
         if code == 0:
-            self.log("spicetify restore OK")
+            self.log(i18n.t("spicetify_restore_ok"))
         else:
-            self.log(f"spicetify restore: {err or out}")
+            self.log(i18n.t("spicetify_restore_err", msg=err or out))
 
         sp_dir = get_spicetify_dir()
         if sp_dir.exists():
             try:
                 shutil.rmtree(str(sp_dir), ignore_errors=True)
-                self.log(f"Deleted: {sp_dir}")
+                self.log(i18n.t("deleted_path", path=sp_dir))
             except Exception as e:
-                self.log(f"Error deleting {sp_dir}: {e}")
+                self.log(i18n.t("error_deleting", path=sp_dir, err=e))
                 return False
 
         return True
 
     def uninstall_spotify(self) -> bool:
-        self.log("=== Spotify uninstall ===")
+        self.log(i18n.t("uninstall_spotify_header"))
 
         code, out, err = run_cmd(
             ["winget", "uninstall", "--id", "Spotify.Spotify", "--silent"],
             timeout=120,
         )
         if code == 0:
-            self.log("Spotify uninstalled via winget")
+            self.log(i18n.t("spotify_uninstalled_winget"))
             return True
 
         try:
@@ -249,17 +243,17 @@ class Installer:
                                 display = winreg.QueryValueEx(subkey, "DisplayName")[0]
                                 if "spotify" in display.lower():
                                     uninst = winreg.QueryValueEx(subkey, "UninstallString")[0]
-                                    self.log(f"Running: {uninst}")
+                                    self.log(i18n.t("running_cmd", cmd=uninst))
                                     code2, out2, err2 = run_cmd(
                                         [uninst, "/SILENT"], timeout=60
                                     )
                                     if code2 == 0:
-                                        self.log("Spotify uninstalled via registry")
+                                        self.log(i18n.t("spotify_uninstalled_registry"))
                                         return True
                             except (FileNotFoundError, OSError):
                                 continue
         except Exception as e:
-            self.log(f"Registry lookup failed: {e}")
+            self.log(i18n.t("registry_lookup_failed", err=e))
 
         spotify_path = get_spotify_path()
         if spotify_path:
@@ -269,13 +263,13 @@ class Installer:
                     [str(updater), "--uninstall", "-s"], timeout=60
                 )
                 if code == 0:
-                    self.log("Spotify uninstalled via Update.exe")
+                    self.log(i18n.t("spotify_uninstalled_update_exe"))
                     return True
 
         for proc in ["Spotify.exe", "SpotifyWebHelper.exe"]:
             run_cmd(["taskkill", "/f", "/im", proc])
 
-        self.log("Spotify processes killed (manual cleanup may be needed)")
+        self.log(i18n.t("spotify_processes_killed"))
         return True
 
     def _ensure_spotify(self) -> bool:
@@ -305,7 +299,7 @@ class Installer:
                     break
 
             if not found_path:
-                self.log(f"{self._tl('spotify_install_error')} Timeout waiting for Spotify installation.")
+                self.log(f"{self._tl('spotify_install_error')} {i18n.t('spotify_installed_timeout')}")
                 return False
 
             self.log(f"{self._tl('spotify_installed')} ({found_path})")
@@ -331,29 +325,29 @@ class Installer:
             # update left those apps frozen on whatever version was installed
             # first.
             if installed and latest:
-                self.log(f"Actualizando Spicetify {installed} → {latest} (apps y extensiones integradas incluidas)...")
+                self.log(i18n.t("spicetify_updating", installed=installed, latest=latest))
             else:
                 self.log(f"{self._tl('spicetify_already')} {existing}")
 
         success = download_and_extract_spicetify(log_callback=self.log)
         if not success:
             if existing:
-                self.log("No se pudo actualizar Spicetify; se mantiene la versión instalada.")
+                self.log(i18n.t("spicetify_update_failed_kept"))
                 return True
-            self.log("Spicetify install failed")
+            self.log(i18n.t("spicetify_install_failed"))
             return False
         installed = find_executable("spicetify")
         if not installed:
-            self.log("Spicetify executable not found after extraction")
+            self.log(i18n.t("spicetify_exe_missing"))
             return False
-        self.log(f"Spicetify installed at: {installed}")
+        self.log(i18n.t("spicetify_installed_at", path=installed))
         self._close_spotify()
         code, out, err = run_spicetify([])
         self._clean_log(out)
         if err:
             self._clean_log(err)
         if code != 0:
-            self.log(f"spicetify init exited with code {code}, continuing anyway")
+            self.log(i18n.t("spicetify_init_exit", code=code))
         return True
 
     def _configure_spicetify(self, user_config: dict) -> bool:
@@ -384,7 +378,7 @@ class Installer:
             self.log(self._tl("no_theme"))
             return True
         if not install_themes():
-            self.log("Themes download skipped or git missing — using current themes")
+            self.log(i18n.t("themes_download_skipped"))
         
         # Verify theme exists on disk
         from spicetifix.core.themer import get_all_theme_dirs
@@ -395,13 +389,13 @@ class Installer:
                 break
 
         if not theme_exists:
-            self.log(f"Warning: Theme '{theme_name}' not found in Themes directory. Falling back to 'SpicetifyDefault'.")
+            self.log(i18n.t("theme_warn_fallback", theme=theme_name))
             theme_name = "SpicetifyDefault"
             if "spicetify" in user_config:
                 user_config["spicetify"]["theme"] = theme_name
 
         if not set_theme(theme_name):
-            self.log(f"Theme '{theme_name}' not found in Themes directory")
+            self.log(i18n.t("theme_not_found_dir", theme=theme_name))
         return True
 
     def _install_marketplace(self, user_config: dict | None = None) -> bool:
@@ -412,16 +406,16 @@ class Installer:
         apps_dir.mkdir(parents=True, exist_ok=True)
         themes_dir.mkdir(parents=True, exist_ok=True)
 
-        self.log("Downloading Marketplace...")
+        self.log(i18n.t("marketplace_downloading"))
         zip_url = "https://github.com/spicetify/marketplace/releases/latest/download/marketplace.zip"
         try:
             resp = requests.get(zip_url, stream=True, timeout=120)
             resp.raise_for_status()
             with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
                 zf.extractall(apps_dir)
-            self.log("Marketplace downloaded and extracted.")
+            self.log(i18n.t("marketplace_downloaded"))
         except Exception as e:
-            self.log(f"Failed to download Marketplace: {e}")
+            self.log(i18n.t("marketplace_download_failed", err=e))
             return False
 
         # Move files from nested dist folder to apps root, overwriting the
@@ -432,15 +426,15 @@ class Installer:
             shutil.copytree(dist_dir, apps_dir, dirs_exist_ok=True)
             shutil.rmtree(dist_dir, ignore_errors=True)
 
-        self.log("Downloading Marketplace placeholder theme...")
+        self.log(i18n.t("marketplace_theme_downloading"))
         color_url = "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/color.ini"
         try:
             resp = requests.get(color_url, timeout=30)
             resp.raise_for_status()
             (themes_dir / "color.ini").write_bytes(resp.content)
-            self.log("Theme placeholder downloaded.")
+            self.log(i18n.t("marketplace_theme_downloaded"))
         except Exception as e:
-            self.log(f"Failed to download theme placeholder: {e}")
+            self.log(i18n.t("marketplace_theme_download_failed", err=e))
 
         # Preserve marketplace app in user configuration so it persists across config saves
         if user_config is not None:
@@ -455,13 +449,13 @@ class Installer:
             except Exception:
                 pass
 
-        self.log("Configuring Spicetify for Marketplace...")
+        self.log(i18n.t("marketplace_configuring"))
         run_spicetify(["config", "custom_apps", "marketplace"])
         run_spicetify(["config", "inject_css", "1", "replace_colors", "1"])
 
         self._close_spotify()
 
-        self.log("Running spicetify backup apply...")
+        self.log(i18n.t("running_backup_apply"))
         code, out, err = run_spicetify(["backup", "apply"])
         self._clean_log(out)
         if err:
@@ -474,9 +468,9 @@ class Installer:
                 self._clean_log(err)
 
         if code != 0:
-            self.log(f"spicetify apply exited with code {code}, you may need to restart Spotify")
+            self.log(i18n.t("marketplace_apply_restart", code=code))
             return False
-        self.log("Marketplace installed successfully! Restart Spotify to see it.")
+        self.log(i18n.t("marketplace_installed_ok"))
         return True
 
     def _run_apply(self) -> bool:
@@ -499,4 +493,4 @@ class Installer:
                     downloaded += len(chunk)
                     if total:
                         pct = int(downloaded / total * 100)
-                        self.log(f"Descargando Spotify... {pct}%")
+                        self.log(i18n.t("downloading_spotify_pct", pct=pct))

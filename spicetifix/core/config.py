@@ -10,22 +10,7 @@ from spicetifix.core.utils import (
     get_spicetify_dir,
     get_user_config_path,
 )
-
-
-DEFAULT_PREPROCESSES = {
-    "disable_sentry": True,
-    "disable_ui_logging": True,
-    "remove_rtl_rule": True,
-    "expose_apis": True,
-}
-
-DEFAULT_OPTIONS = {
-    "inject_css": True,
-    "inject_theme_js": False,
-    "replace_colors": True,
-    "overwrite_assets": False,
-    "check_spicetify_update": False,
-}
+from spicetifix.core import i18n
 
 
 def get_installed_extensions() -> list[str]:
@@ -99,6 +84,22 @@ def save_user_config(config: dict) -> None:
     path = get_user_config_path()
     with open(path, "w", encoding="utf-8") as f:
         yaml.safe_dump(config, f, default_flow_style=False, allow_unicode=True)
+
+
+def get_language() -> str:
+    """Lightweight read of just the `language` key from the user config file
+    (no disk scans), defaulting to English."""
+    path = get_user_config_path()
+    if path.exists():
+        try:
+            with open(path, encoding="utf-8") as f:
+                data = yaml.safe_load(f) or {}
+            lang = data.get("language")
+            if lang:
+                return lang
+        except Exception:
+            pass
+    return "en"
 
 
 def install_meta_key(item_type: str, filename: str) -> str:
@@ -204,9 +205,7 @@ def write_spicetify_config(
 
     spotify_path = get_spotify_path()
     if not spotify_path:
-        raise FileNotFoundError(
-            "No se pudo detectar la instalación de Spotify. Instalalo primero."
-        )
+        raise FileNotFoundError(i18n.t("spotify_not_detected"))
 
     sp_dir = get_spicetify_config_dir()
     sp_dir.mkdir(parents=True, exist_ok=True)
@@ -287,14 +286,6 @@ def _bool_to_str(val: bool) -> str:
     return "1" if val else "0"
 
 
-def init_spicetify_config() -> bool:
-    try:
-        write_spicetify_config()
-        return True
-    except FileNotFoundError:
-        return False
-
-
 def check_config_health() -> list[dict]:
     from pathlib import Path
     from spicetifix.core.utils import (
@@ -314,12 +305,12 @@ def check_config_health() -> list[dict]:
     checks.append({
         "label": "config_file",
         "ok": bool(cfg_file and cfg_file.exists()),
-        "detail": str(cfg_file) if cfg_file else "Not found",
+        "detail": str(cfg_file) if cfg_file else i18n.t("not_found"),
     })
     checks.append({
         "label": "spicetify_exe",
         "ok": bool(spicetify_exe),
-        "detail": spicetify_exe or "Not found",
+        "detail": spicetify_exe or i18n.t("not_found"),
     })
 
     sc = read_spicetify_config()
@@ -333,22 +324,22 @@ def check_config_health() -> list[dict]:
     if sp_path and (Path(sp_path) / "Apps").is_dir():
         checks.append({"label": "spotify_path", "ok": True, "detail": sp_path})
     else:
-        checks.append({"label": "spotify_path", "ok": False, "detail": sp_path or "not set"})
+        checks.append({"label": "spotify_path", "ok": False, "detail": sp_path or i18n.t("not_set")})
 
     pf_path = setting.get("prefs_path", "")
     if pf_path and Path(pf_path).is_file():
         checks.append({"label": "prefs_path", "ok": True, "detail": pf_path})
     else:
-        checks.append({"label": "prefs_path", "ok": False, "detail": pf_path or "not set → changes won't persist"})
+        checks.append({"label": "prefs_path", "ok": False, "detail": pf_path or i18n.t("prefs_not_set")})
 
     theme = setting.get("current_theme", "")
     theme_dir = get_spicetify_themes_dir() / theme
     if theme and theme_dir.is_dir():
         checks.append({"label": "theme", "ok": True, "detail": theme})
     elif theme:
-        checks.append({"label": "theme", "ok": False, "detail": f"{theme} (not installed)"})
+        checks.append({"label": "theme", "ok": False, "detail": i18n.t("theme_not_installed_detail", theme=theme)})
     else:
-        checks.append({"label": "theme", "ok": False, "detail": "none set"})
+        checks.append({"label": "theme", "ok": False, "detail": i18n.t("none_set")})
 
     ext_str = extras.get("extensions", "")
     ext_list = [e.strip() for e in ext_str.split("|") if e.strip()]
@@ -358,7 +349,7 @@ def check_config_health() -> list[dict]:
         checks.append({
             "label": f"ext: {ext}",
             "ok": found,
-            "detail": "installed" if found else "missing",
+            "detail": i18n.t("detail_installed") if found else i18n.t("detail_missing"),
         })
 
     apps_str = extras.get("custom_apps", "")
@@ -369,7 +360,7 @@ def check_config_health() -> list[dict]:
         checks.append({
             "label": f"app: {app}",
             "ok": found,
-            "detail": "installed" if found else "missing",
+            "detail": i18n.t("detail_installed") if found else i18n.t("detail_missing"),
         })
 
     return checks

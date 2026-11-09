@@ -46,14 +46,16 @@ def _launch_browser_fallback(url: str):
 
 def start():
     from spicetifix.api import make_server
+    from spicetifix.core import i18n
+    from spicetifix.core.config import get_language
 
+    i18n.set_lang(get_language())
     token = secrets.token_hex(16)
 
     try:
         server = make_server(port=DEFAULT_PORT, auth_token=token, idle_timeout=HEARTBEAT_IDLE_TIMEOUT)
     except OSError as e:
-        print(f"> ERROR: no se pudo abrir el puerto {DEFAULT_PORT} ({e}). "
-              "Otra instancia de Spicetifix puede estar en ejecución.")
+        print(f"> {i18n.t('port_in_use', port=DEFAULT_PORT, err=e)}")
         sys.exit(1)
 
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -125,7 +127,7 @@ def start():
             webview.start(private_mode=False)
             os._exit(0)
         except Exception as e:
-            print(f"> pywebview no disponible ({e}). Usando navegador como respaldo.")
+            print(f"> {i18n.t('pywebview_unavailable', err=e)}")
 
     _launch_browser_fallback(url)
     server.serve_forever()

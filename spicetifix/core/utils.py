@@ -5,6 +5,8 @@ import sys
 import shutil
 from pathlib import Path
 
+from spicetifix.core import i18n
+
 
 _ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
@@ -23,12 +25,6 @@ def parse_progress(text: str) -> float | None:
     return None
 
 
-SPICETIFY_INSTALL_PS1 = (
-    "https://raw.githubusercontent.com/spicetify/cli/main/install.ps1"
-)
-MARKETPLACE_INSTALL_PS1 = (
-    "https://raw.githubusercontent.com/spicetify/marketplace/main/resources/install.ps1"
-)
 SPOTIFY_DOWNLOAD_URL = "https://download.scdn.co/SpotifySetup.exe"
 SPICETIFY_THEMES_REPO = "https://github.com/spicetify/spicetify-themes.git"
 ADBLOCK_EXTENSION_URL = (
@@ -242,21 +238,21 @@ def download_and_extract_spicetify(dest_dir: Path | None = None, log_callback=No
             tag = resp.url.split("/")[-1]
             version = tag.lstrip("v")
         except Exception as e:
-            log(f"Error resolviendo versión de Spicetify: {e}")
+            log(i18n.t("spicetify_version_error", err=e))
             return False
 
     download_url = f"https://github.com/spicetify/cli/releases/download/{tag}/spicetify-{version}-windows-{arch}.zip"
-    log(f"Descargando Spicetify {version} ({arch})...")
+    log(i18n.t("spicetify_downloading", version=version, arch=arch))
     try:
         with requests.get(download_url, headers=headers, stream=True, timeout=180) as r:
             r.raise_for_status()
             with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
                 zf.extractall(dest_dir)
-        log("Spicetify descargado y extraído.")
+        log(i18n.t("spicetify_downloaded"))
         add_to_user_path(dest_dir)
         return True
     except Exception as e:
-        log(f"Error descargando o extrayendo Spicetify: {e}")
+        log(i18n.t("spicetify_download_error", err=e))
         return False
 
 
@@ -270,27 +266,18 @@ def ensure_adblock_extension(log_callback=None) -> bool:
         return True
 
     if log_callback:
-        log_callback("Descargando extensión adblock.js...")
+        log_callback(i18n.t("adblock_downloading"))
     try:
         resp = requests.get(ADBLOCK_EXTENSION_URL, headers={"User-Agent": "Spicetifix"}, timeout=30)
         resp.raise_for_status()
         target.write_bytes(resp.content)
         if log_callback:
-            log_callback("Extensión adblock.js lista.")
+            log_callback(i18n.t("adblock_downloaded"))
         return True
     except Exception as e:
         if log_callback:
-            log_callback(f"Error descargando adblock.js: {e}")
+            log_callback(i18n.t("adblock_download_error", err=e))
         return False
-
-
-def run_ps1(script_url: str) -> tuple[int, str, str]:
-    ps_cmd = (
-        f"[Net.ServicePointManager]::SecurityProtocol = "
-        f"[Net.SecurityProtocolType]::Tls12; "
-        f"iwr -useb '{script_url}' | iex"
-    )
-    return run_cmd(["powershell", "-NoProfile", "-Command", ps_cmd])
 
 
 def run_cmd(cmd: list[str], timeout: int = 300) -> tuple[int, str, str]:
@@ -307,16 +294,16 @@ def run_cmd(cmd: list[str], timeout: int = 300) -> tuple[int, str, str]:
             creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == "win32" else 0,
         )
     except subprocess.TimeoutExpired:
-        return -1, "", "Command timed out"
+        return -1, "", i18n.t("cmd_timeout")
     except FileNotFoundError:
-        return -1, "", f"Command not found: {cmd[0]}"
+        return -1, "", i18n.t("cmd_not_found", cmd=cmd[0])
     return proc.returncode, proc.stdout, proc.stderr
 
 
 def run_spicetify(args: list[str], timeout: int = 300) -> tuple[int, str, str]:
     exe = find_executable("spicetify")
     if not exe:
-        return -1, "", "spicetify no encontrado en PATH ni en %LOCALAPPDATA%\\spicetify"
+        return -1, "", i18n.t("spicetify_not_found_path")
     return run_cmd([exe, *args], timeout=timeout)
 
 
@@ -401,12 +388,7 @@ def spicetify_error_hint(out: str = "", err: str = "") -> str | None:
     if not combined.strip():
         return None
     if any(m in combined.lower() for m in _MISMATCH_MARKERS):
-        return (
-            "El respaldo de Spicetify quedó desincronizado con tu versión de "
-            "Spotify (probablemente por una actualización automática de Spotify). "
-            "Para repararlo: reinstala Spotify y luego ejecuta 'RECUPERAR SISTEMA' "
-            "en Spicetifix."
-        )
+        return i18n.t("spicetify_mismatch_hint")
     return None
 
 

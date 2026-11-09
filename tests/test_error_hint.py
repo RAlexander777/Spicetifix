@@ -1,9 +1,16 @@
 import unittest
 
+from spicetifix.core import i18n
 from spicetifix.core.utils import spicetify_error_hint
 
 
 class TestSpicetifyErrorHint(unittest.TestCase):
+    def setUp(self):
+        i18n.set_lang("es")
+
+    def tearDown(self):
+        i18n.set_lang("en")
+
     def test_returns_none_when_empty(self):
         self.assertIsNone(spicetify_error_hint())
         self.assertIsNone(spicetify_error_hint("", ""))
@@ -32,6 +39,13 @@ class TestSpicetifyErrorHint(unittest.TestCase):
     def test_hint_mentions_reinstall_recovery(self):
         hint = spicetify_error_hint("version and backup version are mismatched")
         self.assertIn("reinstala Spotify", hint)
+
+    def test_hint_english_mode(self):
+        i18n.set_lang("en")
+        hint = spicetify_error_hint("version and backup version are mismatched")
+        self.assertIsNotNone(hint)
+        self.assertIn("RECOVER SYSTEM", hint)
+        self.assertIn("reinstall Spotify", hint)
 
 
 if __name__ == "__main__":
