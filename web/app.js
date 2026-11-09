@@ -257,6 +257,14 @@ async function applyLanguage(lang) {
     const el = document.getElementById(id);
     if (el) el.placeholder = text;
   };
+  const setTitle = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.title = text;
+  };
+  const setAria = (id, text) => {
+    const el = document.getElementById(id);
+    if (el) el.setAttribute('aria-label', text);
+  };
 
   setTxt('system-badge', t.system_ready);
   setTxt('lbl-open-spotify', t.open_spotify);
@@ -273,7 +281,7 @@ async function applyLanguage(lang) {
   setTxt('lbl-tab-dashboard', t.tab_dashboard);
   setTxt('lbl-tab-marketplace', t.tab_marketplace);
   setTxt('lbl-player-header', 'SPOTIFY');
-  setTxt('lbl-dock-spotify', t.open_spotify || 'ABRIR SPOTIFY');
+  setTxt('lbl-dock-spotify', t.open_spotify);
   setTxt('lbl-prev', t.prev_btn);
   setTxt('lbl-play', t.play_btn);
   setTxt('lbl-next', t.next_btn);
@@ -289,8 +297,14 @@ async function applyLanguage(lang) {
   setTxt('sec-title-logs', t.sec_logs);
   setTxt('lbl-copy-logs', t.lbl_copy_logs);
   setTxt('lbl-clear-logs', t.lbl_clear_logs);
-  setTxt('lbl-toggle-console', t.lbl_toggle_console || 'CONSOLA');
-  setTxt('lbl-scroll-bottom', t.lbl_scroll_bottom || 'Nuevos logs ↓');
+  setTxt('lbl-open-changelog', t.changelog_btn);
+  setTxt('lbl-toggle-console', t.lbl_toggle_console);
+  setTxt('lbl-scroll-bottom', t.lbl_scroll_bottom);
+  setTxt('btn-close-changelog-footer', t.btn_close);
+  setTxt('track-status-text', t.dock_idle);
+  setTxt('mp-loading-msg', t.mp_loading);
+  setTxt('console-output', t.console_prompt);
+  setTxt('console-preview-text', t.console_prompt);
   setTxt('modal-opt-title', t.modal_opt_title);
   setTxt('opt-sec-gen', t.opt_sec_gen);
   setTxt('lbl-lang', t.lbl_lang);
@@ -318,6 +332,25 @@ async function applyLanguage(lang) {
   setTxt('lbl-mp-prev', t.mp_prev);
   setTxt('lbl-mp-next', t.mp_next);
   setPh('mp-search-input', t.mp_search_placeholder);
+
+  // Tooltips (title attributes) & accessibility labels
+  setTitle('btn-open-spotify', t.tip_open_spotify);
+  setTitle('btn-refresh-status', t.tip_refresh_status);
+  setTitle('btn-header-console', t.tip_toggle_console);
+  setTitle('btn-toggle-console', t.tip_toggle_console);
+  setTitle('btn-open-changelog', t.tip_changelog);
+  setTitle('btn-update-check', t.tip_update);
+  setTitle('console-header', t.tip_console_header);
+  setTitle('btn-copy-logs', t.tip_copy_logs);
+  setTitle('btn-clear-logs', t.tip_clear_logs);
+  setTitle('btn-scroll-bottom', t.tip_scroll_bottom);
+  setTitle('btn-prev', t.tip_prev);
+  setTitle('btn-play', t.tip_play);
+  setTitle('btn-next', t.tip_next);
+  setTitle('btn-dock-spotify', t.tip_dock_spotify);
+  setAria('console-panel', t.aria_console_logs);
+
+  document.documentElement.lang = currentLang;
 
   // About modal texts
   const modalAboutTitle = document.querySelector('#about-modal h2');
@@ -375,22 +408,22 @@ function updateActionButtons(isWorking) {
   if (isWorking) {
     if (currentAction === 'recover' && btnRecover) {
       btnRecover.classList.add('is-busy');
-      btnRecover.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span> <span>${t.btn_recovering || 'RECUPERANDO...'}</span>`;
+      btnRecover.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span> <span>${t.btn_recovering}</span>`;
     } else if (btnInstall) {
       btnInstall.classList.add('is-busy');
-      btnInstall.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span> <span>${t.btn_installing || 'INSTALANDO...'}</span>`;
+      btnInstall.innerHTML = `<span class="btn-spinner" aria-hidden="true"></span> <span>${t.btn_installing}</span>`;
     }
   } else {
     currentAction = null;
     if (btnInstall) {
       btnInstall.classList.remove('is-busy');
       btnInstall.disabled = false;
-      btnInstall.innerHTML = `<i data-lucide="download-cloud"></i> <span id="lbl-btn-install">${t.btn_install || 'INSTALACIÓN / ACTUALIZACIÓN COMPLETA'}</span>`;
+      btnInstall.innerHTML = `<i data-lucide="download-cloud"></i> <span id="lbl-btn-install">${t.btn_install}</span>`;
     }
     if (btnRecover) {
       btnRecover.classList.remove('is-busy');
       btnRecover.disabled = false;
-      btnRecover.innerHTML = `<i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">${t.btn_recover || 'RECUPERAR SISTEMA (POST-UPDATE)'}</span>`;
+      btnRecover.innerHTML = `<i data-lucide="rotate-ccw"></i> <span id="lbl-btn-recover">${t.btn_recover}</span>`;
     }
     if (window.lucide && lucide.createIcons) lucide.createIcons();
   }
@@ -433,7 +466,7 @@ async function pollStatus() {
 
   const t = I18N[currentLang];
   if (data.is_working) {
-    badge.textContent = t.system_working || '[ TRABAJANDO... ]';
+    badge.textContent = t.system_working;
     badge.className = 'badge badge-connecting';
   } else {
     badge.textContent = t.system_ready;
@@ -464,11 +497,11 @@ async function pollStatus() {
         if (window.lucide && lucide.createIcons) lucide.createIcons();
       }
       if (dockStatusBadge) {
-        dockStatusBadge.textContent = currentLang === 'es' ? 'REPRODUCIENDO' : 'PLAYING';
+        dockStatusBadge.textContent = t.dock_playing;
         dockStatusBadge.className = 'dock-badge dock-badge-active';
       }
     } else {
-      const pausedString = data.now_playing.title || (currentLang === 'es' ? 'Spotify: En pausa / Sin reproducir' : 'Spotify: Paused / Inactive');
+      const pausedString = data.now_playing.title || t.dock_paused_title;
       if (trackInfo) {
         trackInfo.textContent = pausedString;
         trackInfo.title = pausedString;
@@ -483,7 +516,7 @@ async function pollStatus() {
         if (window.lucide && lucide.createIcons) lucide.createIcons();
       }
       if (dockStatusBadge) {
-        dockStatusBadge.textContent = currentLang === 'es' ? 'PAUSA' : 'PAUSED';
+        dockStatusBadge.textContent = t.dock_paused;
         dockStatusBadge.className = 'dock-badge';
       }
     }
@@ -565,10 +598,10 @@ async function pollStatus() {
   const statusPill = document.getElementById('console-status-pill');
   if (statusPill) {
     if (data.is_working) {
-      statusPill.textContent = t.system_working || '[ TRABAJANDO... ]';
+      statusPill.textContent = t.system_working;
       statusPill.className = 'console-status-pill pill-working';
     } else {
-      statusPill.textContent = t.system_ready || '[ LISTO ]';
+      statusPill.textContent = t.system_ready;
       statusPill.className = 'console-status-pill pill-ready';
     }
   }
@@ -1166,7 +1199,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const lbl = document.getElementById('lbl-copy-logs');
         if (lbl) {
           const oldTxt = lbl.textContent;
-          lbl.textContent = currentLang === 'es' ? '¡COPIADO!' : 'COPIED!';
+          lbl.textContent = t('copy_done');
           setTimeout(() => { lbl.textContent = oldTxt; }, 1500);
         }
       });
