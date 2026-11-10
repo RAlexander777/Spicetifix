@@ -73,6 +73,31 @@ def _apply_lang() -> None:
         i18n.set_lang("en")
 
 
+def _auto_backup() -> None:
+    """Export a safety backup before destructive operations (best effort)."""
+    try:
+        cfg = load_user_config()
+        if cfg.get("auto_backup", True) is False:
+            return
+        from spicetifix.core.backup import export_backup_zip
+        from spicetifix.core.utils import get_user_config_path
+        dest = get_user_config_path().parent / "backups"
+        _append_log(i18n.t("auto_backup_start"))
+        ok, path = export_backup_zip(
+            dest_dir=dest,
+            progress_callback=_set_progress,
+            log_callback=_append_log,
+            open_folder=False,
+        )
+        msg = i18n.t("auto_backup_ok", path=path) if ok else i18n.t("auto_backup_failed", err=path)
+        _append_log(msg)
+    except Exception as e:
+        try:
+            _append_log(i18n.t("auto_backup_failed", err=e))
+        except Exception:
+            pass
+
+
 def _set_progress(pct: float):
     global _install_progress
     with _state_lock:
@@ -625,6 +650,24 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 pass
             self._send_json({"status": "ok", "config": cfg})
 
+        elif path == "/api/logs/export":
+            text = body.get("text", "") if isinstance(body, dict) else ""
+            try:
+                from spicetifix.core.utils import get_user_config_path
+                logs_dir = get_user_config_path().parent / "logs"
+                logs_dir.mkdir(parents=True, exist_ok=True)
+                ts = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                log_file = logs_dir / f"spicetifix_{ts}.log"
+                log_file.write_text(text or "(empty)\n", encoding="utf-8")
+                try:
+                    import os
+                    os.startfile(str(logs_dir))
+                except Exception:
+                    pass
+                self._send_json({"status": "ok", "path": str(log_file)})
+            except Exception as e:
+                self._send_json({"error": str(e)}, 500)
+
         elif path == "/api/install":
             if not _begin_work():
                 self._send_json({"error": "Already working"}, 400)
@@ -635,6 +678,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
                     installer.set_lang(cfg.get("language", "en"))
+                    _auto_backup()
                     installer.install_all(cfg)
                 except Exception as e:
                     _append_log(f"{i18n.t('log_error')} {e}")
@@ -778,6 +822,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
                     installer.set_lang(cfg.get("language", "en"))
+                    _auto_backup()
                     installer.uninstall_spicetify()
                 except Exception as e:
                     _append_log(f"{i18n.t('log_error')} {e}")
@@ -797,6 +842,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
                     installer.set_lang(cfg.get("language", "en"))
+                    _auto_backup()
                     installer.uninstall_spicetify()
                     installer.uninstall_spotify()
                 except Exception as e:
@@ -843,6 +889,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     installer = Installer(log_callback=_append_log, progress_callback=_set_progress)
                     cfg = load_user_config()
                     installer.set_lang(cfg.get("language", "en"))
+                    _auto_backup()
                     installer.recover()
                 except Exception as e:
                     _append_log(f"{i18n.t('log_error')} {e}")

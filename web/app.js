@@ -60,6 +60,7 @@ let consecutiveErrors = 0;
 let statusErrors = 0;
 let appVersion = '';
 let lastTrack = null;
+let wasWorking = false;
 
 let isSpotifyInstalled = false;
 let isSpicetifyInstalled = false;
@@ -279,6 +280,20 @@ function openUpdateModal() {
   }
 }
 
+function toast(message, icon = 'success') {
+  if (typeof Swal === 'undefined') return;
+  Swal.fire({
+    toast: true,
+    position: 'bottom-end',
+    icon,
+    title: message,
+    showConfirmButton: false,
+    timer: 2600,
+    timerProgressBar: true,
+    customClass: { popup: 'cyber-toast' },
+  });
+}
+
 // Show SweetAlert Cyberpunk Dialog
 function showCyberAlert(title, text, confirmText, cancelText, onConfirm) {
   if (typeof Swal !== 'undefined') {
@@ -362,6 +377,7 @@ async function applyLanguage(lang) {
   setTxt('sec-title-logs', t.sec_logs);
   setTxt('lbl-copy-logs', t.lbl_copy_logs);
   setTxt('lbl-clear-logs', t.lbl_clear_logs);
+  setTxt('lbl-save-logs', t.lbl_save_logs);
   setTxt('lbl-open-changelog', t.changelog_btn);
   setTxt('lbl-toggle-console', t.lbl_toggle_console);
   setTxt('lbl-scroll-bottom', t.lbl_scroll_bottom);
@@ -408,6 +424,7 @@ async function applyLanguage(lang) {
   setTitle('console-header', t.tip_console_header);
   setTitle('btn-copy-logs', t.tip_copy_logs);
   setTitle('btn-clear-logs', t.tip_clear_logs);
+  setTitle('btn-save-logs', t.tip_save_logs);
   setTitle('btn-scroll-bottom', t.tip_scroll_bottom);
   setTitle('btn-prev', t.tip_prev);
   setTitle('btn-play', t.tip_play);
@@ -639,6 +656,9 @@ async function pollStatus() {
   }
 
   const t = I18N[currentLang];
+  const workingNow = !!data.is_working;
+  if (wasWorking && !workingNow) toast(t.op_finished);
+  wasWorking = workingNow;
   if (data.is_working) {
     setBadgeState(true, t.status_working, 'badge badge-connecting');
   } else {
@@ -1366,6 +1386,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   } catch (_) {
     setConsoleExpanded(false, false);
+  }
+
+  // Save Logs button
+  const btnSaveLogs = document.getElementById('btn-save-logs');
+  if (btnSaveLogs) {
+    btnSaveLogs.addEventListener('click', async () => {
+      const out = document.getElementById('console-output');
+      const text = out ? out.textContent : '';
+      const res = await apiFetch('/api/logs/export', 'POST', { text });
+      if (res && res.status === 'ok') toast(t('logs_saved'));
+      else toast(t('mp_failed'), 'error');
+    });
   }
 
   // Copy Logs button

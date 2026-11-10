@@ -15,7 +15,7 @@ from spicetifix.core.config import get_user_config_path
 from spicetifix.core import i18n
 
 
-def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callback=None) -> tuple[bool, str]:
+def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callback=None, open_folder: bool = True) -> tuple[bool, str]:
     """
     Creates a .zip archive containing Spicetify configuration, themes, extensions,
     custom apps, and Spicetifix user settings inside the project's backups/ directory.
@@ -74,7 +74,7 @@ def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callbac
         _log(i18n.t("backup_export_ok", path=zip_path))
         _prog(1.0)
 
-        if os.name == "nt":
+        if open_folder and os.name == "nt":
             try:
                 os.startfile(str(dest_dir))
             except Exception:
