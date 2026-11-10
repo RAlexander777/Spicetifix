@@ -883,9 +883,40 @@ button .gh-icon,
 
 .flags-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
   font-size: 0.85rem;
+}
+
+.flag-item {
+  align-items: flex-start;
+}
+
+.flag-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.flag-title {
+  font-size: 0.85rem;
+}
+
+.flag-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.flag-item-spaced {
+  margin-top: 10px;
+}
+
+.form-hint {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: -6px 0 12px;
+  line-height: 1.35;
 }
 
 .checkbox-label {

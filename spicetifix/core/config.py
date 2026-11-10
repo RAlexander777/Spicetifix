@@ -150,6 +150,7 @@ def _default_config() -> dict:
     return {
         "language": "en",
         "ui_theme": "emerald",
+        "auto_backup": True,
         "spicetify": {
             "theme": "text",
             "color_scheme": "",

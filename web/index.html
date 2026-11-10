@@ -292,6 +292,7 @@
               <!-- Dynamically populated -->
             </select>
           </div>
+          <div class="form-hint" id="desc-spicetify-theme">Theme applied to Spotify (separate from the app's interface theme).</div>
 
           <div class="form-row">
             <label for="select-color-scheme" id="lbl-color-scheme">Color Scheme:</label>
@@ -299,17 +300,28 @@
               <!-- Dynamically populated -->
             </select>
           </div>
+          <div class="form-hint" id="desc-color-scheme">Color variant of the selected Spicetify theme.</div>
+
+          <div class="flag-item-spaced">
+            <label class="checkbox-label flag-item">
+              <input type="checkbox" id="chk-auto-backup" checked>
+              <span class="flag-text">
+                <span id="lbl-auto-backup" class="flag-title">Automatic backup</span>
+                <span id="desc-auto-backup" class="flag-desc">Creates a backup before installing, recovering or uninstalling.</span>
+              </span>
+            </label>
+          </div>
         </div>
 
         <!-- Section: Advanced Spicetify Flags -->
         <div class="modal-section">
           <h3 id="opt-sec-flags">ADVANCED SPICETIFY FLAGS</h3>
           <div class="flags-grid">
-            <label class="checkbox-label"><input type="checkbox" id="chk-inject-css" checked> <span id="lbl-flag-css">Inject CSS</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-replace-colors" checked> <span id="lbl-flag-colors">Replace Colors</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-overwrite-assets"> <span id="lbl-flag-assets">Overwrite Assets</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-devtools"> <span id="lbl-flag-devtools">Always Enable DevTools</span></label>
-            <label class="checkbox-label"><input type="checkbox" id="chk-sentry"> <span id="lbl-flag-sentry">Sentry Telemetry</span></label>
+            <label class="checkbox-label flag-item"><input type="checkbox" id="chk-inject-css" checked> <span class="flag-text"><span id="lbl-flag-css" class="flag-title">Inject CSS</span><span id="desc-flag-css" class="flag-desc">Applies the selected theme's CSS to Spotify.</span></span></label>
+            <label class="checkbox-label flag-item"><input type="checkbox" id="chk-replace-colors" checked> <span class="flag-text"><span id="lbl-flag-colors" class="flag-title">Replace Colors</span><span id="desc-flag-colors" class="flag-desc">Lets the theme replace Spotify's default colors.</span></span></label>
+            <label class="checkbox-label flag-item"><input type="checkbox" id="chk-overwrite-assets"> <span class="flag-text"><span id="lbl-flag-assets" class="flag-title">Overwrite Assets</span><span id="desc-flag-assets" class="flag-desc">Overwrites Spotify's UI assets (logos, icons) with the theme's.</span></span></label>
+            <label class="checkbox-label flag-item"><input type="checkbox" id="chk-devtools"> <span class="flag-text"><span id="lbl-flag-devtools" class="flag-title">Always Enable DevTools</span><span id="desc-flag-devtools" class="flag-desc">Opens Spotify with DevTools enabled, for debugging.</span></span></label>
+            <label class="checkbox-label flag-item"><input type="checkbox" id="chk-sentry"> <span class="flag-text"><span id="lbl-flag-sentry" class="flag-title">Sentry Telemetry</span><span id="desc-flag-sentry" class="flag-desc">Keep Spotify's Sentry telemetry enabled (off is recommended).</span></span></label>
           </div>
         </div>
 

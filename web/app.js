@@ -397,6 +397,15 @@ async function applyLanguage(lang) {
   setTxt('lbl-flag-assets', t.lbl_flag_assets);
   setTxt('lbl-flag-devtools', t.lbl_flag_devtools);
   setTxt('lbl-flag-sentry', t.lbl_flag_sentry);
+  setTxt('desc-flag-css', t.desc_flag_css);
+  setTxt('desc-flag-colors', t.desc_flag_colors);
+  setTxt('desc-flag-assets', t.desc_flag_assets);
+  setTxt('desc-flag-devtools', t.desc_flag_devtools);
+  setTxt('desc-flag-sentry', t.desc_flag_sentry);
+  setTxt('desc-spicetify-theme', t.desc_spicetify_theme);
+  setTxt('desc-color-scheme', t.desc_color_scheme);
+  setTxt('lbl-auto-backup', t.lbl_auto_backup);
+  setTxt('desc-auto-backup', t.desc_auto_backup);
   setTxt('opt-sec-danger', t.opt_sec_danger);
   setTxt('lbl-btn-spicetify-apply', t.btn_spicetify_apply);
   setTxt('lbl-btn-uninstall-spicetify', t.btn_uninstall_spicetify);
@@ -1087,6 +1096,7 @@ function openOptionsModal() {
   setChk('chk-overwrite-assets', !!opts.overwrite_assets);
   setChk('chk-devtools', !!opts.always_enable_devtools);
   setChk('chk-sentry', pre.disable_sentry === false);
+  setChk('chk-auto-backup', cfg.auto_backup !== false);
 
   const spicetifySelect = document.getElementById('select-spicetify-theme');
   if (spicetifySelect && cfg.spicetify && cfg.spicetify.theme) {
@@ -1203,6 +1213,7 @@ async function saveOptions() {
     spicetify_theme: selectSpicetifyTheme ? selectSpicetifyTheme.value : 'SpicetifyDefault',
     color_scheme: selectColorScheme ? selectColorScheme.value : '',
     ui_theme: currentUITheme,
+    auto_backup: chk('chk-auto-backup'),
     options: {
       inject_css: chk('chk-inject-css'),
       replace_colors: chk('chk-replace-colors'),

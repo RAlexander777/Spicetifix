@@ -638,6 +638,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 cfg.setdefault("spicetify", {})["color_scheme"] = body["color_scheme"]
             if "language" in body:
                 cfg["language"] = body["language"]
+            if "auto_backup" in body:
+                cfg["auto_backup"] = bool(body["auto_backup"])
             if isinstance(body.get("options"), dict):
                 cfg.setdefault("options", {}).update(body["options"])
             if isinstance(body.get("preprocesses"), dict):
