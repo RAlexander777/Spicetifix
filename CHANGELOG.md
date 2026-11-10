@@ -4,6 +4,28 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.8] - 2026-11-10
+
+### Added
+- System diagnostics checklist in the dashboard.
+- Settings: save/apply the advanced Spicetify flags and color scheme, plus an
+  automatic-backup toggle; save the console logs to a file.
+- A safety backup now runs before install, recover and uninstall.
+
+### Changed
+- The UI defaults to English and the theme list is consistent (14 themes).
+- User config now lives in `%APPDATA%\Spicetify` (migrated automatically); added
+  `spicetify.yaml.example`.
+- Subtler loading feedback (braille spinner) and a minimal equalizer in the player
+  dock, which now shows the song over the artist.
+
+### Fixed
+- Backend console logs, API errors and the player are now localized (English and
+  Spanish) instead of hardcoded.
+- Marketplace loading feedback: the spinner no longer flashes "no results" when
+  changing category, REFRESH refetches, and cards reflect the installed state.
+- Unified the version source and clarified the update-download flow.
+
 ## [1.7.7] - 2026-10-07
 
 ### Added

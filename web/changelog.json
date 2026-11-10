@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.7.8",
+    "date": "2026-11-10",
+    "title": "Localization, Settings and polish",
+    "changes": [
+      "Backend console logs, API errors and the player are now localized (English/Spanish).",
+      "Options now save the advanced Spicetify flags and color scheme, and include an automatic-backup toggle.",
+      "User config moved to %APPDATA%\\Spicetify (migrated automatically); added spicetify.yaml.example.",
+      "System diagnostics checklist in the dashboard; save logs to a file; completion toasts.",
+      "Subtler loading spinner and a minimal equalizer in the player dock; the dock shows song over artist.",
+      "Marketplace loading fixes: no false 'no results', real refresh, and cards update after install/uninstall."
+    ]
+  },
+  {
     "version": "1.7.7",
     "date": "2026-10-07",
     "title": "Update Spicetify CLI, add Custom Apps and version comparison",
