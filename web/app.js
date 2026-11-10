@@ -133,6 +133,45 @@ async function openExternal(url) {
 
 let pendingUpdate = null;
 
+// ---- Background action feedback -----------------------------------------
+// Poll /api/status until the server-side worker finishes, then run onIdle.
+function waitForBackendIdle(onIdle, { graceMs = 1500, maxMs = 180000 } = {}) {
+  const started = Date.now();
+  let sawWorking = false;
+  const iv = setInterval(async () => {
+    const data = await apiFetch('/api/status');
+    const working = !!(data && data.is_working);
+    if (working) sawWorking = true;
+    const elapsed = Date.now() - started;
+    if ((sawWorking && !working) || elapsed > maxMs || (!working && elapsed > graceMs)) {
+      clearInterval(iv);
+      onIdle();
+    }
+  }, 700);
+}
+
+// Show a subtle spinner on a chip button, then a brief check, then restore.
+async function flashButtonBusy(btn, endpoint, onDone) {
+  if (!btn || btn.dataset.busy === '1') return;
+  btn.dataset.busy = '1';
+  btn.disabled = true;
+  const label = btn.querySelector('span');
+  const original = label ? label.innerHTML : '';
+  if (label) label.innerHTML = `${brailleHTML()} ${original}`;
+  try {
+    await apiFetch(endpoint, 'POST');
+  } catch (_) { /* failures surface in the console */ }
+  waitForBackendIdle(() => {
+    if (onDone) onDone();
+    if (label) label.innerHTML = `✓ ${original}`;
+    setTimeout(() => {
+      if (label) label.innerHTML = original;
+      btn.disabled = false;
+      delete btn.dataset.busy;
+    }, 1600);
+  });
+}
+
 async function checkForUpdate() {
   const data = await apiFetch('/api/update/check');
   const btn = document.getElementById('btn-update-check');
@@ -207,10 +246,35 @@ function openUpdateModal() {
         }
       },
     }).then(async (result) => {
-      if (result.isConfirmed && pendingUpdate.asset_url) {
-        await apiFetch('/api/update/download', 'POST', { asset_url: pendingUpdate.asset_url });
+      if (!(result.isConfirmed && pendingUpdate.asset_url)) return;
+      Swal.fire({
+        title: t('update_downloading'),
+        html: `<div style="font-size:1.5rem">${brailleHTML()}</div>`,
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        showConfirmButton: false,
+        customClass: {
+          popup: 'cyber-swal-popup',
+          title: 'cyber-swal-title',
+          htmlContainer: 'cyber-swal-html',
+        },
+      });
+      await apiFetch('/api/update/download', 'POST', { asset_url: pendingUpdate.asset_url });
+      waitForBackendIdle(() => {
         pollStatus();
-      }
+        Swal.fire({
+          title: t('update_downloaded_title'),
+          text: t('update_downloaded_help'),
+          confirmButtonText: t('btn_close'),
+          buttonsStyling: false,
+          customClass: {
+            popup: 'cyber-swal-popup',
+            title: 'cyber-swal-title',
+            htmlContainer: 'cyber-swal-html',
+            confirmButton: 'btn btn-accent',
+          },
+        });
+      });
     });
   }
 }
@@ -1202,23 +1266,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Export Backup ZIP button
   const btnExportBackup = document.getElementById('btn-export-backup');
   if (btnExportBackup) {
-    btnExportBackup.addEventListener('click', async () => {
-      const res = await apiFetch('/api/backup/export', 'POST');
-      if (res && res.status === 'ok') {
-        pollStatus();
-      }
-    });
+    btnExportBackup.addEventListener('click', () =>
+      flashButtonBusy(btnExportBackup, '/api/backup/export', pollStatus));
   }
 
   // Import Backup ZIP button (opens native Windows File Explorer dialog)
   const btnImportBackup = document.getElementById('btn-import-backup');
   if (btnImportBackup) {
-    btnImportBackup.addEventListener('click', async () => {
-      await apiFetch('/api/backup/import', 'POST');
-      pollStatus();
-      loadExtensions();
-      loadThemes();
-    });
+    btnImportBackup.addEventListener('click', () =>
+      flashButtonBusy(btnImportBackup, '/api/backup/import', () => {
+        pollStatus();
+        loadExtensions();
+        loadThemes();
+      }));
   }
 
   // Smart Console Scroll & Collapse Handlers
