@@ -1453,7 +1453,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const btnRefreshCatalog = document.getElementById('btn-refresh-catalog');
   if (btnRefreshCatalog) {
-    btnRefreshCatalog.addEventListener('click', () => loadMarketplaceCatalog());
+    btnRefreshCatalog.addEventListener('click', () => loadMarketplaceCatalog(true));
   }
 
   // Pagination
@@ -1545,12 +1545,10 @@ function switchTab(tabId) {
   }
 }
 
-async function loadMarketplaceCatalog() {
-  if (isLoadingCatalog) return;
-  isLoadingCatalog = true;
-  currentPage = 1;
-  versionFetchTried.clear();
+function renderMarketplaceLoading() {
   const grid = document.getElementById('mp-catalog-grid');
+  const pagination = document.getElementById('mp-pagination');
+  if (pagination) pagination.style.display = 'none';
   if (grid) {
     grid.innerHTML = `
       <div class="mp-loading">
@@ -1558,14 +1556,30 @@ async function loadMarketplaceCatalog() {
         <span>${t('mp_loading')}</span>
       </div>`;
   }
+}
+
+function renderMarketplaceError() {
+  const grid = document.getElementById('mp-catalog-grid');
+  const pagination = document.getElementById('mp-pagination');
+  if (pagination) pagination.style.display = 'none';
+  if (grid) grid.innerHTML = `<div class="empty-msg">${t('mp_error')}</div>`;
+}
+
+async function loadMarketplaceCatalog(force = false) {
+  if (isLoadingCatalog) return;
+  if (force) currentMarketplaceCatalog = [];
+  isLoadingCatalog = true;
+  currentPage = 1;
+  versionFetchTried.clear();
+  renderMarketplaceLoading();
 
   try {
     const catalog = await requestCatalog();
     if (catalog && catalog.length) {
       currentMarketplaceCatalog = catalog;
       renderMarketplaceCatalog();
-    } else if (grid) {
-      grid.innerHTML = `<div class="empty-msg">${t('mp_error')}</div>`;
+    } else {
+      renderMarketplaceError();
     }
   } finally {
     isLoadingCatalog = false;
@@ -1608,6 +1622,15 @@ function renderMarketplaceCatalog() {
   const grid = document.getElementById('mp-catalog-grid');
   const pagination = document.getElementById('mp-pagination');
   if (!grid) return;
+
+  // While the (slow) catalog is still being built, keep showing the spinner
+  // instead of flashing an empty "no results" state when a filter or search is
+  // clicked — otherwise changing category looks like it cancelled the load.
+  if (currentMarketplaceCatalog.length === 0) {
+    if (isLoadingCatalog) renderMarketplaceLoading();
+    else renderMarketplaceError();
+    return;
+  }
 
   const filtered = getFilteredCatalog();
   const totalPages = Math.max(1, Math.ceil(filtered.length / ITEMS_PER_PAGE));
@@ -1771,10 +1794,10 @@ async function installMarketplaceItem(item) {
   if (res && res.status === 'ok') {
     appendConsole(`${item.title} ${t('mp_installed_ok')}`);
     pollStatus();
-    await loadMarketplaceCatalog();
+    await loadMarketplaceCatalog(true);
   } else {
     appendConsole(`${t('mp_installed_err')} ${item.title}: ${res?.error || t('mp_failed')}`);
-    await loadMarketplaceCatalog();
+    await loadMarketplaceCatalog(true);
   }
 }
 
@@ -1786,9 +1809,9 @@ async function uninstallMarketplaceItem(item) {
   if (res && res.status === 'ok') {
     appendConsole(`${item.title} ${t('mp_uninstalled_ok')}`);
     pollStatus();
-    await loadMarketplaceCatalog();
+    await loadMarketplaceCatalog(true);
   } else {
     appendConsole(`${t('mp_uninstalled_err')} ${item.title}: ${res?.error || t('mp_failed')}`);
-    await loadMarketplaceCatalog();
+    await loadMarketplaceCatalog(true);
   }
 }
