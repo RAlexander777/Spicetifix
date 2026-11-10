@@ -59,6 +59,7 @@ function toggleConsole() {
 let consecutiveErrors = 0;
 let statusErrors = 0;
 let appVersion = '';
+let lastTrack = null;
 
 let isSpotifyInstalled = false;
 let isSpicetifyInstalled = false;
@@ -280,7 +281,6 @@ async function applyLanguage(lang) {
   setTxt('lbl-import-backup', t.import_backup);
   setTxt('lbl-tab-dashboard', t.tab_dashboard);
   setTxt('lbl-tab-marketplace', t.tab_marketplace);
-  setTxt('lbl-player-header', 'SPOTIFY');
   setTxt('lbl-dock-spotify', t.open_spotify);
   setTxt('lbl-prev', t.prev_btn);
   setTxt('lbl-play', t.play_btn);
@@ -585,56 +585,44 @@ async function pollStatus() {
   const trackInfo = document.getElementById('track-info');
   const dockIcon = document.getElementById('player-dock-icon');
   const playIcon = document.getElementById('icon-play-state');
-  const dockStatusBadge = document.getElementById('dock-status-badge');
   const trackStatusText = document.getElementById('track-status-text');
   const playerEq = document.getElementById('player-eq');
   const setEq = (on) => { if (playerEq) playerEq.classList.toggle('is-active', !!on); };
 
-  if (data.now_playing) {
-    const np = data.now_playing;
-    if (np.playing) {
-      // Top line = song, bottom line = artist (no repetition).
-      if (trackInfo) {
-        trackInfo.textContent = np.title || '';
-        trackInfo.title = [np.artist, np.title].filter(Boolean).join(' — ');
-      }
-      if (trackStatusText) trackStatusText.textContent = np.artist || '';
-      setEq(true);
-      if (dockIcon) {
-        dockIcon.classList.remove('icon-pulse');
-        dockIcon.classList.add('icon-spin-slow');
-      }
-      if (playIcon && playIcon.getAttribute('data-lucide') !== 'pause') {
-        playIcon.setAttribute('data-lucide', 'pause');
-        if (window.lucide && lucide.createIcons) lucide.createIcons();
-      }
-      if (dockStatusBadge) {
-        dockStatusBadge.textContent = t.dock_playing;
-        dockStatusBadge.className = 'dock-badge dock-badge-active';
-      }
-    } else {
-      const pausedTitle = np.title || t.dock_paused_title;
-      if (trackInfo) {
-        trackInfo.textContent = pausedTitle;
-        trackInfo.title = pausedTitle;
-      }
-      if (trackStatusText) trackStatusText.textContent = np.artist || 'Spotify';
-      setEq(false);
-      if (dockIcon) {
-        dockIcon.classList.remove('icon-spin-slow');
-        dockIcon.classList.add('icon-pulse');
-      }
-      if (playIcon && playIcon.getAttribute('data-lucide') !== 'play') {
-        playIcon.setAttribute('data-lucide', 'play');
-        if (window.lucide && lucide.createIcons) lucide.createIcons();
-      }
-      if (dockStatusBadge) {
-        dockStatusBadge.textContent = t.dock_paused;
-        dockStatusBadge.className = 'dock-badge';
-      }
+  const np = data.now_playing || null;
+  const isPlaying = !!(np && np.playing);
+  if (isPlaying && (np.title || np.artist)) {
+    lastTrack = { artist: np.artist || '', title: np.title || '' };
+  }
+  // Spotify drops the window title when paused, so keep showing the last known
+  // track instead of clearing it (it only reappears on play otherwise).
+  const shown = isPlaying ? { artist: np.artist, title: np.title } : lastTrack;
+
+  if (shown && (shown.title || shown.artist)) {
+    if (trackInfo) {
+      trackInfo.textContent = shown.title || '';
+      trackInfo.title = [shown.artist, shown.title].filter(Boolean).join(' — ');
     }
+    if (trackStatusText) trackStatusText.textContent = shown.artist || '';
   } else {
-    setEq(false);
+    if (trackInfo) {
+      trackInfo.textContent = t.dock_idle;
+      trackInfo.title = 'Spotify';
+    }
+    if (trackStatusText) trackStatusText.textContent = '';
+  }
+
+  setEq(isPlaying);
+  if (dockIcon) {
+    dockIcon.classList.toggle('icon-spin-slow', isPlaying);
+    dockIcon.classList.toggle('icon-pulse', !isPlaying);
+  }
+  if (playIcon) {
+    const want = isPlaying ? 'pause' : 'play';
+    if (playIcon.getAttribute('data-lucide') !== want) {
+      playIcon.setAttribute('data-lucide', want);
+      if (window.lucide && lucide.createIcons) lucide.createIcons();
+    }
   }
 
   // Health / Cards
