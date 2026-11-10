@@ -451,6 +451,35 @@ function renderHealth(health) {
   });
 }
 
+const STATUS_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+let statusFrame = 0;
+let statusTimer = null;
+
+// Subtle console status: a braille spinner while working, a muted mark when idle.
+function setConsoleStatus(isWorking) {
+  const pill = document.getElementById('console-status-pill');
+  if (!pill) return;
+  if (isWorking) {
+    pill.classList.add('pill-working');
+    pill.classList.remove('pill-ready');
+    if (!statusTimer) {
+      const step = () => {
+        pill.textContent = `${STATUS_FRAMES[statusFrame++ % STATUS_FRAMES.length]} ${t('status_working')}`;
+      };
+      step();
+      statusTimer = setInterval(step, 90);
+    }
+  } else {
+    if (statusTimer) {
+      clearInterval(statusTimer);
+      statusTimer = null;
+    }
+    pill.classList.remove('pill-working');
+    pill.classList.add('pill-ready');
+    pill.textContent = `✓ ${t('status_ready')}`;
+  }
+}
+
 // Fetch and render status
 async function pollStatus() {
   const data = await apiFetch('/api/status');
@@ -619,16 +648,7 @@ async function pollStatus() {
     }
   }
 
-  const statusPill = document.getElementById('console-status-pill');
-  if (statusPill) {
-    if (data.is_working) {
-      statusPill.textContent = t.system_working;
-      statusPill.className = 'console-status-pill pill-working';
-    } else {
-      statusPill.textContent = t.system_ready;
-      statusPill.className = 'console-status-pill pill-ready';
-    }
-  }
+  setConsoleStatus(!!data.is_working);
 
   const pBar = document.getElementById('progress-bar');
   if (data.is_working && (!data.progress || data.progress <= 0)) {
@@ -1677,8 +1697,8 @@ function renderMarketplaceCatalog() {
     let actionHtml;
     if (isApp) {
       actionHtml = `
-          <button class="btn btn-small btn-mp-open" data-id="${item.id}">
-            <i data-lucide="external-link"></i> ${t('mp_view')}
+          <button class="btn btn-small btn-mp-open" data-id="${item.id}" title="${t('mp_gh_title')}">
+            ${GITHUB_ICON_SVG} ${t('mp_view')}
           </button>`;
     } else {
       const btnClass = item.installed ? 'btn-danger' : 'btn-accent';
@@ -1717,19 +1737,19 @@ function renderMarketplaceCatalog() {
       <div class="mp-card-footer">
         ${statusHtml}
         <div class="mp-card-actions">
-          <button class="btn btn-small btn-mp-gh" title="${t('mp_gh_title')}">
-            ${GITHUB_ICON_SVG}
-          </button>
+          ${isApp ? '' : `<button class="btn btn-small btn-mp-gh" title="${t('mp_gh_title')}">${GITHUB_ICON_SVG}</button>`}
           ${actionHtml}
         </div>
       </div>
     `;
 
     const ghBtn = card.querySelector('.btn-mp-gh');
-    ghBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openExternal(repoUrl);
-    });
+    if (ghBtn) {
+      ghBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openExternal(repoUrl);
+      });
+    }
 
     const openBtn = card.querySelector('.btn-mp-open');
     if (openBtn) {

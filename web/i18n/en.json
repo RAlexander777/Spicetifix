@@ -47,6 +47,8 @@
   "btn_recover": "RECOVER SYSTEM (POST-UPDATE)",
   "btn_recovering": "RECOVERING...",
   "system_working": "[ WORKING... ]",
+  "status_ready": "ready",
+  "status_working": "working",
   "sec_exts": "// SPICETIFY EXTENSION MANAGER",
   "lbl_exts_header": "Detected Extensions & Custom Apps:",
   "btn_refresh": "REFRESH",

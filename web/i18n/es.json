@@ -47,6 +47,8 @@
   "btn_recover": "RECUPERAR SISTEMA (POST-UPDATE)",
   "btn_recovering": "RECUPERANDO...",
   "system_working": "[ TRABAJANDO... ]",
+  "status_ready": "listo",
+  "status_working": "trabajando",
   "sec_exts": "// GESTOR DE EXTENSIONES SPICETIFY",
   "lbl_exts_header": "Extensiones y Apps Detectadas:",
   "btn_refresh": "RECARGAR",
