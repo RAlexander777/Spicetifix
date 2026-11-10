@@ -54,6 +54,13 @@ class TestUpdater(unittest.TestCase):
             info = check_for_update("1.2.0")
         self.assertIsNone(info)
 
+    @patch("spicetifix.core.updater.get_current_version", return_value="")
+    def test_check_for_update_returns_none_when_version_unknown(self, _mock_ver):
+        with patch("spicetifix.core.updater.requests.get") as mock_get:
+            info = check_for_update()
+        self.assertIsNone(info)
+        mock_get.assert_not_called()
+
     def test_get_current_version_reads_pyproject(self):
         version = get_current_version()
         self.assertRegex(version, r"^\d+\.\d+\.\d+$")

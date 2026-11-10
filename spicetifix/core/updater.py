@@ -14,7 +14,9 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN") or "
 
 
 def get_current_version() -> str:
-    """Returns the packaged version (__version__), falling back to pyproject.toml."""
+    """Returns the app version from the single source of truth
+    (``spicetifix.__version__``), falling back to the installed package metadata
+    and finally to ``pyproject.toml``. Returns ``""`` when it cannot be determined."""
     try:
         import spicetifix
         if getattr(spicetifix, "__version__", ""):
@@ -22,16 +24,20 @@ def get_current_version() -> str:
     except Exception:
         pass
     try:
-        project_root = Path(__file__).resolve().parent.parent.parent
-        pyproject = project_root / "pyproject.toml"
-        if pyproject.exists():
-            for line in pyproject.read_text(encoding="utf-8").splitlines():
-                line = line.strip()
-                if line.startswith("version"):
-                    return line.split("=", 1)[1].strip().strip('"').strip("'")
+        from importlib.metadata import version as _dist_version
+        return _dist_version("spicetifix")
     except Exception:
         pass
-    return "1.7.7"
+    try:
+        import tomllib
+        pyproject = Path(__file__).resolve().parent.parent.parent / "pyproject.toml"
+        if pyproject.exists():
+            with open(pyproject, "rb") as f:
+                data = tomllib.load(f)
+            return data.get("project", {}).get("version", "") or ""
+    except Exception:
+        pass
+    return ""
 
 
 def _version_tuple(version: str) -> tuple[int, ...]:
@@ -47,6 +53,8 @@ def check_for_update(current_version: str | None = None) -> dict | None:
     version exists. Returns None when up to date or on any failure.
     """
     current = current_version or get_current_version()
+    if not current:
+        return None
 
     headers = {"User-Agent": USER_AGENT, "Accept": "application/vnd.github+json"}
     if GITHUB_TOKEN:
