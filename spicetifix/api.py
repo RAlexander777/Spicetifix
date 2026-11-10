@@ -609,9 +609,20 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 cfg["ui_theme"] = body["ui_theme"]
             if "spicetify_theme" in body:
                 cfg.setdefault("spicetify", {})["theme"] = body["spicetify_theme"]
+            if "color_scheme" in body:
+                cfg.setdefault("spicetify", {})["color_scheme"] = body["color_scheme"]
             if "language" in body:
                 cfg["language"] = body["language"]
+            if isinstance(body.get("options"), dict):
+                cfg.setdefault("options", {}).update(body["options"])
+            if isinstance(body.get("preprocesses"), dict):
+                cfg.setdefault("preprocesses", {}).update(body["preprocesses"])
             save_user_config(cfg)
+            try:
+                from spicetify.core.config import write_spicetify_config
+                write_spicetify_config(cfg)
+            except Exception:
+                pass
             self._send_json({"status": "ok", "config": cfg})
 
         elif path == "/api/install":

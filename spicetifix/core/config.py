@@ -166,6 +166,8 @@ def _default_config() -> dict:
         "options": {
             "inject_css": True,
             "replace_colors": True,
+            "overwrite_assets": False,
+            "always_enable_devtools": False,
             "check_spicetify_update": False,
         },
     }
@@ -262,7 +264,7 @@ def write_spicetify_config(
         "replace_colors": _bool_to_str(user_config.get("options", {}).get("replace_colors", True)),
         "overwrite_assets": _bool_to_str(user_config.get("options", {}).get("overwrite_assets", False)),
         "spotify_launch_flags": sc.get("spotify_launch_flags", ""),
-        "always_enable_devtools": "0",
+        "always_enable_devtools": _bool_to_str(user_config.get("options", {}).get("always_enable_devtools", False)),
         "check_spicetify_update": _bool_to_str(
             user_config.get("options", {}).get("check_spicetify_update", False)
         ),

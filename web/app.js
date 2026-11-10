@@ -797,7 +797,7 @@ async function pollStatus() {
 }
 
 // Load color schemes for a theme
-async function loadColorSchemes(themeName) {
+async function loadColorSchemes(themeName, selected = '') {
   const schemeSelect = document.getElementById('select-color-scheme');
   if (!schemeSelect) return;
 
@@ -817,6 +817,7 @@ async function loadColorSchemes(themeName) {
       schemeSelect.appendChild(opt);
     });
   }
+  if (selected) schemeSelect.value = selected;
 }
 
 // Load extensions
@@ -1052,20 +1053,28 @@ async function loadThemes() {
 // Open Options Modal
 function openOptionsModal() {
   const modal = document.getElementById('options-modal');
-  if (modal) {
-    const selectLang = document.getElementById('select-lang');
-    if (selectLang && currentLang) {
-      selectLang.value = currentLang;
-    }
+  if (!modal) return;
 
-    const spicetifySelect = document.getElementById('select-spicetify-theme');
-    if (spicetifySelect && systemConfig.spicetify && systemConfig.spicetify.theme) {
-      spicetifySelect.value = systemConfig.spicetify.theme;
-      loadColorSchemes(systemConfig.spicetify.theme);
-    }
+  const selectLang = document.getElementById('select-lang');
+  if (selectLang && currentLang) selectLang.value = currentLang;
 
-    modal.classList.add('active');
+  const cfg = systemConfig || {};
+  const opts = cfg.options || {};
+  const pre = cfg.preprocesses || {};
+  const setChk = (id, val) => { const el = document.getElementById(id); if (el) el.checked = !!val; };
+  setChk('chk-inject-css', opts.inject_css !== false);
+  setChk('chk-replace-colors', opts.replace_colors !== false);
+  setChk('chk-overwrite-assets', !!opts.overwrite_assets);
+  setChk('chk-devtools', !!opts.always_enable_devtools);
+  setChk('chk-sentry', pre.disable_sentry === false);
+
+  const spicetifySelect = document.getElementById('select-spicetify-theme');
+  if (spicetifySelect && cfg.spicetify && cfg.spicetify.theme) {
+    spicetifySelect.value = cfg.spicetify.theme;
+    loadColorSchemes(cfg.spicetify.theme, cfg.spicetify.color_scheme || '');
   }
+
+  modal.classList.add('active');
 }
 
 // Close Options Modal
@@ -1163,14 +1172,26 @@ function closeChangelogModal() {
 async function saveOptions() {
   const selectLang = document.getElementById('select-lang');
   const selectSpicetifyTheme = document.getElementById('select-spicetify-theme');
+  const selectColorScheme = document.getElementById('select-color-scheme');
+  const chk = (id) => { const el = document.getElementById(id); return !!(el && el.checked); };
 
-  const selectedLang = selectLang ? selectLang.value : 'es';
+  const selectedLang = selectLang ? selectLang.value : 'en';
   await applyLanguage(selectedLang);
 
   const body = {
     language: selectedLang,
     spicetify_theme: selectSpicetifyTheme ? selectSpicetifyTheme.value : 'SpicetifyDefault',
+    color_scheme: selectColorScheme ? selectColorScheme.value : '',
     ui_theme: currentUITheme,
+    options: {
+      inject_css: chk('chk-inject-css'),
+      replace_colors: chk('chk-replace-colors'),
+      overwrite_assets: chk('chk-overwrite-assets'),
+      always_enable_devtools: chk('chk-devtools'),
+    },
+    preprocesses: {
+      disable_sentry: !chk('chk-sentry'),
+    },
   };
 
   await apiFetch('/api/config/save', 'POST', body);
