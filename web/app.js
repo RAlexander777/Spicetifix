@@ -1455,7 +1455,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (btnApply.disabled) return;
       btnApply.disabled = true;
       const label = btnApply.querySelector('span');
-      if (label) label.textContent = t('btn_apply_exts_pending');
+      if (label) label.innerHTML = `${brailleHTML()} ${t('btn_apply_exts_pending')}`;
       const res = await apiFetch('/api/extensions/apply', 'POST');
       if (res && res.error) {
         appendConsole(`${t('ext_apply_err')} ${res.error}`);
