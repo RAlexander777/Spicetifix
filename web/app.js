@@ -451,32 +451,95 @@ function renderHealth(health) {
   });
 }
 
-const STATUS_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
-let statusFrame = 0;
-let statusTimer = null;
+function renderHealthLoading() {
+  const grid = document.getElementById('health-grid');
+  if (grid && !grid.querySelector('.health-item')) {
+    grid.innerHTML = `<div class="empty-msg">${brailleHTML(t('checking_system'))}</div>`;
+  }
+}
+
+function renderDockLoading() {
+  const trackInfo = document.getElementById('track-info');
+  if (trackInfo) trackInfo.innerHTML = brailleHTML(t('loading_spotify'));
+}
+
+// ---- Shared braille spinner ---------------------------------------------
+// One ticker animates every spinner on screen: the console status pill, the
+// header badge, busy buttons (.btn-spinner), the marketplace loader
+// (.mp-spinner) and inline <span class="braille" data-suffix="..."> nodes.
+const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
+const SPINNER_SELECTOR = '.braille, .btn-spinner, .mp-spinner';
+let spinnerFrame = 0;
+let spinnerTimer = null;
+
+function spinTick() {
+  const els = document.querySelectorAll(SPINNER_SELECTOR);
+  if (els.length === 0) {
+    clearInterval(spinnerTimer);
+    spinnerTimer = null;
+    return;
+  }
+  const glyph = SPINNER_FRAMES[spinnerFrame++ % SPINNER_FRAMES.length];
+  els.forEach(el => {
+    const suffix = el.dataset.suffix;
+    el.textContent = suffix ? `${glyph} ${suffix}` : glyph;
+  });
+}
+
+function ensureSpinners() {
+  if (!spinnerTimer && document.querySelector(SPINNER_SELECTOR)) {
+    spinTick();
+    spinnerTimer = setInterval(spinTick, 90);
+  }
+}
+
+// Kick the ticker off as soon as any spinner element is inserted by a render.
+const spinnerObserver = new MutationObserver(mutations => {
+  for (const m of mutations) {
+    for (const node of m.addedNodes) {
+      if (node.nodeType === 1 &&
+          (node.matches(SPINNER_SELECTOR) || node.querySelector(SPINNER_SELECTOR))) {
+        ensureSpinners();
+        return;
+      }
+    }
+  }
+});
+
+function brailleHTML(suffix = '') {
+  const safe = String(suffix).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+  return `<span class="braille" data-suffix="${safe}"></span>`;
+}
 
 // Subtle console status: a braille spinner while working, a muted mark when idle.
 function setConsoleStatus(isWorking) {
   const pill = document.getElementById('console-status-pill');
   if (!pill) return;
   if (isWorking) {
-    pill.classList.add('pill-working');
+    pill.classList.add('braille', 'pill-working');
     pill.classList.remove('pill-ready');
-    if (!statusTimer) {
-      const step = () => {
-        pill.textContent = `${STATUS_FRAMES[statusFrame++ % STATUS_FRAMES.length]} ${t('status_working')}`;
-      };
-      step();
-      statusTimer = setInterval(step, 90);
-    }
+    pill.dataset.suffix = t('status_working');
+    ensureSpinners();
   } else {
-    if (statusTimer) {
-      clearInterval(statusTimer);
-      statusTimer = null;
-    }
-    pill.classList.remove('pill-working');
+    pill.classList.remove('braille', 'pill-working');
     pill.classList.add('pill-ready');
+    delete pill.dataset.suffix;
     pill.textContent = `✓ ${t('status_ready')}`;
+  }
+}
+
+function setBadgeState(spinning, text, className) {
+  const badge = document.getElementById('system-badge');
+  if (!badge) return;
+  badge.className = className;
+  if (spinning) {
+    badge.classList.add('braille');
+    badge.dataset.suffix = text;
+    ensureSpinners();
+  } else {
+    badge.classList.remove('braille');
+    delete badge.dataset.suffix;
+    badge.textContent = text;
   }
 }
 
@@ -485,13 +548,10 @@ async function pollStatus() {
   const data = await apiFetch('/api/status');
   if (!data || data.error) {
     statusErrors++;
-    const badge = document.getElementById('system-badge');
     if (statusErrors <= 1) {
-      badge.textContent = I18N[currentLang].system_connecting;
-      badge.className = 'badge badge-connecting';
+      setBadgeState(true, I18N[currentLang].status_connecting, 'badge badge-connecting');
     } else {
-      badge.textContent = I18N[currentLang].system_disconnected;
-      badge.className = 'badge badge-disconnected';
+      setBadgeState(false, I18N[currentLang].system_disconnected, 'badge badge-disconnected');
     }
     const trackInfo = document.getElementById('track-info');
     trackInfo.textContent = I18N[currentLang].conn_error;
@@ -500,7 +560,6 @@ async function pollStatus() {
   }
   statusErrors = 0;
   isConnected = true;
-  const badge = document.getElementById('system-badge');
 
   if (data.version) {
     appVersion = data.version;
@@ -517,11 +576,9 @@ async function pollStatus() {
 
   const t = I18N[currentLang];
   if (data.is_working) {
-    badge.textContent = t.system_working;
-    badge.className = 'badge badge-connecting';
+    setBadgeState(true, t.status_working, 'badge badge-connecting');
   } else {
-    badge.textContent = t.system_ready;
-    badge.className = 'badge';
+    setBadgeState(false, t.system_ready, 'badge');
   }
 
   // Now Playing (Bottom Dock Mini-Player)
@@ -620,7 +677,7 @@ async function pollStatus() {
   const actTheme = document.getElementById('action-theme');
   tagTheme.textContent = t.tag_active;
   tagTheme.style.color = 'var(--contrast-color)';
-  subTheme.textContent = data.current_theme || t('none');
+  subTheme.textContent = data.current_theme || t.none;
   if (actTheme) actTheme.textContent = t.act_change_theme;
 
   renderHealth(data.health);
@@ -811,14 +868,18 @@ async function fetchRepoVersions(repos) {
 }
 
 async function loadExtensions() {
+  const extGrid = document.getElementById('ext-grid');
+  if (extGrid && !extGrid.querySelector('.ext-item')) {
+    extGrid.innerHTML = `<div class="empty-msg">${brailleHTML(t('ext_loading'))}</div>`;
+  }
+
   const data = await apiFetch('/api/extensions');
   if (!data) {
-    const extGrid = document.getElementById('ext-grid');
     if (extGrid) extGrid.innerHTML = `<div class="empty-msg">${t('conn_error')}</div>`;
     return;
   }
 
-  const extGrid = document.getElementById('ext-grid');
+  if (!extGrid) return;
   extGrid.innerHTML = '';
 
   const allItems = [
@@ -987,7 +1048,7 @@ async function loadChangelogInfo() {
   const listEl = document.getElementById('changelog-list');
   if (!listEl) return;
 
-  listEl.innerHTML = `<div class="empty-msg">${t('changelog_loading')}</div>`;
+  listEl.innerHTML = `<div class="empty-msg">${brailleHTML(t('changelog_loading'))}</div>`;
 
   try {
     const res = await fetch('changelog.json', { cache: 'no-store' });
@@ -1066,11 +1127,13 @@ async function saveOptions() {
 // Initialize UI
 document.addEventListener('DOMContentLoaded', async () => {
   await loadI18n();
-  const badge = document.getElementById('system-badge');
-  badge.textContent = I18N['en'].system_connecting;
-  badge.className = 'badge badge-connecting';
+  setBadgeState(true, I18N['en'].status_connecting, 'badge badge-connecting');
 
   await applyLanguage('en');
+  renderHealthLoading();
+  renderDockLoading();
+  spinnerObserver.observe(document.body, { childList: true, subtree: true });
+  ensureSpinners();
   loadThemes();
   loadExtensions();
   pollStatus();
