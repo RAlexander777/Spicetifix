@@ -236,10 +236,6 @@ svg[data-lucide], i[data-lucide] {
   to { transform: rotate(360deg); }
 }
 
-.icon-spin-slow {
-  animation: spin 6s linear infinite;
-}
-
 .icon-spin:hover {
   animation: spin 1s linear infinite;
 }
@@ -248,10 +244,6 @@ svg[data-lucide], i[data-lucide] {
   0% { transform: scale(1); opacity: 1; }
   50% { transform: scale(1.15); opacity: 0.8; }
   100% { transform: scale(1); opacity: 1; }
-}
-
-.icon-pulse {
-  animation: pulse 2s ease-in-out infinite;
 }
 
 /* Header */
@@ -1575,10 +1567,6 @@ button .gh-icon,
   line-height: 1;
 }
 
-@keyframes mp-spin {
-  to { transform: rotate(360deg); }
-}
-
 .btn-spinner {
   display: inline-block;
   font-family: var(--font-mono);
@@ -1792,26 +1780,6 @@ button .gh-icon,
   max-width: 360px;
 }
 
-.player-dock-icon-box {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background-color: var(--bg-color);
-  border: 1px solid var(--card-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--accent-color);
-  transition: border-color 0.2s ease, transform 0.2s ease;
-}
-
-.player-dock-icon-box svg {
-  margin-right: 0;
-  width: 20px;
-  height: 20px;
-}
-
 .player-dock-meta {
   min-width: 0;
   overflow: hidden;
@@ -1821,18 +1789,13 @@ button .gh-icon,
   gap: 2px;
 }
 
-.player-dock-titlerow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
 .player-eq {
   display: inline-flex;
   align-items: flex-end;
-  gap: 2px;
-  height: 12px;
+  justify-content: center;
+  gap: 3px;
+  width: 24px;
+  height: 24px;
   flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.2s ease;

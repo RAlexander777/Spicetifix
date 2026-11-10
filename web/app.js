@@ -583,7 +583,6 @@ async function pollStatus() {
 
   // Now Playing (Bottom Dock Mini-Player)
   const trackInfo = document.getElementById('track-info');
-  const dockIcon = document.getElementById('player-dock-icon');
   const playIcon = document.getElementById('icon-play-state');
   const trackStatusText = document.getElementById('track-status-text');
   const playerEq = document.getElementById('player-eq');
@@ -613,10 +612,6 @@ async function pollStatus() {
   }
 
   setEq(isPlaying);
-  if (dockIcon) {
-    dockIcon.classList.toggle('icon-spin-slow', isPlaying);
-    dockIcon.classList.toggle('icon-pulse', !isPlaying);
-  }
   if (playIcon) {
     const want = isPlaying ? 'pause' : 'play';
     if (playIcon.getAttribute('data-lucide') !== want) {
