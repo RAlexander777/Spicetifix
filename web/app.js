@@ -587,15 +587,19 @@ async function pollStatus() {
   const playIcon = document.getElementById('icon-play-state');
   const dockStatusBadge = document.getElementById('dock-status-badge');
   const trackStatusText = document.getElementById('track-status-text');
+  const playerEq = document.getElementById('player-eq');
+  const setEq = (on) => { if (playerEq) playerEq.classList.toggle('is-active', !!on); };
 
   if (data.now_playing) {
-    if (data.now_playing.playing) {
-      const trackString = `${data.now_playing.artist} — ${data.now_playing.title}`;
+    const np = data.now_playing;
+    if (np.playing) {
+      // Top line = song, bottom line = artist (no repetition).
       if (trackInfo) {
-        trackInfo.textContent = trackString;
-        trackInfo.title = trackString;
+        trackInfo.textContent = np.title || '';
+        trackInfo.title = [np.artist, np.title].filter(Boolean).join(' — ');
       }
-      if (trackStatusText) trackStatusText.textContent = data.now_playing.artist;
+      if (trackStatusText) trackStatusText.textContent = np.artist || '';
+      setEq(true);
       if (dockIcon) {
         dockIcon.classList.remove('icon-pulse');
         dockIcon.classList.add('icon-spin-slow');
@@ -609,12 +613,13 @@ async function pollStatus() {
         dockStatusBadge.className = 'dock-badge dock-badge-active';
       }
     } else {
-      const pausedString = data.now_playing.title || t.dock_paused_title;
+      const pausedTitle = np.title || t.dock_paused_title;
       if (trackInfo) {
-        trackInfo.textContent = pausedString;
-        trackInfo.title = pausedString;
+        trackInfo.textContent = pausedTitle;
+        trackInfo.title = pausedTitle;
       }
-      if (trackStatusText) trackStatusText.textContent = 'Spotify';
+      if (trackStatusText) trackStatusText.textContent = np.artist || 'Spotify';
+      setEq(false);
       if (dockIcon) {
         dockIcon.classList.remove('icon-spin-slow');
         dockIcon.classList.add('icon-pulse');
@@ -628,6 +633,8 @@ async function pollStatus() {
         dockStatusBadge.className = 'dock-badge';
       }
     }
+  } else {
+    setEq(false);
   }
 
   // Health / Cards
