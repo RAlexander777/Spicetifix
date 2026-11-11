@@ -1871,6 +1871,13 @@ button .gh-icon,
   50% { height: 100%; }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .player-eq.is-active i {
+    animation: none;
+    height: 60%;
+  }
+}
+
 .player-dock-title {
   font-size: 0.85rem;
   font-weight: 700;

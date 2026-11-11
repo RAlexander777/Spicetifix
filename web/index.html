@@ -15,7 +15,7 @@
       <div class="brand">
         <span class="prompt-icon">❯</span>
         <h1 class="title">SPICETIFIX</h1>
-        <span class="badge badge-online" id="system-badge">[ SYSTEM_READY ]</span>
+        <span class="badge badge-online" id="system-badge" role="status" aria-live="polite">[ SYSTEM_READY ]</span>
       </div>
 
       <div class="header-actions">
@@ -210,7 +210,7 @@
           <i data-lucide="chevron-up" id="console-toggle-icon"></i>
         </button>
         <span class="console-title"><i data-lucide="terminal"></i> <span id="sec-title-logs">// SYSTEM LOGS</span></span>
-        <span class="console-status-pill pill-ready" id="console-status-pill">✓ ready</span>
+        <span class="console-status-pill pill-ready" id="console-status-pill" role="status" aria-live="polite">✓ ready</span>
         <span class="console-preview" id="console-preview-text">root@spicetifix:~$ system initialized. Ready.</span>
       </div>
       <div class="console-actions">
@@ -279,7 +279,7 @@
 
   <!-- OPTIONS MODAL -->
   <div class="modal-overlay" id="options-modal">
-    <div class="modal-content">
+    <div class="modal-content" role="dialog" aria-modal="true">
       <div class="modal-header">
         <h2 id="modal-opt-title"><i data-lucide="sliders"></i> <span id="lbl-modal-opt-title">SYSTEM OPTIONS & CONFIGURATION</span></h2>
         <button class="modal-close" id="btn-close-options">✕</button>
@@ -355,7 +355,7 @@
 
   <!-- ABOUT MODAL -->
   <div class="modal-overlay" id="about-modal">
-    <div class="modal-content">
+    <div class="modal-content" role="dialog" aria-modal="true">
       <div class="modal-header">
         <h2><i data-lucide="info"></i> ABOUT SPICETIFIX</h2>
         <button class="modal-close" id="btn-close-about">✕</button>
@@ -401,7 +401,7 @@
 
   <!-- CHANGELOG MODAL -->
   <div class="modal-overlay" id="changelog-modal">
-    <div class="modal-content">
+    <div class="modal-content" role="dialog" aria-modal="true">
       <div class="modal-header">
         <h2><i data-lucide="history"></i> <span id="changelog-title">Release Notes</span></h2>
         <button class="modal-close" id="btn-close-changelog">✕</button>

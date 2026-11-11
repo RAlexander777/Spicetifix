@@ -607,24 +607,34 @@ function renderDockLoading() {
 // (.mp-spinner) and inline <span class="braille" data-suffix="..."> nodes.
 const SPINNER_FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏'];
 const SPINNER_SELECTOR = '.braille, .btn-spinner, .mp-spinner';
+const prefersReducedMotion = (typeof window.matchMedia === 'function')
+  ? window.matchMedia('(prefers-reduced-motion: reduce)')
+  : null;
 let spinnerFrame = 0;
 let spinnerTimer = null;
 
-function spinTick() {
-  const els = document.querySelectorAll(SPINNER_SELECTOR);
-  if (els.length === 0) {
-    clearInterval(spinnerTimer);
-    spinnerTimer = null;
-    return;
-  }
-  const glyph = SPINNER_FRAMES[spinnerFrame++ % SPINNER_FRAMES.length];
-  els.forEach(el => {
+function paintSpinners(glyph) {
+  document.querySelectorAll(SPINNER_SELECTOR).forEach(el => {
     const suffix = el.dataset.suffix;
     el.textContent = suffix ? `${glyph} ${suffix}` : glyph;
   });
 }
 
+function spinTick() {
+  if (document.querySelectorAll(SPINNER_SELECTOR).length === 0) {
+    clearInterval(spinnerTimer);
+    spinnerTimer = null;
+    return;
+  }
+  paintSpinners(SPINNER_FRAMES[spinnerFrame++ % SPINNER_FRAMES.length]);
+}
+
 function ensureSpinners() {
+  // Respect reduced-motion: draw a static glyph instead of animating.
+  if (prefersReducedMotion && prefersReducedMotion.matches) {
+    paintSpinners(SPINNER_FRAMES[0]);
+    return;
+  }
   if (!spinnerTimer && document.querySelector(SPINNER_SELECTOR)) {
     spinTick();
     spinnerTimer = setInterval(spinTick, 90);
