@@ -962,6 +962,34 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             threading.Thread(target=run, daemon=True).start()
             self._send_json({"status": "started"})
 
+        elif path == "/api/update/apply":
+            asset_url = body.get("asset_url", "")
+            if not asset_url.startswith("https://"):
+                self._send_json({"error": i18n.t("invalid_params")}, 400)
+                return
+            if not _begin_work():
+                self._send_json({"error": "Already working"}, 400)
+                return
+            try:
+                from spicetifix.core.updater import apply_update
+                _append_log(i18n.t("update_applying"))
+                ok, reason = apply_update(asset_url)
+                if not ok:
+                    _append_log(i18n.t("update_apply_failed", err=reason))
+                    _end_work()
+                    self._send_json({"error": reason}, 500)
+                    return
+                _append_log(i18n.t("update_apply_ok"))
+                self._send_json({"status": "ok"})
+                self.wfile.flush()
+                # Exit shortly after the response is delivered; the detached
+                # helper waits for this process to end, then swaps and relaunches.
+                threading.Timer(1.2, lambda: os._exit(0)).start()
+            except Exception as e:
+                _append_log(f"{i18n.t('log_error')} {e}")
+                _end_work()
+                self._send_json({"error": str(e)}, 500)
+
         elif path == "/api/recover":
             if not _begin_work():
                 self._send_json({"error": "Already working"}, 400)

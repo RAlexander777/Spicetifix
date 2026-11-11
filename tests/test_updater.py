@@ -92,5 +92,48 @@ class TestUpdater(unittest.TestCase):
             self.assertEqual(target.name, "Spicetifix.zip")
 
 
+class TestInPlaceUpdate(unittest.TestCase):
+    def test_install_dir_none_when_not_frozen(self):
+        import spicetifix.core.updater as updater
+        with patch.object(updater.sys, "frozen", False, create=True):
+            self.assertIsNone(updater._install_dir())
+
+    def test_install_dir_when_frozen(self):
+        import tempfile
+        from pathlib import Path
+        import spicetifix.core.updater as updater
+        with tempfile.TemporaryDirectory() as tmp:
+            exe = Path(tmp) / "Spicetifix.exe"
+            with patch.object(updater.sys, "frozen", True, create=True), \
+                 patch.object(updater.sys, "executable", str(exe)):
+                d = updater._install_dir()
+            self.assertEqual(d, Path(tmp).resolve())
+
+    def test_apply_update_source_mode(self):
+        import spicetifix.core.updater as updater
+        with patch.object(updater.sys, "frozen", False, create=True):
+            ok, reason = updater.apply_update("https://example.com/Spicetifix.zip")
+        self.assertFalse(ok)
+        self.assertEqual(reason, "source_mode")
+
+    def test_find_stage_dir(self):
+        import tempfile
+        from pathlib import Path
+        import spicetifix.core.updater as updater
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            app = root / "Spicetifix"
+            (app / "_internal").mkdir(parents=True)
+            (app / "Spicetifix.exe").write_text("x", encoding="utf-8")
+            self.assertEqual(updater._find_stage_dir(root), app)
+
+    def test_find_stage_dir_none(self):
+        import tempfile
+        from pathlib import Path
+        import spicetifix.core.updater as updater
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertIsNone(updater._find_stage_dir(Path(tmp)))
+
+
 if __name__ == "__main__":
     unittest.main()
