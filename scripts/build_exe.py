@@ -57,12 +57,21 @@ def build_standalone_exe(console=False):
         "--exclude-module=Pyside6",
     ]
 
-    for mod in ("pystray", "PIL"):
-        try:
-            if importlib.util.find_spec(mod):
-                cmd.append(f"--collect-all={mod}")
-        except Exception:
-            pass
+    pystray_available = False
+    try:
+        pystray_available = importlib.util.find_spec("pystray") is not None
+    except Exception:
+        pystray_available = False
+
+    if pystray_available:
+        for mod in ("pystray", "PIL"):
+            try:
+                if importlib.util.find_spec(mod):
+                    cmd.append(f"--collect-all={mod}")
+            except Exception:
+                pass
+        for hi in ("pystray._win32", "pystray._util.win32", "PIL.Image", "PIL.ImageDraw", "PIL.ImageFont"):
+            cmd.append(f"--hidden-import={hi}")
     cmd.append(str(main_script))
 
     if not console:

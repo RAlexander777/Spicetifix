@@ -5,9 +5,10 @@ import subprocess
 import sys
 import threading
 import time
+import traceback
 import webbrowser
 
-DEFAULT_PORT = 8765
+DEFAULT_PORT = int(os.environ.get("SPICETIFIX_PORT", "8765"))
 HEARTBEAT_IDLE_TIMEOUT = 300  # Safety net; frontend polls every 1.5s
 
 try:
@@ -60,12 +61,25 @@ def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
         return False
 
 
+def _tray_log(msg: str) -> None:
+    try:
+        from spicetifix.core.utils import get_user_config_path
+        p = get_user_config_path().parent / "tray.log"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        with open(p, "a", encoding="utf-8") as f:
+            f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n")
+    except Exception:
+        pass
+
+
 def _start_tray(window):
     """Create a system-tray icon (optional; needs pystray + Pillow)."""
+    _tray_log("start")
     try:
         import pystray
         from PIL import Image, ImageDraw
     except Exception:
+        _tray_log("import failed:\n" + traceback.format_exc())
         return None
 
     try:
@@ -116,8 +130,18 @@ def _start_tray(window):
         )
         icon = pystray.Icon("spicetifix", _image(), tooltip, menu)
         threading.Thread(target=icon.run, name="spicetifix-tray", daemon=True).start()
+
+        def _probe():
+            time.sleep(2)
+            try:
+                _tray_log(f"visible={getattr(icon, 'visible', '?')}")
+            except Exception:
+                _tray_log("probe failed:\n" + traceback.format_exc())
+
+        threading.Thread(target=_probe, name="spicetifix-tray-probe", daemon=True).start()
         return icon
     except Exception:
+        _tray_log("tray failed:\n" + traceback.format_exc())
         return None
 
 
