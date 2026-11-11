@@ -5,6 +5,8 @@ import sys
 import zipfile
 from pathlib import Path
 
+import importlib.util
+
 
 def _add_file_to_zip(zf, file, arcname):
     """Write a file into the zip with a UTC extended-timestamp (0x5455) extra
@@ -53,8 +55,15 @@ def build_standalone_exe(console=False):
         "--exclude-module=PyQt5",
         "--exclude-module=PyQt6",
         "--exclude-module=Pyside6",
-        str(main_script),
     ]
+
+    for mod in ("pystray", "PIL"):
+        try:
+            if importlib.util.find_spec(mod):
+                cmd.append(f"--collect-all={mod}")
+        except Exception:
+            pass
+    cmd.append(str(main_script))
 
     if not console:
         cmd.insert(cmd.index("--clean") + 1, "--windowed")
