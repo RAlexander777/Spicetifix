@@ -45,17 +45,59 @@ def _launch_browser_fallback(url: str):
 
 
 def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
-    """Bring an already-running Spicetifix window to the foreground (Windows)."""
+    """Bring an already-running Spicetifix window to the foreground (Windows).
+
+    SetForegroundWindow is denied for background processes (the Windows foreground
+    lock), so we temporarily attach our input thread to the foreground thread and
+    bounce the window through topmost to force it up.
+    """
     if sys.platform != "win32":
         return False
     try:
-        user32 = ctypes.windll.user32
+        from ctypes import wintypes
+
+        user32 = ctypes.WinDLL("user32", use_last_error=True)
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+
+        user32.FindWindowW.restype = wintypes.HWND
+        user32.FindWindowW.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR]
+        user32.GetForegroundWindow.restype = wintypes.HWND
+        user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.c_void_p]
+        user32.GetWindowThreadProcessId.restype = wintypes.DWORD
+        user32.ShowWindow.argtypes = [wintypes.HWND, ctypes.c_int]
+        user32.AttachThreadInput.argtypes = [wintypes.DWORD, wintypes.DWORD, wintypes.BOOL]
+        user32.SetWindowPos.argtypes = [
+            wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int,
+            ctypes.c_int, ctypes.c_int, ctypes.c_uint,
+        ]
+        user32.BringWindowToTop.argtypes = [wintypes.HWND]
+        user32.SetForegroundWindow.argtypes = [wintypes.HWND]
+        kernel32.GetCurrentThreadId.restype = wintypes.DWORD
+
         hwnd = user32.FindWindowW(None, title)
         if not hwnd:
             return False
-        user32.ShowWindow(hwnd, 9)  # SW_RESTORE
-        user32.SetForegroundWindow(hwnd)
-        return True
+
+        SW_RESTORE = 9
+        SWP_NOSIZE = 0x0001
+        SWP_NOMOVE = 0x0002
+        user32.ShowWindow(hwnd, SW_RESTORE)
+
+        fg = user32.GetForegroundWindow()
+        fg_thread = user32.GetWindowThreadProcessId(fg, None) if fg else 0
+        cur_thread = kernel32.GetCurrentThreadId()
+        attached = False
+        if fg_thread and fg_thread != cur_thread:
+            attached = bool(user32.AttachThreadInput(cur_thread, fg_thread, True))
+
+        user32.SetWindowPos(hwnd, wintypes.HWND(-1), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
+        user32.SetWindowPos(hwnd, wintypes.HWND(-2), 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE)
+        user32.BringWindowToTop(hwnd)
+        ok = bool(user32.SetForegroundWindow(hwnd))
+
+        if attached:
+            user32.AttachThreadInput(cur_thread, fg_thread, False)
+        return ok
     except Exception:
         return False
 
