@@ -44,6 +44,80 @@ def _launch_browser_fallback(url: str):
     threading.Thread(target=run, daemon=True).start()
 
 
+def _own_exe_name() -> str:
+    try:
+        return os.path.basename(sys.executable).lower()
+    except Exception:
+        return "spicetifix.exe"
+
+
+def _process_name(pid: int) -> str:
+    try:
+        from ctypes import wintypes
+
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+        kernel32.QueryFullProcessImageNameW.argtypes = [
+            wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD),
+        ]
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if not handle:
+            return ""
+        buf = ctypes.create_unicode_buffer(1024)
+        size = wintypes.DWORD(len(buf))
+        ok = kernel32.QueryFullProcessImageNameW(handle, 0, buf, ctypes.byref(size))
+        kernel32.CloseHandle(handle)
+        return os.path.basename(buf.value) if ok else ""
+    except Exception:
+        return ""
+
+
+def _find_own_window(title: str = "SPICETIFIX") -> int:
+    """Find a visible top-level window titled exactly `title` that belongs to this
+    same executable (the already-running instance).
+
+    FindWindowW is case-insensitive and can match an unrelated window whose title
+    only differs in case, so we enumerate and match precisely by title + process.
+    """
+    try:
+        from ctypes import wintypes
+
+        user32 = ctypes.WinDLL("user32", use_last_error=True)
+        user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
+        user32.GetWindowTextW.argtypes = [wintypes.HWND, wintypes.LPWSTR, ctypes.c_int]
+        user32.IsWindowVisible.argtypes = [wintypes.HWND]
+        user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+
+        candidates = []
+
+        def _cb(hwnd, _lparam):
+            if not user32.IsWindowVisible(hwnd):
+                return True
+            length = user32.GetWindowTextLengthW(hwnd)
+            if length <= 0:
+                return True
+            buf = ctypes.create_unicode_buffer(length + 1)
+            user32.GetWindowTextW(hwnd, buf, length + 1)
+            if buf.value == title:
+                pid = wintypes.DWORD()
+                user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
+                candidates.append((int(hwnd), pid.value))
+            return True
+
+        callback = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)(_cb)
+        user32.EnumWindows(callback, 0)
+
+        own = _own_exe_name()
+        for hwnd, pid in candidates:
+            if _process_name(pid).lower() == own:
+                return hwnd
+        return candidates[0][0] if candidates else 0
+    except Exception:
+        return 0
+
+
 def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
     """Bring an already-running Spicetifix window to the foreground (Windows).
 
@@ -59,8 +133,6 @@ def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
         user32 = ctypes.WinDLL("user32", use_last_error=True)
         kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
 
-        user32.FindWindowW.restype = wintypes.HWND
-        user32.FindWindowW.argtypes = [wintypes.LPCWSTR, wintypes.LPCWSTR]
         user32.GetForegroundWindow.restype = wintypes.HWND
         user32.GetWindowThreadProcessId.argtypes = [wintypes.HWND, ctypes.c_void_p]
         user32.GetWindowThreadProcessId.restype = wintypes.DWORD
@@ -74,7 +146,7 @@ def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
         user32.SetForegroundWindow.argtypes = [wintypes.HWND]
         kernel32.GetCurrentThreadId.restype = wintypes.DWORD
 
-        hwnd = user32.FindWindowW(None, title)
+        hwnd = _find_own_window(title)
         if not hwnd:
             return False
 
