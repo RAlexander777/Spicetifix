@@ -421,6 +421,10 @@ async function applyLanguage(lang) {
   setTxt('lbl-mp-filter-installed', t.mp_filter_installed);
   setTxt('lbl-mp-prev', t.mp_prev);
   setTxt('lbl-mp-next', t.mp_next);
+  setTxt('lbl-mp-sort-relevance', t.mp_sort_relevance);
+  setTxt('lbl-mp-sort-name', t.mp_sort_name);
+  setTxt('lbl-mp-sort-updated', t.mp_sort_updated);
+  setTxt('lbl-mp-sort-stars', t.mp_sort_stars);
   setPh('mp-search-input', t.mp_search_placeholder);
 
   // Tooltips (title attributes) & accessibility labels
@@ -544,7 +548,12 @@ function renderHealth(health) {
 function renderHealthLoading() {
   const grid = document.getElementById('health-grid');
   if (grid && !grid.querySelector('.health-item')) {
-    grid.innerHTML = `<div class="empty-msg">${brailleHTML(t('checking_system'))}</div>`;
+    grid.innerHTML = Array.from({ length: 6 }).map(() => `
+      <div class="health-item">
+        <span class="skeleton sk-dot"></span>
+        <span class="skeleton sk-label"></span>
+        <span class="skeleton sk-detail"></span>
+      </div>`).join('');
   }
 }
 
@@ -954,7 +963,14 @@ async function fetchRepoVersions(repos) {
 async function loadExtensions() {
   const extGrid = document.getElementById('ext-grid');
   if (extGrid && !extGrid.querySelector('.ext-item')) {
-    extGrid.innerHTML = `<div class="empty-msg">${brailleHTML(t('ext_loading'))}</div>`;
+    extGrid.innerHTML = Array.from({ length: 6 }).map(() => `
+      <div class="ext-item ext-item-skeleton">
+        <div class="ext-item-main">
+          <span class="skeleton sk-label"></span>
+          <span class="skeleton sk-sub"></span>
+        </div>
+        <span class="skeleton sk-toggle"></span>
+      </div>`).join('');
   }
 
   const data = await apiFetch('/api/extensions');
@@ -1242,6 +1258,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   ensureSpinners();
   loadThemes();
   loadExtensions();
+  restoreMarketplacePrefs();
   pollStatus();
   setInterval(pollStatus, 1500);
   checkForUpdate();
@@ -1633,9 +1650,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Marketplace Search & Filters
   const searchInput = document.getElementById('mp-search-input');
   if (searchInput) {
+    let searchDebounce = null;
     searchInput.addEventListener('input', () => {
-      currentPage = 1;
-      renderMarketplaceCatalog();
+      storeSet(STORE_KEYS.search, searchInput.value);
+      clearTimeout(searchDebounce);
+      searchDebounce = setTimeout(() => {
+        currentPage = 1;
+        renderMarketplaceCatalog();
+      }, 150);
     });
   }
 
@@ -1644,10 +1666,23 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.querySelectorAll('.chip-filter').forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       currentMarketplaceFilter = chip.dataset.filter;
+      storeSet(STORE_KEYS.filter, currentMarketplaceFilter);
       currentPage = 1;
       renderMarketplaceCatalog();
+      scrollCatalogTop();
     });
   });
+
+  const sortSelect = document.getElementById('mp-sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      currentMarketplaceSort = sortSelect.value;
+      storeSet(STORE_KEYS.sort, currentMarketplaceSort);
+      currentPage = 1;
+      renderMarketplaceCatalog();
+      scrollCatalogTop();
+    });
+  }
 
   const btnRefreshCatalog = document.getElementById('btn-refresh-catalog');
   if (btnRefreshCatalog) {
@@ -1657,8 +1692,8 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Pagination
   const btnPrev = document.getElementById('btn-mp-prev');
   const btnNext = document.getElementById('btn-mp-next');
-  if (btnPrev) btnPrev.addEventListener('click', () => { currentPage--; renderMarketplaceCatalog(); });
-  if (btnNext) btnNext.addEventListener('click', () => { currentPage++; renderMarketplaceCatalog(); });
+  if (btnPrev) btnPrev.addEventListener('click', () => { currentPage--; renderMarketplaceCatalog(); scrollCatalogTop(); });
+  if (btnNext) btnNext.addEventListener('click', () => { currentPage++; renderMarketplaceCatalog(); scrollCatalogTop(); });
 
   // Danger Zone Actions
   document.getElementById('btn-spicetify-apply').addEventListener('click', async () => {
@@ -1701,10 +1736,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 // MARKETPLACE & TAB SYSTEM LOGIC
 let currentMarketplaceCatalog = [];
 let currentMarketplaceFilter = 'all';
+let currentMarketplaceSort = 'relevance';
 let currentPage = 1;
 const ITEMS_PER_PAGE = 12;
 let isLoadingCatalog = false;
 let catalogPromise = null;
+
+const STORE_KEYS = {
+  filter: 'spicetifix_mp_filter',
+  search: 'spicetifix_mp_search',
+  sort: 'spicetifix_mp_sort',
+  tab: 'spicetifix_active_tab',
+};
+
+function storeGet(key) {
+  try { return localStorage.getItem(key); } catch (_) { return null; }
+}
+
+function storeSet(key, value) {
+  try { localStorage.setItem(key, value); } catch (_) {}
+}
 
 // Single shared catalog request: the extension list and the Marketplace tab both
 // need it, so they must not each trigger a (slow) rebuild.
@@ -1736,11 +1787,16 @@ function switchTab(tabId) {
   if (tabId === 'marketplace') {
     // Never restart the load on every tab switch; only fetch if it has not
     // been loaded yet, and leave the in-progress spinner untouched so the
-    // load does not look like it was cancelled.
-    if (currentMarketplaceCatalog.length === 0 && !isLoadingCatalog) {
-      loadMarketplaceCatalog();
+    // load does not look like it was cancelled. When the catalog was already
+    // preloaded in the background (the extension list warms it up), the grid
+    // may still hold its placeholder — render it instead of showing nothing.
+    if (currentMarketplaceCatalog.length === 0) {
+      if (!isLoadingCatalog) loadMarketplaceCatalog();
+    } else if (!document.querySelector('#mp-catalog-grid .mp-card:not(.mp-card-skeleton)')) {
+      renderMarketplaceCatalog();
     }
   }
+  storeSet(STORE_KEYS.tab, tabId);
 }
 
 function renderMarketplaceLoading() {
@@ -1748,11 +1804,14 @@ function renderMarketplaceLoading() {
   const pagination = document.getElementById('mp-pagination');
   if (pagination) pagination.style.display = 'none';
   if (grid) {
-    grid.innerHTML = `
-      <div class="mp-loading">
-        <div class="mp-spinner" aria-hidden="true"></div>
-        <span>${t('mp_loading')}</span>
-      </div>`;
+    grid.innerHTML = Array.from({ length: 6 }).map(() => `
+      <div class="mp-card mp-card-skeleton" aria-hidden="true">
+        <div class="skeleton sk-title"></div>
+        <div class="skeleton sk-sub"></div>
+        <div class="skeleton sk-line"></div>
+        <div class="skeleton sk-line short"></div>
+        <div class="skeleton sk-btn"></div>
+      </div>`).join('');
   }
 }
 
@@ -1760,7 +1819,17 @@ function renderMarketplaceError() {
   const grid = document.getElementById('mp-catalog-grid');
   const pagination = document.getElementById('mp-pagination');
   if (pagination) pagination.style.display = 'none';
-  if (grid) grid.innerHTML = `<div class="empty-msg">${t('mp_error')}</div>`;
+  if (!grid) return;
+  grid.innerHTML = `
+    <div class="mp-error-state">
+      <div class="empty-msg">${t('mp_error')}</div>
+      <button class="btn btn-small btn-accent" id="btn-mp-retry">
+        <i data-lucide="refresh-cw"></i> ${t('mp_retry')}
+      </button>
+    </div>`;
+  const retry = document.getElementById('btn-mp-retry');
+  if (retry) retry.addEventListener('click', () => loadMarketplaceCatalog(true));
+  if (window.lucide) window.lucide.createIcons();
 }
 
 async function loadMarketplaceCatalog(force = false) {
@@ -1788,18 +1857,69 @@ function getFilteredCatalog() {
   const searchInput = document.getElementById('mp-search-input');
   const searchQuery = (searchInput ? searchInput.value : '').toLowerCase().trim();
 
-  return currentMarketplaceCatalog.filter(item => {
+  const filtered = currentMarketplaceCatalog.filter(item => {
     const matchesFilter =
       currentMarketplaceFilter === 'all' ||
       (currentMarketplaceFilter === 'installed'
         ? item.installed
         : item.type === currentMarketplaceFilter);
-    const matchesSearch = !searchQuery || 
-      item.title.toLowerCase().includes(searchQuery) || 
-      item.description.toLowerCase().includes(searchQuery) || 
-      item.author.toLowerCase().includes(searchQuery);
+    const matchesSearch = !searchQuery ||
+      (item.title || '').toLowerCase().includes(searchQuery) ||
+      (item.description || '').toLowerCase().includes(searchQuery) ||
+      (item.author || '').toLowerCase().includes(searchQuery);
     return matchesFilter && matchesSearch;
   });
+
+  return sortCatalog(filtered);
+}
+
+function sortCatalog(items) {
+  const sorted = items.slice();
+  switch (currentMarketplaceSort) {
+    case 'name':
+      sorted.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+      break;
+    case 'updated':
+      sorted.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+      break;
+    case 'stars':
+      sorted.sort((a, b) => (b.stars || 0) - (a.stars || 0));
+      break;
+    default:
+      break; // relevance: keep the catalog's own order
+  }
+  return sorted;
+}
+
+function scrollCatalogTop() {
+  const grid = document.getElementById('mp-catalog-grid');
+  if (grid && typeof grid.scrollIntoView === 'function') {
+    grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+}
+
+function restoreMarketplacePrefs() {
+  const filter = storeGet(STORE_KEYS.filter);
+  if (filter) {
+    currentMarketplaceFilter = filter;
+    document.querySelectorAll('.chip-filter').forEach(c => {
+      c.classList.toggle('active', c.dataset.filter === filter);
+    });
+  }
+
+  const search = storeGet(STORE_KEYS.search);
+  const searchInput = document.getElementById('mp-search-input');
+  if (search && searchInput) searchInput.value = search;
+
+  const sort = storeGet(STORE_KEYS.sort);
+  const sortSelect = document.getElementById('mp-sort-select');
+  if (sort && sortSelect) {
+    currentMarketplaceSort = sort;
+    sortSelect.value = sort;
+  }
+
+  const tab = storeGet(STORE_KEYS.tab);
+  if (tab === 'marketplace') switchTab('marketplace');
 }
 
 function ensureMarketplaceVersions(items) {

@@ -673,7 +673,7 @@ button .gh-icon,
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   gap: 10px;
-  max-height: 180px;
+  max-height: clamp(180px, 32vh, 460px);
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -714,7 +714,7 @@ button .gh-icon,
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 6px 18px;
-  max-height: 200px;
+  max-height: clamp(200px, 36vh, 520px);
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -1526,6 +1526,7 @@ button .gh-icon,
 
 .mp-filter-chips {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
 }
 
@@ -2025,4 +2026,80 @@ button .gh-icon,
   .player-dock-inner {
     padding: 0 12px;
   }
+}
+
+/* ============================================================
+   LOADING SKELETONS
+   ============================================================ */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--card-bg);
+  border-radius: 6px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(125, 125, 125, 0.22), transparent);
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+@keyframes skeleton-shimmer {
+  100% { transform: translateX(100%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton::after { animation: none; }
+}
+
+.skeleton.sk-title { height: 15px; width: 55%; }
+.skeleton.sk-sub { height: 11px; width: 34%; }
+.skeleton.sk-line { height: 11px; width: 100%; }
+.skeleton.sk-line.short { width: 72%; }
+.skeleton.sk-btn { height: 28px; width: 96px; margin-top: auto; }
+.skeleton.sk-dot { flex: 0 0 auto; width: 8px; height: 8px; border-radius: 50%; }
+.skeleton.sk-label { height: 10px; width: 96px; }
+.skeleton.sk-detail { height: 10px; width: 42%; margin-left: auto; }
+.skeleton.sk-toggle { flex: 0 0 auto; width: 16px; height: 16px; border-radius: 4px; }
+
+.mp-card-skeleton {
+  gap: 12px;
+  min-height: 172px;
+  pointer-events: none;
+}
+
+.ext-item-skeleton {
+  gap: 8px;
+}
+
+/* Marketplace error state (with retry) */
+.mp-error-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 48px 0;
+  text-align: center;
+}
+
+/* Marketplace sort control */
+.mp-sort {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.mp-sort select {
+  width: auto;
+}
+
+/* Initial header badge, before the first status poll replaces it */
+.badge-online {
+  color: var(--accent-color) !important;
 }

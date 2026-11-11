@@ -169,6 +169,15 @@
           <button class="chip-filter" data-filter="app" id="btn-mp-filter-app"><span id="lbl-mp-filter-app">Apps</span></button>
           <button class="chip-filter" data-filter="installed" id="btn-mp-filter-installed"><span id="lbl-mp-filter-installed">Installed</span></button>
         </div>
+        <div class="mp-sort">
+          <i data-lucide="arrow-up-down"></i>
+          <select id="mp-sort-select" class="theme-dropdown">
+            <option value="relevance" id="lbl-mp-sort-relevance">Relevance</option>
+            <option value="name" id="lbl-mp-sort-name">Name (A-Z)</option>
+            <option value="updated" id="lbl-mp-sort-updated">Recently updated</option>
+            <option value="stars" id="lbl-mp-sort-stars">Most stars</option>
+          </select>
+        </div>
         <button class="btn btn-small" id="btn-refresh-catalog"><i data-lucide="refresh-cw"></i> <span id="lbl-refresh-catalog">REFRESH CATALOG</span></button>
       </div>
 

@@ -31,7 +31,6 @@ MANIFEST
 # PyInstaller / Executables
 *.manifest
 *.spec
-!Spicetifix.spec
 
 # Installer logs
 pip-log.txt
