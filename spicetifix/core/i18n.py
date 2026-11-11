@@ -114,6 +114,7 @@ STRINGS = {
         "np_paused_active": "Paused / Active",
         "np_not_playing": "Not Playing",
         "port_in_use": "ERROR: could not open port {port} ({err}). Another Spicetifix instance may be running.",
+        "already_running": "Spicetifix is already running — focusing the existing window.",
         "pywebview_unavailable": "pywebview unavailable ({err}). Falling back to the browser."
     },
     "es": {
@@ -229,6 +230,7 @@ STRINGS = {
         "np_paused_active": "En pausa / Activo",
         "np_not_playing": "Sin reproducción",
         "port_in_use": "ERROR: no se pudo abrir el puerto {port} ({err}). Otra instancia de Spicetifix puede estar en ejecución.",
+        "already_running": "Spicetifix ya está en ejecución — enfocando la ventana existente.",
         "pywebview_unavailable": "pywebview no disponible ({err}). Usando navegador como respaldo."
     }
 }

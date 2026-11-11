@@ -44,6 +44,22 @@ def _launch_browser_fallback(url: str):
     threading.Thread(target=run, daemon=True).start()
 
 
+def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
+    """Bring an already-running Spicetifix window to the foreground (Windows)."""
+    if sys.platform != "win32":
+        return False
+    try:
+        user32 = ctypes.windll.user32
+        hwnd = user32.FindWindowW(None, title)
+        if not hwnd:
+            return False
+        user32.ShowWindow(hwnd, 9)  # SW_RESTORE
+        user32.SetForegroundWindow(hwnd)
+        return True
+    except Exception:
+        return False
+
+
 def start():
     from spicetifix.api import make_server
     from spicetifix.core import i18n
@@ -56,6 +72,9 @@ def start():
     try:
         server = make_server(port=DEFAULT_PORT, auth_token=token, idle_timeout=HEARTBEAT_IDLE_TIMEOUT)
     except OSError as e:
+        if _focus_existing_window():
+            print(f"> {i18n.t('already_running')}")
+            sys.exit(0)
         print(f"> {i18n.t('port_in_use', port=DEFAULT_PORT, err=e)}")
         sys.exit(1)
 
