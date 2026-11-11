@@ -2,6 +2,8 @@
 
 > **Automated Spotify & Spicetify Setup, Extension Manager & Terminal Control Center for Windows.**
 
+**English** · [Español](README.es.md)
+
 Spicetifix is a minimal, terminal-styled desktop application for installing, configuring, and managing **Spotify** and **Spicetify** on Windows. It uses a **pywebview native window** (WebView2) wrapping a **Python sidecar API backend** served on `127.0.0.1`.
 
 ---
@@ -11,12 +13,13 @@ Spicetifix is a minimal, terminal-styled desktop application for installing, con
 - **Native Desktop Window** — Runs in a **pywebview** window (WebView2), no browser dependency.
 - **Automated Setup** — Installs Spotify, Spicetify CLI, themes, Marketplace, and configures everything in one click.
 - **Native Marketplace Tab** — Browse, search, and 1-click install/uninstall extensions (e.g. *Adblock*, *Popup Lyrics*, *Full App Display*, *Loopy Loop*, *Bookmark*, *Auto Skip Explicit*) and themes directly as **persistent local files** (`.js`).
+- **Marketplace Updates** — An "Updates" filter lists installed items with a newer release, with "Update all" and sorting (name / recently updated / stars).
 - **Persistent Extension Management** — Automatically downloads `.js` files to `Extensions/` and registers them in `config-xpui.ini` & `spicetifix.yaml`, ensuring 100% reboot/cache survival and full ZIP backup compatibility.
 - **Extension Manager** — Auto-detects installed `.js`/`.mjs` extensions with live toggles.
 - **Live Spotify Widget** — Now Playing display with Prev / Play-Pause / Next controls.
 - **14 UI Themes** — Cyber Emerald, Dracula, Amber CRT, Nordic Frost, Matrix Void, Tokyo Night, Catppuccin Mocha, and more.
 - **System Recovery** — One-click `spicetify restore backup apply` after Spotify updates.
-- **Health Diagnostics** — Real-time checklist verifying all system paths.
+- **Health Diagnostics** — Real-time checklist of all system paths, with one-click fix actions (install / change).
 - **Backup & Restore** — Export/import full Spicetify configuration as `.zip`.
 - **Multilingual** — English & Spanish.
 
