@@ -177,12 +177,12 @@ async function checkForUpdate() {
   const data = await apiFetch('/api/update/check');
   const btn = document.getElementById('btn-update-check');
   if (!data || !data.update) {
-    if (btn) btn.style.display = 'none';
+    if (btn) btn.style.visibility = 'hidden';
     return;
   }
   pendingUpdate = data.update;
   if (btn) {
-    btn.style.display = 'inline-flex';
+    btn.style.visibility = 'visible';
     const lbl = document.getElementById('lbl-update-check');
     if (lbl) {
       lbl.textContent = t('update_btn');

@@ -8,7 +8,7 @@
   "changelog_btn": "CAMBIOS",
   "update_btn": "NUEVA VERSIÓN",
   "update_title": "¡NUEVA VERSIÓN DISPONIBLE!",
-  "update_message": "Versión {v} disponible. Descárgala ahora.",
+  "update_message": "Versión {v} disponible.",
   "update_download": "DESCARGAR ZIP",
   "update_dismiss": "MÁS TARDE",
   "update_view_release": "VER RELEASE EN GITHUB",

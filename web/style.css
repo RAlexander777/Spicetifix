@@ -1173,6 +1173,19 @@ button .gh-icon,
   font-size: 0.88rem !important;
 }
 
+.cyber-swal-popup .swal2-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 12px;
+  width: 100%;
+  margin-top: 1.2em;
+}
+
+.cyber-swal-popup .swal2-actions button {
+  margin: 0 !important;
+}
+
 .cyber-versions {
   margin-top: 8px;
   color: var(--text-muted);
