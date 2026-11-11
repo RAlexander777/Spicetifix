@@ -5,7 +5,6 @@ import subprocess
 import sys
 import threading
 import time
-import traceback
 import webbrowser
 
 DEFAULT_PORT = int(os.environ.get("SPICETIFIX_PORT", "8765"))
@@ -59,90 +58,6 @@ def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
         return True
     except Exception:
         return False
-
-
-def _tray_log(msg: str) -> None:
-    try:
-        from spicetifix.core.utils import get_user_config_path
-        p = get_user_config_path().parent / "tray.log"
-        p.parent.mkdir(parents=True, exist_ok=True)
-        with open(p, "a", encoding="utf-8") as f:
-            f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {msg}\n")
-    except Exception:
-        pass
-
-
-def _start_tray(window):
-    """Create a system-tray icon (optional; needs pystray + Pillow)."""
-    _tray_log("start")
-    try:
-        import pystray
-        from PIL import Image, ImageDraw
-    except Exception:
-        _tray_log("import failed:\n" + traceback.format_exc())
-        return None
-
-    try:
-        from spicetifix.core import i18n
-        show_lbl = i18n.t("tray_show")
-        hide_lbl = i18n.t("tray_hide")
-        quit_lbl = i18n.t("tray_quit")
-        tooltip = i18n.t("tray_tooltip")
-    except Exception:
-        show_lbl, hide_lbl, quit_lbl, tooltip = "Show", "Hide", "Quit", "Spicetifix"
-
-    def _image():
-        size = 64
-        img = Image.new("RGBA", (size, size), (11, 15, 23, 255))
-        draw = ImageDraw.Draw(img)
-        draw.polygon([(18, 16), (46, 32), (18, 48)], fill=(0, 255, 157, 255))
-        return img
-
-    def _show(icon=None, item=None):
-        try:
-            window.show()
-            window.restore()
-        except Exception:
-            pass
-
-    def _hide(icon=None, item=None):
-        try:
-            window.hide()
-        except Exception:
-            pass
-
-    def _quit(icon=None, item=None):
-        try:
-            icon.stop()
-        except Exception:
-            pass
-        try:
-            window.destroy()
-        except Exception:
-            pass
-        os._exit(0)
-
-    try:
-        menu = pystray.Menu(
-            pystray.MenuItem(show_lbl, _show, default=True),
-            pystray.MenuItem(hide_lbl, _hide),
-            pystray.MenuItem(quit_lbl, _quit),
-        )
-        icon = pystray.Icon("spicetifix", _image(), tooltip, menu)
-        threading.Thread(target=icon.run, name="spicetifix-tray", daemon=True).start()
-
-        def _probe():
-            time.sleep(2)
-            try:
-                _tray_log(f"visible={getattr(icon, 'visible', '?')}")
-            except Exception:
-                _tray_log("probe failed:\n" + traceback.format_exc())
-
-        threading.Thread(target=_probe, name="spicetifix-tray-probe", daemon=True).start()
-        return icon
-    except Exception:
-        _tray_log("tray failed:\n" + traceback.format_exc())
-        return None
 
 
 def start():
@@ -229,8 +144,6 @@ def start():
 
                 window.events.closing += _closing
                 window.events.closed += lambda: os._exit(0)
-            if window:
-                _start_tray(window)
             webview.start(private_mode=False)
             os._exit(0)
         except Exception as e:

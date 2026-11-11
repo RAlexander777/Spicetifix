@@ -1,6 +1,4 @@
 requests>=2.31.0
 PyYAML>=6.0
 pywebview>=6.0
-pystray>=0.19
-pillow>=10.0
 pyinstaller>=6.0
