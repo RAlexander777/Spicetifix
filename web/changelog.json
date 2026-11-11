@@ -1,22 +1,13 @@
 [
   {
-    "version": "1.7.10",
-    "date": "2026-11-11",
-    "title": "Fix in-place update",
-    "changes": [
-      "Install & Restart now works: the swap helper starts correctly and replaces/relaunches after the app closes.",
-      "Update dialog polish: no header layout shift when the update button appears, spaced action buttons, trimmed text."
-    ]
-  },
-  {
     "version": "1.7.9",
     "date": "2026-11-11",
-    "title": "In-place updates and polish",
+    "title": "Health fixes, Marketplace updates and hardening",
     "changes": [
-      "Install & Restart: download, replace the app folder after closing (with backup/rollback) and relaunch automatically.",
-      "Health checklist actions and a Marketplace Updates view with Update all.",
-      "Loading skeletons; Marketplace sort/retry with persisted filters.",
+      "Health checklist quick-fix actions (install / change).",
+      "Marketplace Updates view with Update all, sorting and loading skeletons.",
       "Opening Spicetifix twice focuses the existing window.",
+      "Updates are manual: download the ZIP (with an Open folder button) or view the release page.",
       "Accessibility: honors prefers-reduced-motion and announces status changes.",
       "Security hardening of the local API and atomic config writes."
     ]

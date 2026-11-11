@@ -4,27 +4,16 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
-## [1.7.10] - 2026-11-11
-
-### Fixed
-- In-place update: the swap helper now starts correctly (PowerShell is no longer
-  launched detached without a console), so Install & Restart completes and
-  relaunches the updated app.
-- Update dialog: the "new version" button no longer shifts the header layout,
-  the action buttons are spaced out, and the redundant "download it now" text is
-  removed.
-
 ## [1.7.9] - 2026-11-11
 
 ### Added
-- In-place updates: "Install & Restart" downloads the release, swaps the app
-  folder after it closes (with backup/rollback) and relaunches.
-- Health checklist actions (install / change) and a Marketplace "Updates" view
-  with "Update all".
-- Loading skeletons; Marketplace sort/retry with persisted filters.
+- Health checklist quick-fix actions (install / change).
+- Marketplace "Updates" view with "Update all", sorting, and loading skeletons.
 
 ### Changed
 - Opening Spicetifix twice now focuses the existing window.
+- Updates are manual: the dialog downloads the ZIP (with an "Open folder" button)
+  or links to the release page.
 - Accessibility: honors prefers-reduced-motion and announces status changes.
 
 ### Fixed
