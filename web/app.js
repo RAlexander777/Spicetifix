@@ -227,9 +227,7 @@ function openUpdateModal() {
       html,
       footer,
       showCancelButton: true,
-      showDenyButton: true,
-      confirmButtonText: t('update_install'),
-      denyButtonText: t('update_download'),
+      confirmButtonText: t('update_download'),
       cancelButtonText: t('update_dismiss'),
       buttonsStyling: false,
       customClass: {
@@ -237,7 +235,6 @@ function openUpdateModal() {
         title: 'cyber-swal-title',
         htmlContainer: 'cyber-swal-html',
         confirmButton: 'btn btn-accent',
-        denyButton: 'btn btn-outline',
         cancelButton: 'btn btn-outline',
       },
       didRender: (popup) => {
@@ -250,9 +247,7 @@ function openUpdateModal() {
         }
       },
     }).then((result) => {
-      if (!pendingUpdate) return;
-      if (result.isDenied) runUpdateDownload();
-      else if (result.isConfirmed) runUpdateApply();
+      if (pendingUpdate && result.isConfirmed) runUpdateDownload();
     });
   }
 }
@@ -283,43 +278,6 @@ async function runUpdateDownload() {
       },
     });
   });
-}
-
-async function runUpdateApply() {
-  if (!pendingUpdate || !pendingUpdate.asset_url) return;
-  Swal.fire({
-    title: t('update_apply_running'),
-    html: `<div style="font-size:1.5rem">${brailleHTML()}</div>`,
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    showConfirmButton: false,
-    customClass: { popup: 'cyber-swal-popup', title: 'cyber-swal-title', htmlContainer: 'cyber-swal-html' },
-  });
-  const res = await apiFetch('/api/update/apply', 'POST', { asset_url: pendingUpdate.asset_url }, 300000);
-  if (res && res.status === 'ok') {
-    // Keep the "restarting" modal; the app exits and the helper relaunches it.
-    return;
-  }
-  {
-    const reason = (res && res.error) ? res.error : 'unknown';
-    let msg = t('update_apply_error_help');
-    if (reason === 'no_permission') msg = t('update_apply_no_perm');
-    else if (reason === 'source_mode') msg = t('update_apply_source_mode');
-    else if (reason === 'bad_archive') msg = t('update_apply_bad_archive');
-    Swal.fire({
-      title: t('update_apply_error_title'),
-      text: msg,
-      confirmButtonText: t('btn_close'),
-      buttonsStyling: false,
-      customClass: {
-        popup: 'cyber-swal-popup',
-        title: 'cyber-swal-title',
-        htmlContainer: 'cyber-swal-html',
-        confirmButton: 'btn btn-accent',
-      },
-    });
-    return;
-  }
 }
 
 function toast(message, icon = 'success') {
