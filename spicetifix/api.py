@@ -797,6 +797,9 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     folder = get_spicetify_dir()
                 elif target == "themes":
                     folder = get_spicetify_themes_dir()
+                elif target == "downloads":
+                    from pathlib import Path
+                    folder = Path(os.path.expanduser("~")) / "Downloads"
                 else:
                     folder = None
 
@@ -952,8 +955,6 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                     _append_log(i18n.t("update_downloading"))
                     target = download_release_zip(asset_url)
                     _append_log(i18n.t("update_downloaded", path=target))
-                    import os
-                    os.startfile(str(target.parent))
                 except Exception as e:
                     _append_log(f"{i18n.t('log_error')} {e}")
                 finally:

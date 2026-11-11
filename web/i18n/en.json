@@ -15,6 +15,7 @@
   "update_downloading": "Downloading update...",
   "update_downloaded_title": "Download complete",
   "update_downloaded_help": "The update ZIP is in your Downloads folder. To install: close Spicetifix, extract the ZIP, and replace the old Spicetifix folder with the new one.",
+  "update_open_folder": "OPEN FOLDER",
   "update_new_in": "What's new in v{v}:",
   "ui_theme_lbl": "UI Theme:",
   "quick_access": "QUICK ACCESS & BACKUPS:",

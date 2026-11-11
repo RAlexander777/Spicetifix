@@ -268,14 +268,19 @@ async function runUpdateDownload() {
     Swal.fire({
       title: t('update_downloaded_title'),
       text: t('update_downloaded_help'),
-      confirmButtonText: t('btn_close'),
+      showCancelButton: true,
+      confirmButtonText: t('update_open_folder'),
+      cancelButtonText: t('btn_close'),
       buttonsStyling: false,
       customClass: {
         popup: 'cyber-swal-popup',
         title: 'cyber-swal-title',
         htmlContainer: 'cyber-swal-html',
         confirmButton: 'btn btn-accent',
+        cancelButton: 'btn btn-outline',
       },
+    }).then((r) => {
+      if (r.isConfirmed) apiFetch('/api/open/folder', 'POST', { target: 'downloads' });
     });
   });
 }
