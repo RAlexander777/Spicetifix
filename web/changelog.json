@@ -1,5 +1,18 @@
 [
   {
+    "version": "1.7.9",
+    "date": "2026-11-11",
+    "title": "In-place updates and polish",
+    "changes": [
+      "Install & Restart: download, replace the app folder after closing (with backup/rollback) and relaunch automatically.",
+      "Health checklist actions and a Marketplace Updates view with Update all.",
+      "Loading skeletons; Marketplace sort/retry with persisted filters.",
+      "Opening Spicetifix twice focuses the existing window.",
+      "Accessibility: honors prefers-reduced-motion and announces status changes.",
+      "Security hardening of the local API and atomic config writes."
+    ]
+  },
+  {
     "version": "1.7.8",
     "date": "2026-11-10",
     "title": "Localization, Settings and polish",

@@ -4,6 +4,24 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.9] - 2026-11-11
+
+### Added
+- In-place updates: "Install & Restart" downloads the release, swaps the app
+  folder after it closes (with backup/rollback) and relaunches.
+- Health checklist actions (install / change) and a Marketplace "Updates" view
+  with "Update all".
+- Loading skeletons; Marketplace sort/retry with persisted filters.
+
+### Changed
+- Opening Spicetifix twice now focuses the existing window.
+- Accessibility: honors prefers-reduced-motion and announces status changes.
+
+### Fixed
+- Hardened the local API (token required, constant-time compare, strict CORS,
+  path-traversal and zip-slip protection) and made config writes atomic.
+- "Save options" now writes config-xpui.ini; Dracula gets its own palette.
+
 ## [1.7.8] - 2026-11-10
 
 ### Added
