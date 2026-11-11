@@ -1,10 +1,66 @@
+import io
+import tempfile
 import unittest
+import zipfile
+from pathlib import Path
 from unittest.mock import patch, MagicMock
 
 from spicetifix.core.utils import (
     get_installed_spicetify_version,
     get_latest_spicetify_version,
+    safe_basename,
+    safe_extractall,
+    safe_path_component,
 )
+
+
+class TestSafeExtractall(unittest.TestCase):
+    def test_skips_escaping_members(self):
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            zf.writestr("ok.txt", "ok")
+            zf.writestr("../escape.txt", "bad")
+            zf.writestr("sub/../escape2.txt", "bad")
+        buf.seek(0)
+        with tempfile.TemporaryDirectory() as tmp:
+            dest = Path(tmp) / "out"
+            with zipfile.ZipFile(buf) as zf:
+                safe_extractall(zf, dest)
+            self.assertEqual((dest / "ok.txt").read_text(encoding="utf-8"), "ok")
+            self.assertFalse((Path(tmp) / "escape.txt").exists())
+            self.assertFalse((Path(tmp) / "escape2.txt").exists())
+
+
+class TestSafeBasename(unittest.TestCase):
+    def test_flattens_subfolders(self):
+        self.assertEqual(safe_basename("adblock/adblock.js"), "adblock.js")
+        self.assertEqual(safe_basename("..\\..\\evil.js"), "evil.js")
+        self.assertEqual(safe_basename("/abs/x.js"), "x.js")
+
+    def test_rejects_empty_and_dots(self):
+        for bad in ("", "   ", ".", "..", ".../.."):
+            with self.assertRaises(ValueError):
+                safe_basename(bad)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(ValueError):
+            safe_basename(None)
+
+
+class TestSafePathComponent(unittest.TestCase):
+    def test_accepts_plain_names(self):
+        self.assertEqual(safe_path_component("adblock.js"), "adblock.js")
+        self.assertEqual(safe_path_component("MyTheme"), "MyTheme")
+        self.assertEqual(safe_path_component("  spaced  "), "spaced")
+
+    def test_rejects_traversal(self):
+        for bad in ("..", "../evil", "..\\evil", "a/b", "a\\b", "/abs", "C:\\x", "", "   ", "."):
+            with self.assertRaises(ValueError):
+                safe_path_component(bad)
+
+    def test_rejects_non_string(self):
+        with self.assertRaises(ValueError):
+            safe_path_component(None)
 
 
 class TestSpicetifyVersionHelpers(unittest.TestCase):

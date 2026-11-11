@@ -9,6 +9,7 @@ from spicetifix.core.utils import (
     get_spicetify_themes_dir,
     run_cmd,
     run_spicetify,
+    safe_extractall,
 )
 
 
@@ -83,7 +84,7 @@ def install_themes() -> bool:
         temp_extract = themes_dir.parent / "spicetify-themes-zip-tmp"
         shutil.rmtree(temp_extract, ignore_errors=True)
         with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-            zf.extractall(temp_extract)
+            safe_extractall(zf, temp_extract)
         root_folder = temp_extract / "spicetify-themes-master"
         if root_folder.exists():
             for item in root_folder.iterdir():

@@ -1,4 +1,8 @@
 from configparser import ConfigParser
+import io
+import os
+import tempfile
+from pathlib import Path
 
 import shutil
 
@@ -83,11 +87,30 @@ def load_user_config() -> dict:
     return _merge_live_entries(cfg)
 
 
+def _atomic_write_text(path: Path, text: str) -> None:
+    """Write ``text`` to ``path`` atomically (temp file + ``os.replace``).
+
+    A crash or an interleaved writer mid-write would otherwise leave a
+    truncated, unparseable ``config-xpui.ini`` / ``spicetifix.yaml`` behind.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=str(path.parent), prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
+
+
 def save_user_config(config: dict) -> None:
     path = get_user_config_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    with open(path, "w", encoding="utf-8") as f:
-        yaml.safe_dump(config, f, default_flow_style=False, allow_unicode=True)
+    text = yaml.safe_dump(config, default_flow_style=False, allow_unicode=True)
+    _atomic_write_text(path, text)
 
 
 def migrate_legacy_config() -> None:
@@ -290,8 +313,9 @@ def write_spicetify_config(
     for section, values in preserved_sections.items():
         parser[section] = values
 
-    with open(config_path, "w", encoding="utf-8") as f:
-        parser.write(f, space_around_delimiters=True)
+    buf = io.StringIO()
+    parser.write(buf, space_around_delimiters=True)
+    _atomic_write_text(config_path, buf.getvalue())
 
 
 def read_spicetify_config() -> dict | None:
@@ -423,9 +447,10 @@ def repair_backup_metadata() -> bool:
         "version": version,
         "with": "unknown",
     }
+    buf = io.StringIO()
+    parser.write(buf, space_around_delimiters=True)
     try:
-        with open(config_path, "w", encoding="utf-8") as f:
-            parser.write(f, space_around_delimiters=True)
+        _atomic_write_text(config_path, buf.getvalue())
     except Exception:
         return False
     return True

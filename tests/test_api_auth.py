@@ -33,10 +33,63 @@ class TestApiAuth(unittest.TestCase):
         h = _make_handler({})
         self.assertFalse(h._is_authorized())
 
-    def test_open_when_no_token_configured(self):
+    def test_denied_when_no_token_configured(self):
+        # No token configured must NOT expose the API (it can uninstall apps).
         api.set_auth_token("")
         h = _make_handler({})
-        self.assertTrue(h._is_authorized())
+        self.assertFalse(h._is_authorized())
+
+
+class TestCorsHeaders(unittest.TestCase):
+    def test_exact_loopback_origin_allowed(self):
+        h = _make_handler({"Origin": "http://127.0.0.1:8765", "Host": "127.0.0.1:8765"})
+        self.assertIn("Access-Control-Allow-Origin", h._cors_headers())
+
+    def test_localhost_alias_allowed(self):
+        h = _make_handler({"Origin": "http://localhost:8765", "Host": "127.0.0.1:8765"})
+        self.assertIn("Access-Control-Allow-Origin", h._cors_headers())
+
+    def test_substring_spoof_rejected(self):
+        h = _make_handler({"Origin": "http://127.0.0.1.attacker.com", "Host": "127.0.0.1:8765"})
+        self.assertEqual(h._cors_headers(), {})
+
+    def test_foreign_origin_rejected(self):
+        h = _make_handler({"Origin": "http://evil.com", "Host": "127.0.0.1:8765"})
+        self.assertEqual(h._cors_headers(), {})
+
+
+class TestEnsureToken(unittest.TestCase):
+    def tearDown(self):
+        api.set_auth_token("")
+
+    def test_generates_when_missing(self):
+        token = api._ensure_token("")
+        self.assertTrue(token)
+        self.assertTrue(_make_handler({"X-Auth-Token": token})._is_authorized())
+        self.assertFalse(_make_handler({})._is_authorized())
+
+    def test_keeps_provided_token(self):
+        self.assertEqual(api._ensure_token("abc"), "abc")
+
+
+class TestAllowedBackupPath(unittest.TestCase):
+    def test_rejects_paths_outside_backup_dirs(self):
+        self.assertFalse(api._is_allowed_backup_path("C:/Windows/win.ini"))
+        self.assertFalse(api._is_allowed_backup_path("/etc/passwd"))
+
+    def test_rejects_non_zip(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            f = Path(tmp) / "notes.txt"
+            f.write_text("x", encoding="utf-8")
+            with patch("spicetifix.api._allowed_backup_dirs", return_value=[Path(tmp)]):
+                self.assertFalse(api._is_allowed_backup_path(f))
+
+    def test_accepts_zip_inside_backup_dir(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            z = Path(tmp) / "backup.zip"
+            z.write_bytes(b"x")
+            with patch("spicetifix.api._allowed_backup_dirs", return_value=[Path(tmp)]):
+                self.assertTrue(api._is_allowed_backup_path(z))
 
 
 class TestStaticFileTraversal(unittest.TestCase):

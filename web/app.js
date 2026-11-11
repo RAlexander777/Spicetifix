@@ -386,7 +386,7 @@ async function applyLanguage(lang) {
   setTxt('mp-loading-msg', t.mp_loading);
   setTxt('console-output', t.console_prompt);
   setTxt('console-preview-text', t.console_prompt);
-  setTxt('modal-opt-title', t.modal_opt_title);
+  setTxt('lbl-modal-opt-title', t.modal_opt_title);
   setTxt('opt-sec-gen', t.opt_sec_gen);
   setTxt('lbl-lang', t.lbl_lang);
   setTxt('lbl-spicetify-theme', t.lbl_spicetify_theme);
@@ -1452,6 +1452,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (e.key === 'Escape') {
       closeOptionsModal();
       closeAboutModal();
+      closeChangelogModal();
     } else if ((e.ctrlKey && (e.key === '`' || e.key === 'j')) || e.key === 'F12') {
       if (e.key !== 'F12') e.preventDefault();
       toggleConsole();

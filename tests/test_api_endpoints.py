@@ -83,6 +83,7 @@ class TestApiEndpoints(unittest.TestCase):
 
     def test_config_save_persists_language_and_theme(self):
         with patch("spicetifix.api.load_user_config", return_value={"language": "en"}), \
+             patch("spicetifix.core.config.write_spicetify_config") as mock_write, \
              patch("spicetifix.api.save_user_config") as mock_save:
             status, body = self._req(
                 "POST", "/api/config/save", {"language": "es", "ui_theme": "dracula"}
@@ -91,6 +92,9 @@ class TestApiEndpoints(unittest.TestCase):
         saved = mock_save.call_args[0][0]
         self.assertEqual(saved["language"], "es")
         self.assertEqual(saved["ui_theme"], "dracula")
+        # The config must reach config-xpui.ini (regression: a wrong module path
+        # made this call silently never happen).
+        self.assertTrue(mock_write.called)
 
     def test_player_returns_now_playing(self):
         playing = {"playing": True, "artist": "a", "title": "t", "raw": "a - t"}
@@ -106,6 +110,18 @@ class TestApiEndpoints(unittest.TestCase):
         self.assertEqual(status, 400)
         self.assertEqual(body["error"], "Invalid parameters")
 
+    def test_marketplace_install_rejects_traversal_filename(self):
+        body = {"type": "theme", "filename": "../../evil", "url": "http://x/y.css"}
+        status, resp = self._req("POST", "/api/marketplace/install", body)
+        self.assertEqual(status, 400)
+        self.assertEqual(resp["error"], "Invalid parameters")
+
+    def test_marketplace_uninstall_rejects_traversal_filename(self):
+        body = {"type": "theme", "filename": "..\\..\\evil"}
+        status, resp = self._req("POST", "/api/marketplace/uninstall", body)
+        self.assertEqual(status, 400)
+        self.assertEqual(resp["error"], "Invalid parameters")
+
     def test_open_folder_unknown_target_is_404(self):
         status, body = self._req("POST", "/api/open/folder", {"target": "nope"})
         self.assertEqual(status, 404)
@@ -113,6 +129,11 @@ class TestApiEndpoints(unittest.TestCase):
     def test_open_external_rejects_non_http(self):
         status, body = self._req("POST", "/api/open/external", {"url": "ftp://example.com"})
         self.assertEqual(status, 400)
+
+    def test_backup_import_rejects_disallowed_path(self):
+        status, body = self._req("POST", "/api/backup/import", {"zip_path": "C:/Windows/win.ini"})
+        self.assertEqual(status, 400)
+        self.assertEqual(body["error"], "Invalid parameters")
 
     def test_unknown_post_endpoint_is_404(self):
         status, body = self._req("POST", "/api/does-not-exist", {})

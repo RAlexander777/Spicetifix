@@ -7,7 +7,11 @@ class TestUITheme(unittest.TestCase):
     def test_get_ui_theme_valid(self):
         theme = get_ui_theme("dracula")
         self.assertEqual(theme["mode"], "dark")
-        self.assertEqual(theme["accent"], "#cba6f7")
+        self.assertEqual(theme["accent"], "#bd93f9")
+
+    def test_dracula_is_not_a_catppuccin_copy(self):
+        # Regression: dracula used to be a byte-for-byte copy of catppuccin.
+        self.assertNotEqual(get_ui_theme("dracula"), get_ui_theme("catppuccin"))
 
     def test_get_ui_theme_fallback(self):
         theme = get_ui_theme("non_existent_theme")

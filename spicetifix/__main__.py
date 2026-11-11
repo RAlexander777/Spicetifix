@@ -1,4 +1,9 @@
 from spicetifix.api import run_api_server
 
-if __name__ == "__main__":
+
+def main() -> None:
     run_api_server(port=8765)
+
+
+if __name__ == "__main__":
+    main()

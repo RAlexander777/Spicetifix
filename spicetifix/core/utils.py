@@ -26,6 +26,69 @@ def parse_progress(text: str) -> float | None:
     return None
 
 
+def safe_path_component(name: str) -> str:
+    """Return ``name`` when it is a safe single path component, else raise ValueError.
+
+    Guards callers that join a request/catalog-supplied name onto a directory
+    (``base / name``): rejects empty names, ``.`` and ``..``, null bytes and any
+    path separator (``/`` or ``\\``). A colon is rejected too, which covers
+    Windows drive letters and alternate data streams. This prevents a crafted
+    marketplace manifest or API payload from escaping the target directory
+    (path traversal).
+    """
+    if not isinstance(name, str):
+        raise ValueError("invalid path component")
+    cleaned = name.strip()
+    if not cleaned or cleaned in (".", ".."):
+        raise ValueError("invalid path component")
+    if any(ch in cleaned for ch in ("/", "\\", "\x00", ":")):
+        raise ValueError("invalid path component")
+    return cleaned
+
+
+def safe_basename(name: str) -> str:
+    """Return the final path component of ``name``, validated as a safe file name.
+
+    Used for extensions, whose manifest ``main`` may include a subfolder
+    (e.g. ``adblock/adblock.js``) that Spicetify flattens on install. Splitting
+    on both separators also neutralises Windows-style ``..\\..\\evil`` payloads;
+    the resulting component is rejected when empty, ``.``/``..`` or still
+    carrying a colon or null byte.
+    """
+    if not isinstance(name, str):
+        raise ValueError("invalid path component")
+    part = re.split(r"[\\/]", name.strip())[-1]
+    if not part or part in (".", "..") or any(ch in part for ch in (":", "\x00")):
+        raise ValueError("invalid path component")
+    return part
+
+
+def safe_extractall(zf, dest_dir) -> None:
+    """Extract every member of ``zf`` under ``dest_dir``, refusing to escape it.
+
+    A drop-in replacement for ``ZipFile.extractall`` that skips members with
+    ``..`` or absolute paths and any member whose resolved target falls outside
+    ``dest_dir`` (zip-slip), so a tampered or redirected archive cannot write to
+    arbitrary locations.
+    """
+    base = Path(dest_dir).resolve()
+    for member in zf.infolist():
+        rel = Path(member.filename.replace("\\", "/"))
+        if rel.is_absolute() or ".." in rel.parts:
+            continue
+        dest = (base / rel).resolve()
+        try:
+            dest.relative_to(base)
+        except ValueError:
+            continue
+        if member.is_dir():
+            dest.mkdir(parents=True, exist_ok=True)
+        else:
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            with zf.open(member) as src, open(dest, "wb") as dst:
+                shutil.copyfileobj(src, dst)
+
+
 SPOTIFY_DOWNLOAD_URL = "https://download.scdn.co/SpotifySetup.exe"
 SPICETIFY_THEMES_REPO = "https://github.com/spicetify/spicetify-themes.git"
 ADBLOCK_EXTENSION_URL = (
@@ -253,7 +316,7 @@ def download_and_extract_spicetify(dest_dir: Path | None = None, log_callback=No
         with requests.get(download_url, headers=headers, stream=True, timeout=180) as r:
             r.raise_for_status()
             with zipfile.ZipFile(io.BytesIO(r.content)) as zf:
-                zf.extractall(dest_dir)
+                safe_extractall(zf, dest_dir)
         log(i18n.t("spicetify_downloaded"))
         add_to_user_path(dest_dir)
         return True

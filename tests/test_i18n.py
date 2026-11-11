@@ -30,6 +30,25 @@ class TestI18n(unittest.TestCase):
         i18n.set_lang("es")
         self.assertEqual(i18n.t("extension_uninstalled", name="x.js"), "Extensión x.js desinstalada")
 
+    def test_language_is_per_thread(self):
+        import threading
+
+        i18n.set_lang("es")
+        seen = {}
+
+        def worker():
+            seen["fresh"] = i18n.get_lang()
+            i18n.set_lang("en")
+            seen["after"] = i18n.get_lang()
+
+        t = threading.Thread(target=worker)
+        t.start()
+        t.join()
+
+        self.assertEqual(seen["fresh"], "en")   # a new thread starts at the default
+        self.assertEqual(seen["after"], "en")
+        self.assertEqual(i18n.get_lang(), "es")  # the main thread is unaffected
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,5 +1,7 @@
+import hmac
 import json
 import os
+import secrets
 import sys
 import threading
 import time
@@ -36,6 +38,7 @@ from spicetifix.core.themer import list_available_themes, set_theme
 from spicetifix.core.ui_theme import list_ui_theme_names, get_ui_theme, THEMES
 from spicetifix.core import spotify_control
 from spicetifix.core import i18n
+from spicetifix.core.utils import safe_basename, safe_path_component
 from spicetifix import __version__
 
 
@@ -49,9 +52,11 @@ _state_lock = threading.RLock()
 def _launch_spotify() -> None:
     """Relaunch the Spotify client after install/apply patched it."""
     import os
-    spotify_exe = os.path.expanduser(r"~\AppData\Roaming\Spotify\Spotify.exe")
+    from spicetifix.core.utils import get_spotify_path
     try:
-        if os.path.exists(spotify_exe):
+        spotify_dir = get_spotify_path()
+        spotify_exe = os.path.join(spotify_dir, "Spotify.exe") if spotify_dir else ""
+        if spotify_exe and os.path.exists(spotify_exe):
             os.startfile(spotify_exe)
         else:
             os.startfile("spotify:")
@@ -184,19 +189,76 @@ def _get_marketplace_catalog() -> list[dict]:
     return [_enrich_catalog_item(item) for item in raw]
 
 
+def _allowed_backup_dirs() -> list:
+    """Directories the app itself writes backups into."""
+    from pathlib import Path
+    from spicetifix.core.utils import get_user_config_path
+
+    return [
+        get_user_config_path().parent / "backups",
+        Path(__file__).resolve().parent.parent / "backups",
+    ]
+
+
+def _is_allowed_backup_path(path) -> bool:
+    """Allow importing a .zip only from one of the app's backup directories.
+
+    ``/api/backup/import`` accepts a client-supplied path; without this an API
+    caller could point the import at an arbitrary file on disk.
+    """
+    from pathlib import Path
+
+    try:
+        target = Path(path).resolve()
+    except Exception:
+        return False
+    if target.suffix.lower() != ".zip" or not target.is_file():
+        return False
+    for base in _allowed_backup_dirs():
+        try:
+            target.relative_to(base.resolve())
+            return True
+        except ValueError:
+            continue
+    return False
+
+
 class SpicetifixAPIHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Suppress standard HTTP server console spam
         pass
 
     def _is_authorized(self) -> bool:
+        # An empty token means the server was started without authentication;
+        # refuse rather than expose install/uninstall/apply to any local process.
+        # The token is compared in constant time to avoid a timing side channel.
         if not _AUTH_TOKEN:
+            return False
+        return hmac.compare_digest(self.headers.get("X-Auth-Token", ""), _AUTH_TOKEN)
+
+    def _is_allowed_origin(self, origin: str) -> bool:
+        """Allow only the app's own loopback origin, matched exactly.
+
+        Substring matching (``"127.0.0.1" in origin``) would also accept
+        attacker-controlled hosts such as ``http://127.0.0.1.attacker.com``.
+        """
+        if not origin:
+            return False
+        if origin == "null":
             return True
-        return self.headers.get("X-Auth-Token", "") == _AUTH_TOKEN
+        host = self.headers.get("Host", "")
+        if not host:
+            return False
+        allowed = {f"http://{host}", f"https://{host}"}
+        if host.startswith("127.0.0.1"):
+            allowed.add(f"http://localhost{host[len('127.0.0.1'):]}")
+        elif host.startswith("localhost"):
+            allowed.add(f"http://127.0.0.1{host[len('localhost'):]}")
+        return origin in allowed
 
     def _cors_headers(self) -> dict:
         origin = self.headers.get("Origin", "")
-        if origin == "null" or "127.0.0.1" in origin:
+        if self._is_allowed_origin(origin):
             return {
                 "Access-Control-Allow-Origin": origin,
                 "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -205,12 +267,17 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         return {}
 
     def _send_json(self, data: dict, status: int = 200):
+        payload = json.dumps(data).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(payload)))
         for k, v in self._cors_headers().items():
             self.send_header(k, v)
         self.end_headers()
-        self.wfile.write(json.dumps(data).encode("utf-8"))
+        try:
+            self.wfile.write(payload)
+        except (BrokenPipeError, ConnectionResetError):
+            pass
 
     def do_OPTIONS(self):
         global _last_request_time
@@ -301,20 +368,29 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
         else:
             file_path = _resolve_static_file(path)
             if file_path is not None:
-                content_type = "text/html"
-                if file_path.suffix == ".css":
-                    content_type = "text/css"
-                elif file_path.suffix == ".js":
-                    content_type = "application/javascript"
+                content_types = {
+                    ".css": "text/css",
+                    ".js": "application/javascript",
+                    ".json": "application/json",
+                    ".svg": "image/svg+xml",
+                    ".ico": "image/x-icon",
+                    ".png": "image/png",
+                    ".woff2": "font/woff2",
+                }
+                content_type = content_types.get(file_path.suffix, "text/html")
+                data = file_path.read_bytes()
 
                 self.send_response(200)
                 self.send_header("Content-Type", content_type)
+                self.send_header("Content-Length", str(len(data)))
                 self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
                 self.send_header("Pragma", "no-cache")
                 self.send_header("Expires", "0")
                 self.end_headers()
-                with open(file_path, "rb") as f:
-                    self.wfile.write(f.read())
+                try:
+                    self.wfile.write(data)
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
             else:
                 self._send_json({"error": "Endpoint or file not found"}, 404)
 
@@ -359,6 +435,13 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             if not filename or not url:
                 self._send_json({"error": i18n.t("invalid_params")}, 400)
                 return
+            try:
+                # Extensions may ship a subfolder path (``adblock/adblock.js``)
+                # that Spicetify flattens on install; themes are plain dir names.
+                filename = safe_basename(filename) if item_type == "extension" else safe_path_component(filename)
+            except ValueError:
+                self._send_json({"error": i18n.t("invalid_params")}, 400)
+                return
 
             try:
                 from spicetifix.core.utils import (
@@ -376,9 +459,7 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 from spicetifix.core.themer import install_themes, set_theme
 
                 if item_type == "extension":
-                    import posixpath
                     import requests
-                    filename = posixpath.basename(filename)
                     ext_dir = get_spicetify_extensions_dir()
                     ext_dir.mkdir(parents=True, exist_ok=True)
                     resp = requests.get(url, timeout=30)
@@ -485,6 +566,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             if not filename:
                 self._send_json({"error": i18n.t("invalid_params")}, 400)
                 return
+            try:
+                filename = safe_basename(filename) if item_type == "extension" else safe_path_component(filename)
+            except ValueError:
+                self._send_json({"error": i18n.t("invalid_params")}, 400)
+                return
 
             try:
                 from spicetifix.core.utils import (
@@ -500,8 +586,6 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 from spicetifix.core.themer import set_theme
 
                 if item_type == "extension":
-                    import posixpath
-                    filename = posixpath.basename(filename)
                     ext_dir = get_spicetify_extensions_dir()
                     target_file = ext_dir / filename
                     if target_file.exists():
@@ -646,10 +730,12 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 cfg.setdefault("preprocesses", {}).update(body["preprocesses"])
             save_user_config(cfg)
             try:
-                from spicetify.core.config import write_spicetify_config
+                from spicetifix.core.config import write_spicetify_config
                 write_spicetify_config(cfg)
-            except Exception:
-                pass
+            except Exception as e:
+                # Surface the failure instead of silently reporting success: the
+                # change would not reach config-xpui.ini.
+                _append_log(f"{i18n.t('log_error')} {e}")
             self._send_json({"status": "ok", "config": cfg})
 
         elif path == "/api/logs/export":
@@ -699,16 +785,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
                 self._send_json({"status": "ok", "throttled": True})
                 return
             _last_spotify_open = now
-            try:
-                import os
-                spotify_exe = os.path.expanduser(r"~\AppData\Roaming\Spotify\Spotify.exe")
-                if os.path.exists(spotify_exe):
-                    os.startfile(spotify_exe)
-                else:
-                    os.startfile("spotify:")
-                self._send_json({"status": "ok"})
-            except Exception as e:
-                self._send_json({"error": str(e)}, 500)
+            _launch_spotify()
+            self._send_json({"status": "ok"})
 
         elif path == "/api/open/folder":
             target = body.get("target", "")
@@ -762,6 +840,9 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
         elif path == "/api/backup/import":
             zip_path_str = body.get("zip_path", "")
+            if zip_path_str and not _is_allowed_backup_path(zip_path_str):
+                self._send_json({"error": i18n.t("invalid_params")}, 400)
+                return
             if not _begin_work():
                 self._send_json({"error": "Already working"}, 400)
                 return
@@ -920,18 +1001,29 @@ def _start_heartbeat_checker(idle_timeout: int = 300):
     t.start()
 
 
+def _ensure_token(auth_token: str) -> str:
+    """Establish an auth token, generating one when the caller provided none.
+
+    The API exposes install/uninstall/apply over a local port, so it must never
+    run unauthenticated. Callers that pass no token (e.g. standalone
+    ``python -m spicetifix``) get a random one, printed as the UI URL fragment.
+    """
+    token = auth_token or secrets.token_hex(16)
+    set_auth_token(token)
+    return token
+
+
 def run_api_server(port: int = 8765, auth_token: str = "", idle_timeout: int = 300):
-    if auth_token:
-        set_auth_token(auth_token)
+    token = _ensure_token(auth_token)
     _start_heartbeat_checker(idle_timeout)
     server = ThreadingHTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")
+    print(f"> Open the UI at http://127.0.0.1:{port}/#token={token}")
     server.serve_forever()
 
 
 def make_server(port: int = 8765, auth_token: str = "", idle_timeout: int = 300) -> HTTPServer:
-    if auth_token:
-        set_auth_token(auth_token)
+    _ensure_token(auth_token)
     _start_heartbeat_checker(idle_timeout)
     server = ThreadingHTTPServer(("127.0.0.1", port), SpicetifixAPIHandler)
     print(f"> Spicetifix Python Sidecar API running on http://127.0.0.1:{port}")

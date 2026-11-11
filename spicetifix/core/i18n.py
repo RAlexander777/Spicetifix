@@ -1,3 +1,5 @@
+import threading
+
 STRINGS = {
     "en": {
         "none": "None",
@@ -86,6 +88,7 @@ STRINGS = {
         "backup_import_start": "Starting backup import: {path}",
         "backup_import_ok": "Backup import completed successfully.",
         "backup_zip_missing": "The ZIP backup file does not exist.",
+        "backup_member_skipped": "Skipped an unsafe path inside the backup: {name}",
         "backup_imported": "Backup imported successfully.",
         "backup_dialog_title": "Select a Spicetifix / Spicetify backup (.zip)",
         "backup_dialog_zip": "ZIP files",
@@ -200,6 +203,7 @@ STRINGS = {
         "backup_import_start": "Iniciando importación de respaldo: {path}",
         "backup_import_ok": "Importación de respaldo completada con éxito.",
         "backup_zip_missing": "El archivo de respaldo ZIP no existe.",
+        "backup_member_skipped": "Se omitió una ruta insegura dentro del respaldo: {name}",
         "backup_imported": "Respaldo importado correctamente.",
         "backup_dialog_title": "Seleccionar respaldo de Spicetifix / Spicetify (.zip)",
         "backup_dialog_zip": "Archivos ZIP",
@@ -229,20 +233,24 @@ STRINGS = {
     }
 }
 
-_current_lang = "en"
+# The selected language is per-thread: the API serves requests on multiple
+# threads, each picking the language from the user config, so a single shared
+# global would let concurrent requests (and the install worker) mix languages.
+_state = threading.local()
+_DEFAULT_LANG = "en"
 
 
 def set_lang(lang: str) -> None:
-    global _current_lang
-    _current_lang = lang if lang in STRINGS else "en"
+    _state.lang = lang if lang in STRINGS else _DEFAULT_LANG
 
 
 def get_lang() -> str:
-    return _current_lang
+    return getattr(_state, "lang", _DEFAULT_LANG)
 
 
 def t(key: str, **kwargs) -> str:
-    text = STRINGS.get(_current_lang, STRINGS["en"]).get(key, key)
+    lang = getattr(_state, "lang", _DEFAULT_LANG)
+    text = STRINGS.get(lang, STRINGS[_DEFAULT_LANG]).get(key, key)
     if kwargs:
         text = text.format(**kwargs)
     return text

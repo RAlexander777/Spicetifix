@@ -22,6 +22,7 @@ from spicetifix.core.utils import (
     run_cmd,
     run_spicetify,
     run_spicetify_apply,
+    safe_extractall,
     strip_ansi,
 )
 from spicetifix.core.themer import install_themes, set_theme
@@ -77,11 +78,10 @@ class Installer:
         return i18n.t(key, **kwargs)
 
     def _ensure_extensions(self, user_config: dict | None = None) -> None:
-        cfg = user_config or {}
-        exts = cfg.get("extensions", [])
-        ext_file = get_spicetify_dir() / "Extensions" / "adblock.js"
-        if not ext_file.exists() or "adblock.js" in exts:
-            ensure_adblock_extension(log_callback=self.log)
+        # adblock.js is provisioned by default. ensure_adblock_extension is
+        # idempotent and also repairs a present-but-empty file, so call it
+        # unconditionally rather than guessing from the extensions list.
+        ensure_adblock_extension(log_callback=self.log)
 
     def _step_marketplace_and_extensions(self, user_config: dict) -> bool:
         self._ensure_extensions(user_config)
@@ -393,6 +393,13 @@ class Installer:
             theme_name = "SpicetifyDefault"
             if "spicetify" in user_config:
                 user_config["spicetify"]["theme"] = theme_name
+                # Persist the fallback so the missing theme is not re-selected
+                # (and logged again) on the next load.
+                from spicetifix.core.config import save_user_config
+                try:
+                    save_user_config(user_config)
+                except Exception:
+                    pass
 
         if not set_theme(theme_name):
             self.log(i18n.t("theme_not_found_dir", theme=theme_name))
@@ -412,7 +419,7 @@ class Installer:
             resp = requests.get(zip_url, stream=True, timeout=120)
             resp.raise_for_status()
             with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-                zf.extractall(apps_dir)
+                safe_extractall(zf, apps_dir)
             self.log(i18n.t("marketplace_downloaded"))
         except Exception as e:
             self.log(i18n.t("marketplace_download_failed", err=e))

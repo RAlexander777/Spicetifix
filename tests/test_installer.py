@@ -177,6 +177,17 @@ class TestInstaller(unittest.TestCase):
         self.installer._ensure_extensions({"extensions": ["adblock.js", "bookmark.js"]})
         mock_ensure.assert_called_once()
 
+    def test_install_themes_persists_fallback_when_theme_missing(self):
+        cfg = {"spicetify": {"theme": "GhostTheme"}}
+        with patch("spicetifix.core.installer.install_themes", return_value=True), \
+             patch("spicetifix.core.themer.get_all_theme_dirs", return_value=[]), \
+             patch("spicetifix.core.installer.set_theme", return_value=True), \
+             patch("spicetifix.core.config.save_user_config") as mock_save:
+            ok = self.installer._install_themes(cfg)
+        self.assertTrue(ok)
+        self.assertEqual(cfg["spicetify"]["theme"], "SpicetifyDefault")
+        self.assertTrue(mock_save.called)
+
 
 if __name__ == "__main__":
     unittest.main()

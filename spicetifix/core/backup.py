@@ -15,6 +15,41 @@ from spicetifix.core.config import get_user_config_path
 from spicetifix.core import i18n
 
 
+def _safe_extract_dest(base_dir: Path, member_name: str, arc_prefix: str) -> Path | None:
+    """Resolve a backup zip member to a path inside ``base_dir``.
+
+    Returns ``None`` when the member would escape the target directory
+    (zip-slip), e.g. ``Themes/../../evil`` or an absolute path, so callers can
+    skip it instead of writing outside the spicetify dirs.
+    """
+    try:
+        rel = Path(member_name).relative_to(arc_prefix)
+    except ValueError:
+        return None
+    if rel.is_absolute() or ".." in rel.parts:
+        return None
+    base = base_dir.resolve()
+    dest = (base / rel).resolve()
+    try:
+        dest.relative_to(base)
+    except ValueError:
+        return None
+    return dest
+
+
+def _restore_tree_member(zf, member, name: str, arc_prefix: str, base_dir: Path, log) -> None:
+    dest = _safe_extract_dest(base_dir, name, arc_prefix)
+    if dest is None:
+        log(i18n.t("backup_member_skipped", name=name))
+        return
+    if member.is_dir():
+        dest.mkdir(parents=True, exist_ok=True)
+    else:
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        with zf.open(member) as src, open(dest, "wb") as dst:
+            shutil.copyfileobj(src, dst)
+
+
 def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callback=None, open_folder: bool = True) -> tuple[bool, str]:
     """
     Creates a .zip archive containing Spicetify configuration, themes, extensions,
@@ -128,34 +163,13 @@ def import_backup_zip(zip_path: Path, progress_callback=None, log_callback=None)
                         shutil.copyfileobj(src, dst)
 
                 elif name.startswith("Themes/") and themes_dir:
-                    rel = Path(name).relative_to("Themes")
-                    dest = themes_dir / rel
-                    if member.is_dir():
-                        dest.mkdir(parents=True, exist_ok=True)
-                    else:
-                        dest.parent.mkdir(parents=True, exist_ok=True)
-                        with zf.open(member) as src, open(dest, "wb") as dst:
-                            shutil.copyfileobj(src, dst)
+                    _restore_tree_member(zf, member, name, "Themes", themes_dir, _log)
 
                 elif name.startswith("Extensions/") and extensions_dir:
-                    rel = Path(name).relative_to("Extensions")
-                    dest = extensions_dir / rel
-                    if member.is_dir():
-                        dest.mkdir(parents=True, exist_ok=True)
-                    else:
-                        dest.parent.mkdir(parents=True, exist_ok=True)
-                        with zf.open(member) as src, open(dest, "wb") as dst:
-                            shutil.copyfileobj(src, dst)
+                    _restore_tree_member(zf, member, name, "Extensions", extensions_dir, _log)
 
                 elif name.startswith("CustomApps/") and custom_apps_dir:
-                    rel = Path(name).relative_to("CustomApps")
-                    dest = custom_apps_dir / rel
-                    if member.is_dir():
-                        dest.mkdir(parents=True, exist_ok=True)
-                    else:
-                        dest.parent.mkdir(parents=True, exist_ok=True)
-                        with zf.open(member) as src, open(dest, "wb") as dst:
-                            shutil.copyfileobj(src, dst)
+                    _restore_tree_member(zf, member, name, "CustomApps", custom_apps_dir, _log)
 
         _log(i18n.t("backup_import_ok"))
         _prog(1.0)

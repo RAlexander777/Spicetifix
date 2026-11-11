@@ -114,17 +114,17 @@ body.theme-tokyo_night {
 }
 
 body.theme-dracula {
-  --bg-color: #181825;
-  --card-bg: #1e1e2e;
-  --card-border: #313244;
-  --accent-color: #cba6f7;
-  --accent-hover: #b4befe;
-  --contrast-color: #89b4fa;
-  --text-main: #cdd6f4;
-  --text-muted: #a6adc8;
-  --console-bg: #11111b;
-  --console-fg: #cba6f7;
-  --danger-color: #f38ba8;
+  --bg-color: #282a36;
+  --card-bg: #21222c;
+  --card-border: #44475a;
+  --accent-color: #bd93f9;
+  --accent-hover: #a679e8;
+  --contrast-color: #8be9fd;
+  --text-main: #f8f8f2;
+  --text-muted: #6272a4;
+  --console-bg: #191a21;
+  --console-fg: #50fa7b;
+  --danger-color: #ff5555;
 }
 
 body.theme-amber {
@@ -1082,7 +1082,7 @@ button .gh-icon,
 
 .changelog-chevron {
   flex-shrink: 0;
-  color: var(--text-dim);
+  color: var(--text-muted);
   width: 14px;
   height: 14px;
   transition: transform 0.2s ease;
@@ -1098,7 +1098,7 @@ button .gh-icon,
 }
 
 .changelog-date {
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-size: 0.72rem;
 }
 
@@ -1580,7 +1580,7 @@ button .gh-icon,
   justify-content: center;
   gap: 14px;
   padding: 48px 0;
-  color: var(--text-dim);
+  color: var(--text-muted);
   font-family: var(--font-mono);
   font-size: 0.85rem;
 }

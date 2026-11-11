@@ -317,5 +317,29 @@ class TestInstallMeta(unittest.TestCase):
         self.assertIn("extension:keep.js", cfg["installed_meta"])
 
 
+class TestAtomicConfigWrite(unittest.TestCase):
+    def test_save_user_config_writes_and_leaves_no_temp_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "spicetifix.yaml"
+            with patch("spicetifix.core.config.get_user_config_path", return_value=path):
+                save_user_config({"language": "es", "ui_theme": "dracula"})
+            self.assertIn("language: es", path.read_text(encoding="utf-8"))
+            leftovers = [p.name for p in Path(tmp).iterdir() if p.name != "spicetifix.yaml"]
+            self.assertEqual(leftovers, [])
+
+    def test_write_spicetify_config_leaves_no_temp_files(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sp_dir = Path(tmp) / "spicetify"
+            sp_dir.mkdir()
+            with patch("spicetifix.core.config.get_spicetify_config_dir", return_value=sp_dir), \
+                 patch("spicetifix.core.config.get_spotify_path", return_value="C:/Spotify"), \
+                 patch("spicetifix.core.config.get_prefs_path", return_value="C:/prefs"), \
+                 patch("spicetifix.core.config._merge_live_entries", side_effect=lambda c: c):
+                write_spicetify_config({"spicetify": {}, "extensions": [], "custom_apps": []})
+            self.assertTrue((sp_dir / "config-xpui.ini").exists())
+            leftovers = [p.name for p in sp_dir.iterdir() if p.name != "config-xpui.ini"]
+            self.assertEqual(leftovers, [])
+
+
 if __name__ == "__main__":
     unittest.main()
