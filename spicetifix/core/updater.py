@@ -124,6 +124,14 @@ def _update_root() -> Path:
     return Path(base) / "Spicetifix" / "update"
 
 
+def _powershell() -> str:
+    exe = os.path.join(
+        os.environ.get("SystemRoot", r"C:\Windows"),
+        "System32", "WindowsPowerShell", "v1.0", "powershell.exe",
+    )
+    return exe if os.path.exists(exe) else "powershell"
+
+
 def _can_write(path: Path) -> bool:
     try:
         probe = path / ".spicetifix_write_test"
@@ -217,13 +225,11 @@ def apply_update(asset_url: str) -> tuple[bool, str]:
         ps1 = staging.parent / "apply.ps1"
         _write_helper(ps1, staging, app_dir, stage_dir, exe_name)
 
-        flags = getattr(subprocess, "DETACHED_PROCESS", 0x00000008)
-        flags |= getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0x00000200)
-        flags |= getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0x08000000)
         subprocess.Popen(
-            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass",
+            [_powershell(), "-NoProfile", "-ExecutionPolicy", "Bypass",
              "-WindowStyle", "Hidden", "-File", str(ps1)],
-            cwd=str(staging),
+            cwd=str(ps1.parent),
             creationflags=flags,
             close_fds=True,
         )

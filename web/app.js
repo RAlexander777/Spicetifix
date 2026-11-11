@@ -296,8 +296,12 @@ async function runUpdateApply() {
     customClass: { popup: 'cyber-swal-popup', title: 'cyber-swal-title', htmlContainer: 'cyber-swal-html' },
   });
   const res = await apiFetch('/api/update/apply', 'POST', { asset_url: pendingUpdate.asset_url }, 300000);
-  if (res && res.error) {
-    const reason = res.error;
+  if (res && res.status === 'ok') {
+    // Keep the "restarting" modal; the app exits and the helper relaunches it.
+    return;
+  }
+  {
+    const reason = (res && res.error) ? res.error : 'unknown';
     let msg = t('update_apply_error_help');
     if (reason === 'no_permission') msg = t('update_apply_no_perm');
     else if (reason === 'source_mode') msg = t('update_apply_source_mode');
@@ -316,7 +320,6 @@ async function runUpdateApply() {
     });
     return;
   }
-  // Success (or the connection dropped as the app restarts): keep the modal.
 }
 
 function toast(message, icon = 'success') {
