@@ -60,6 +60,32 @@ def _focus_existing_window(title: str = "SPICETIFIX") -> bool:
         return False
 
 
+_MUTEX_HANDLE = None
+
+
+def _is_second_instance() -> bool:
+    """True when another instance owns the single-instance mutex.
+
+    Windows allows a second socket to bind an in-use port when SO_REUSEADDR is set
+    (which HTTPServer enables), so the port alone is not a reliable guard. A named
+    mutex makes the check authoritative. The handle is kept alive for this process
+    so the mutex exists for its whole lifetime (released automatically on exit).
+    """
+    global _MUTEX_HANDLE
+    if sys.platform != "win32":
+        return False
+    try:
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.CreateMutexW.restype = ctypes.c_void_p
+        kernel32.CreateMutexW.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_wchar_p]
+        handle = kernel32.CreateMutexW(None, False, "Spicetifix_SingleInstance")
+        err = ctypes.get_last_error()
+        _MUTEX_HANDLE = handle
+        return err == 183  # ERROR_ALREADY_EXISTS
+    except Exception:
+        return False
+
+
 def start():
     from spicetifix.api import make_server
     from spicetifix.core import i18n
@@ -67,6 +93,12 @@ def start():
 
     migrate_legacy_config()
     i18n.set_lang(get_language())
+
+    if _is_second_instance():
+        _focus_existing_window()
+        print(f"> {i18n.t('already_running')}")
+        sys.exit(0)
+
     token = secrets.token_hex(16)
 
     try:
