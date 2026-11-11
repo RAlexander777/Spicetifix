@@ -1,5 +1,14 @@
 [
   {
+    "version": "1.7.10",
+    "date": "2026-11-11",
+    "title": "Fix in-place update",
+    "changes": [
+      "Install & Restart now works: the swap helper starts correctly and replaces/relaunches after the app closes.",
+      "Update dialog polish: no header layout shift when the update button appears, spaced action buttons, trimmed text."
+    ]
+  },
+  {
     "version": "1.7.9",
     "date": "2026-11-11",
     "title": "In-place updates and polish",

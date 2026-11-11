@@ -4,6 +4,16 @@ All notable changes to this project are documented here. The app also shows
 this changelog in the About dialog (see `web/changelog.json`, which mirrors
 this file for the in-app view).
 
+## [1.7.10] - 2026-11-11
+
+### Fixed
+- In-place update: the swap helper now starts correctly (PowerShell is no longer
+  launched detached without a console), so Install & Restart completes and
+  relaunches the updated app.
+- Update dialog: the "new version" button no longer shifts the header layout,
+  the action buttons are spaced out, and the redundant "download it now" text is
+  removed.
+
 ## [1.7.9] - 2026-11-11
 
 ### Added
