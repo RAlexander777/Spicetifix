@@ -745,9 +745,19 @@ button .gh-icon,
 }
 
 .health-detail {
+  flex: 1 1 auto;
+  min-width: 0;
   color: var(--text-main);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.health-action {
+  flex: 0 0 auto;
+  margin-left: 6px;
+  font-size: 0.68rem;
+  padding: 1px 8px;
   white-space: nowrap;
 }
 

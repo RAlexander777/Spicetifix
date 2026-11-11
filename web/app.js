@@ -419,6 +419,8 @@ async function applyLanguage(lang) {
   setTxt('lbl-mp-filter-theme', t.mp_filter_theme);
   setTxt('lbl-mp-filter-app', t.mp_filter_app);
   setTxt('lbl-mp-filter-installed', t.mp_filter_installed);
+  setTxt('lbl-mp-filter-updates', t.mp_filter_updates);
+  setTxt('lbl-mp-update-all', t.mp_update_all);
   setTxt('lbl-mp-prev', t.mp_prev);
   setTxt('lbl-mp-next', t.mp_next);
   setTxt('lbl-mp-sort-relevance', t.mp_sort_relevance);
@@ -524,6 +526,32 @@ function updateActionButtons(isWorking) {
   }
 }
 
+function healthActionFor(label) {
+  if (label === 'spotify_path' || label === 'config_file' || label === 'spicetify_exe') {
+    return {
+      text: t('health_fix_install'),
+      onClick: () => showCyberAlert(
+        t('health_fix_title'), t('health_fix_msg'), t('health_fix_install'), t('btn_cancel'),
+        () => startInstall(),
+      ),
+    };
+  }
+  if (label === 'theme') {
+    return { text: t('health_fix_theme'), onClick: () => openOptionsModal() };
+  }
+  return null;
+}
+
+function startInstall() {
+  setConsoleExpanded(true);
+  currentAction = 'install';
+  updateActionButtons(true);
+  apiFetch('/api/install', 'POST').then((res) => {
+    if (!res || res.error) updateActionButtons(false);
+    pollStatus();
+  });
+}
+
 function renderHealth(health) {
   const grid = document.getElementById('health-grid');
   if (!grid || !Array.isArray(health)) return;
@@ -541,6 +569,17 @@ function renderHealth(health) {
     detail.textContent = h.detail || '';
     detail.title = h.detail || '';
     row.append(dot, label, detail);
+    if (!h.ok) {
+      const act = healthActionFor(h.label);
+      if (act) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'health-action btn btn-small btn-outline';
+        btn.textContent = act.text;
+        btn.addEventListener('click', act.onClick);
+        row.appendChild(btn);
+      }
+    }
     grid.appendChild(row);
   });
 }
@@ -1689,6 +1728,9 @@ document.addEventListener('DOMContentLoaded', async () => {
     btnRefreshCatalog.addEventListener('click', () => loadMarketplaceCatalog(true));
   }
 
+  const btnUpdateAll = document.getElementById('btn-mp-update-all');
+  if (btnUpdateAll) btnUpdateAll.addEventListener('click', updateAllOutdated);
+
   // Pagination
   const btnPrev = document.getElementById('btn-mp-prev');
   const btnNext = document.getElementById('btn-mp-next');
@@ -1698,6 +1740,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Danger Zone Actions
   document.getElementById('btn-spicetify-apply').addEventListener('click', async () => {
     closeOptionsModal();
+    toast(t('applying'), 'info');
     await apiFetch('/api/spicetify/apply', 'POST');
     pollStatus();
   });
@@ -1853,6 +1896,58 @@ async function loadMarketplaceCatalog(force = false) {
   }
 }
 
+function itemOutdated(item) {
+  if (!item || !item.installed || item.type === 'app') return false;
+  const latest = repoVersions[`${item.user}/${item.repo}`] || {};
+  const latestInfo = { tag: latest.tag || '', updated_at: latest.updated_at || item.updated_at || '' };
+  return versionOutdated(item.meta, latestInfo);
+}
+
+function getOutdatedItems() {
+  return currentMarketplaceCatalog.filter(itemOutdated);
+}
+
+async function updateAllOutdated() {
+  const items = getOutdatedItems();
+  if (!items.length) return;
+  showCyberAlert(
+    t('mp_update_all_title'),
+    t('mp_update_all_msg').replace('{n}', items.length),
+    t('mp_update_all_confirm'),
+    t('btn_cancel'),
+    async () => {
+      for (const item of items) {
+        const cached = repoVersions[`${item.user}/${item.repo}`] || {};
+        try {
+          const res = await apiFetch('/api/marketplace/install', 'POST', {
+            type: item.type,
+            filename: item.filename,
+            url: item.url,
+            user: item.user,
+            repo: item.repo,
+            branch: item.branch,
+            css_url: item.css_url,
+            schemes_url: item.schemes_url,
+            include: item.include,
+            updated_at: cached.updated_at || item.updated_at || '',
+            tag: cached.tag || '',
+          });
+          if (res && res.status === 'ok') {
+            appendConsole(`${item.title} ${t('mp_installed_ok')}`);
+          } else {
+            appendConsole(`${t('mp_installed_err')} ${item.title}: ${res?.error || t('mp_failed')}`);
+          }
+        } catch (e) {
+          appendConsole(`${t('mp_failed')}: ${e}`);
+        }
+      }
+      pollStatus();
+      await loadMarketplaceCatalog(true);
+      toast(t('mp_update_all_done'));
+    },
+  );
+}
+
 function getFilteredCatalog() {
   const searchInput = document.getElementById('mp-search-input');
   const searchQuery = (searchInput ? searchInput.value : '').toLowerCase().trim();
@@ -1862,7 +1957,9 @@ function getFilteredCatalog() {
       currentMarketplaceFilter === 'all' ||
       (currentMarketplaceFilter === 'installed'
         ? item.installed
-        : item.type === currentMarketplaceFilter);
+        : currentMarketplaceFilter === 'updates'
+          ? (item.installed && itemOutdated(item))
+          : item.type === currentMarketplaceFilter);
     const matchesSearch = !searchQuery ||
       (item.title || '').toLowerCase().includes(searchQuery) ||
       (item.description || '').toLowerCase().includes(searchQuery) ||
@@ -1948,6 +2045,11 @@ function renderMarketplaceCatalog() {
     if (isLoadingCatalog) renderMarketplaceLoading();
     else renderMarketplaceError();
     return;
+  }
+
+  // The "Updates" view needs release tags for installed items; resolve them.
+  if (currentMarketplaceFilter === 'updates') {
+    ensureMarketplaceVersions(currentMarketplaceCatalog.filter(i => i.installed));
   }
 
   const filtered = getFilteredCatalog();
@@ -2090,6 +2192,12 @@ function renderMarketplaceCatalog() {
   const nextBtn = document.getElementById('btn-mp-next');
   if (prevBtn) prevBtn.disabled = currentPage <= 1;
   if (nextBtn) nextBtn.disabled = currentPage >= totalPages;
+
+  const updateAllBtn = document.getElementById('btn-mp-update-all');
+  if (updateAllBtn) {
+    updateAllBtn.style.display = (currentMarketplaceFilter === 'updates' && getOutdatedItems().length)
+      ? 'inline-flex' : 'none';
+  }
 
   if (window.lucide) window.lucide.createIcons();
 }
