@@ -11,7 +11,7 @@ let isConsoleExpanded = false;
 let isUserScrolledUp = false;
 let lastRenderedLogs = '';
 
-function setConsoleExpanded(expanded, persist = true) {
+function setConsoleExpanded(expanded) {
   isConsoleExpanded = !!expanded;
   const panel = document.getElementById('console-panel');
   const btnToggle = document.getElementById('btn-toggle-console');
@@ -45,12 +45,6 @@ function setConsoleExpanded(expanded, persist = true) {
   }
 
   if (window.lucide && lucide.createIcons) lucide.createIcons();
-
-  if (persist) {
-    try {
-      localStorage.setItem('spicetifix_console_expanded', isConsoleExpanded ? 'true' : 'false');
-    } catch (_) {}
-  }
 }
 
 function toggleConsole() {
@@ -1458,17 +1452,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 
-  // Restore console expansion preference
+  // Console starts collapsed by default (never restored expanded).
   try {
-    const savedExpanded = localStorage.getItem('spicetifix_console_expanded');
-    if (savedExpanded === 'true') {
-      setConsoleExpanded(true, false);
-    } else {
-      setConsoleExpanded(false, false);
-    }
-  } catch (_) {
-    setConsoleExpanded(false, false);
-  }
+    localStorage.removeItem('spicetifix_console_expanded');
+  } catch (_) {}
+  setConsoleExpanded(false);
 
   // Save Logs button
   const btnSaveLogs = document.getElementById('btn-save-logs');
