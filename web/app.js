@@ -427,6 +427,7 @@ async function applyLanguage(lang) {
   setTxt('lbl-mp-sort-updated', t.mp_sort_updated);
   setTxt('lbl-mp-sort-stars', t.mp_sort_stars);
   setPh('mp-search-input', t.mp_search_placeholder);
+  setAria('mp-search-input', t.mp_search_placeholder);
 
   // Tooltips (title attributes) & accessibility labels
   setTitle('btn-open-spotify', t.tip_open_spotify);
@@ -1066,6 +1067,7 @@ async function loadExtensions() {
     const chk = document.createElement('input');
     chk.type = 'checkbox';
     chk.checked = item.enabled;
+    chk.setAttribute('aria-label', label);
     chk.addEventListener('change', async () => {
       const res = await apiFetch('/api/extensions/toggle', 'POST', {
         name: item.name,
@@ -1144,6 +1146,52 @@ async function loadThemes() {
 }
 
 // Open Options Modal
+// ---- Modal focus management -------------------------------------------
+// Closed dialogs are removed from the tab order by CSS (visibility: hidden);
+// these helpers additionally move focus in on open and back on close, and
+// keep Tab cycling inside the dialog while it is open.
+let _modalReturnFocus = null;
+
+function _modalFocusables(container) {
+  return Array.from(container.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  ));
+}
+
+function openModalEl(modal) {
+  if (!modal) return;
+  _modalReturnFocus = document.activeElement;
+  modal.classList.add('active');
+  // The dialog becomes visible instantly (no visibility transition on open),
+  // so it is focusable right away.
+  const focusables = _modalFocusables(modal);
+  if (focusables.length) focusables[0].focus();
+}
+
+function closeModalEl(modal) {
+  if (!modal) return;
+  modal.classList.remove('active');
+  const target = _modalReturnFocus;
+  _modalReturnFocus = null;
+  if (target && typeof target.focus === 'function') target.focus();
+}
+
+function handleModalKeydown(e) {
+  if (e.key !== 'Tab') return;
+  const modal = e.currentTarget;
+  const focusables = _modalFocusables(modal);
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+}
+
 function openOptionsModal() {
   const modal = document.getElementById('options-modal');
   if (!modal) return;
@@ -1168,15 +1216,12 @@ function openOptionsModal() {
     loadColorSchemes(cfg.spicetify.theme, cfg.spicetify.color_scheme || '');
   }
 
-  modal.classList.add('active');
+  openModalEl(modal);
 }
 
 // Close Options Modal
 function closeOptionsModal() {
-  const modal = document.getElementById('options-modal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
+  closeModalEl(document.getElementById('options-modal'));
 }
 
 // Open About Modal
@@ -1187,7 +1232,7 @@ function openAboutModal() {
     if (versionEl && appVersion) {
       versionEl.textContent = `v${appVersion} (Spicetifix / pywebview)`;
     }
-    modal.classList.add('active');
+    openModalEl(modal);
   }
 }
 
@@ -1195,7 +1240,7 @@ function openAboutModal() {
 function openChangelogModal() {
   const modal = document.getElementById('changelog-modal');
   if (modal) {
-    modal.classList.add('active');
+    openModalEl(modal);
     loadChangelogInfo();
   }
 }
@@ -1248,18 +1293,12 @@ async function loadChangelogInfo() {
 
 // Close About Modal
 function closeAboutModal() {
-  const modal = document.getElementById('about-modal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
+  closeModalEl(document.getElementById('about-modal'));
 }
 
 // Close Changelog Modal
 function closeChangelogModal() {
-  const modal = document.getElementById('changelog-modal');
-  if (modal) {
-    modal.classList.remove('active');
-  }
+  closeModalEl(document.getElementById('changelog-modal'));
 }
 
 // Save Options Modal
@@ -1390,12 +1429,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Import Backup ZIP button (opens native Windows File Explorer dialog)
   const btnImportBackup = document.getElementById('btn-import-backup');
   if (btnImportBackup) {
-    btnImportBackup.addEventListener('click', () =>
-      flashButtonBusy(btnImportBackup, '/api/backup/import', () => {
-        pollStatus();
-        loadExtensions();
-        loadThemes();
-      }));
+    // Importing overwrites the live Spicetify config, themes and extensions,
+    // so confirm before opening the picker.
+    btnImportBackup.addEventListener('click', () => {
+      showCyberAlert(
+        t('confirm_import_title'),
+        t('confirm_import'),
+        t('btn_yes_import'),
+        t('btn_cancel'),
+        () => flashButtonBusy(btnImportBackup, '/api/backup/import', () => {
+          pollStatus();
+          loadExtensions();
+          loadThemes();
+        })
+      );
+    });
   }
 
   // Smart Console Scroll & Collapse Handlers
@@ -1433,6 +1481,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
       }
       toggleConsole();
+    });
+    // role="button" needs keyboard activation; only the header itself responds,
+    // not the buttons nested inside it.
+    consoleHeader.addEventListener('keydown', (e) => {
+      if (e.target !== consoleHeader) return;
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleConsole();
+      }
     });
   }
 
@@ -1573,6 +1630,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   document.getElementById('card-theme').addEventListener('click', openOptionsModal);
 
+  // Keyboard support for the clickable status cards
+  ['card-spotify', 'card-spicetify', 'card-theme'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
+    });
+  });
+
   // Player buttons
   document.getElementById('btn-prev').addEventListener('click', () => {
     apiFetch('/api/player', 'POST', { action: 'prev' }).then(pollStatus);
@@ -1683,6 +1751,12 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (e.target.id === 'changelog-modal') closeChangelogModal();
     });
   }
+
+  // Keep Tab focus cycling inside whichever dialog is open
+  ['options-modal', 'about-modal', 'changelog-modal'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('keydown', handleModalKeydown);
+  });
 
   // Main Tab Buttons
   document.querySelectorAll('.tab-btn').forEach(btn => {

@@ -820,13 +820,18 @@ button .gh-icon,
   align-items: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.3s ease;
+  visibility: hidden;
+  /* Visibility flips instantly on open and is delayed on close, so the dialog
+     is focusable the moment it opens but still fades out. */
+  transition: opacity 0.3s ease, visibility 0s linear 0.3s;
   z-index: 999;
 }
 
 .modal-overlay.active {
   opacity: 1;
   pointer-events: auto;
+  visibility: visible;
+  transition: opacity 0.3s ease, visibility 0s linear 0s;
 }
 
 .modal-content {
@@ -2132,4 +2137,14 @@ button .gh-icon,
 /* Initial header badge, before the first status poll replaces it */
 .badge-online {
   color: var(--accent-color) !important;
+}
+
+/* ============================================================
+   KEYBOARD FOCUS
+   ============================================================ */
+/* Several controls set `outline: none`; restore a visible focus ring for
+   keyboard users only (mouse clicks stay clean). */
+:focus-visible {
+  outline: 2px solid var(--contrast-color) !important;
+  outline-offset: 2px;
 }
