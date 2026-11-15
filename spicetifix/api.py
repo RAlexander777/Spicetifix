@@ -84,7 +84,7 @@ def _auto_backup() -> None:
         cfg = load_user_config()
         if cfg.get("auto_backup", True) is False:
             return
-        from spicetifix.core.backup import export_backup_zip
+        from spicetifix.core.backup import export_backup_zip, prune_backups
         from spicetifix.core.utils import get_user_config_path
         dest = get_user_config_path().parent / "backups"
         _append_log(i18n.t("auto_backup_start"))
@@ -96,6 +96,15 @@ def _auto_backup() -> None:
         )
         msg = i18n.t("auto_backup_ok", path=path) if ok else i18n.t("auto_backup_failed", err=path)
         _append_log(msg)
+        if ok:
+            # Keep the backups directory bounded: retain only the newest N.
+            try:
+                keep = int(cfg.get("backup_keep", 10) or 10)
+            except (TypeError, ValueError):
+                keep = 10
+            removed = prune_backups(dest, keep=keep)
+            if removed:
+                _append_log(i18n.t("auto_backup_pruned", n=removed))
     except Exception as e:
         try:
             _append_log(i18n.t("auto_backup_failed", err=e))

@@ -1,10 +1,11 @@
+import os
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
 from unittest.mock import patch
 
-from spicetifix.core.backup import export_backup_zip, import_backup_zip
+from spicetifix.core.backup import export_backup_zip, import_backup_zip, prune_backups
 
 
 class TestBackupModule(unittest.TestCase):
@@ -84,6 +85,25 @@ class TestBackupModule(unittest.TestCase):
             self.assertTrue(ok)
             self.assertFalse(escape_target.exists())
             self.assertEqual((themes / "Safe" / "user.css").read_text(encoding="utf-8"), "ok")
+
+    def test_prune_backups_keeps_newest_and_ignores_others(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            d = Path(tmp)
+            for i in range(5):
+                f = d / f"spicetifix_backup_2024-01-0{i}.zip"
+                f.write_bytes(b"x")
+                os.utime(f, (1000 + i, 1000 + i))  # distinct, increasing mtimes
+            (d / "unrelated.zip").write_bytes(b"y")
+
+            removed = prune_backups(d, keep=2)
+
+            self.assertEqual(removed, 3)
+            remaining = sorted(p.name for p in d.glob("spicetifix_backup_*.zip"))
+            self.assertEqual(remaining, [
+                "spicetifix_backup_2024-01-03.zip",
+                "spicetifix_backup_2024-01-04.zip",
+            ])
+            self.assertTrue((d / "unrelated.zip").exists())
 
 
 if __name__ == "__main__":

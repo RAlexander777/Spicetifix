@@ -50,6 +50,37 @@ def _restore_tree_member(zf, member, name: str, arc_prefix: str, base_dir: Path,
             shutil.copyfileobj(src, dst)
 
 
+AUTO_BACKUP_PREFIX = "spicetifix_backup_"
+
+
+def prune_backups(dest_dir: Path, keep: int = 10) -> int:
+    """Delete the oldest safety backups in ``dest_dir`` so at most ``keep`` remain.
+
+    Only ``spicetifix_backup_*.zip`` files are considered and they are ranked by
+    modification time (newest first), so the most recent backups are always
+    kept. Returns the number of files removed.
+    """
+    try:
+        dest_dir = Path(dest_dir)
+        if keep < 1 or not dest_dir.is_dir():
+            return 0
+        backups = sorted(
+            (p for p in dest_dir.glob(f"{AUTO_BACKUP_PREFIX}*.zip") if p.is_file()),
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+        removed = 0
+        for old in backups[keep:]:
+            try:
+                old.unlink()
+                removed += 1
+            except OSError:
+                pass
+        return removed
+    except Exception:
+        return 0
+
+
 def export_backup_zip(dest_dir: Path = None, progress_callback=None, log_callback=None, open_folder: bool = True) -> tuple[bool, str]:
     """
     Creates a .zip archive containing Spicetify configuration, themes, extensions,

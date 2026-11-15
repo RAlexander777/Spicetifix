@@ -1920,21 +1920,8 @@ async function updateAllOutdated() {
     t('btn_cancel'),
     async () => {
       for (const item of items) {
-        const cached = repoVersions[`${item.user}/${item.repo}`] || {};
         try {
-          const res = await apiFetch('/api/marketplace/install', 'POST', {
-            type: item.type,
-            filename: item.filename,
-            url: item.url,
-            user: item.user,
-            repo: item.repo,
-            branch: item.branch,
-            css_url: item.css_url,
-            schemes_url: item.schemes_url,
-            include: item.include,
-            updated_at: cached.updated_at || item.updated_at || '',
-            tag: cached.tag || '',
-          });
+          const res = await apiFetch('/api/marketplace/install', 'POST', marketplaceInstallBody(item));
           if (res && res.status === 'ok') {
             appendConsole(`${item.title} ${t('mp_installed_ok')}`);
           } else {
@@ -2094,9 +2081,17 @@ function renderMarketplaceCatalog() {
 
     const repoUrl = `https://github.com/${item.user}/${item.repo}`;
 
+    const repoKey = `${item.user}/${item.repo}`;
+    const latest = repoVersions[repoKey] || {};
+    const latestInfo = { tag: latest.tag || '', updated_at: latest.updated_at || item.updated_at || '' };
+    const latestLabel = versionLabel(latestInfo);
+    const installedLabel = item.installed ? versionLabel(item.meta) : '';
+    const outdated = item.installed && versionOutdated(item.meta, latestInfo);
+
     // Custom apps have no standard entry point/install layout, so they are
     // browse-only (like the official Marketplace): the action opens the repo
-    // instead of installing.
+    // instead of installing. Extensions/themes install, or update when a newer
+    // release exists (updating is a reinstall that overwrites the files).
     let actionHtml;
     if (isApp) {
       actionHtml = `
@@ -2104,21 +2099,18 @@ function renderMarketplaceCatalog() {
             ${GITHUB_ICON_SVG} ${t('mp_view')}
           </button>`;
     } else {
-      const btnClass = item.installed ? 'btn-danger' : 'btn-accent';
-      const btnText = item.installed ? t('mp_uninstall') : t('mp_install');
-      const btnIcon = item.installed ? 'trash-2' : 'download';
-      actionHtml = `
-          <button class="btn btn-small ${btnClass} btn-mp-action" data-id="${item.id}">
-            <i data-lucide="${btnIcon}"></i> ${btnText}
-          </button>`;
+      const actions = [];
+      if (!item.installed) {
+        actions.push(['install', 'download', 'btn-accent', t('mp_install'), true]);
+      } else {
+        if (outdated) actions.push(['update', 'download', 'btn-accent', t('mp_update'), true]);
+        actions.push(['uninstall', 'trash-2', 'btn-danger', t('mp_uninstall'), !outdated]);
+      }
+      actionHtml = actions.map(([action, icon, cls, label, withLabel]) => `
+          <button class="btn btn-small ${cls} btn-mp-action" data-action="${action}" data-id="${item.id}" title="${label}">
+            <i data-lucide="${icon}"></i>${withLabel ? ' ' + label : ''}
+          </button>`).join('');
     }
-
-    const repoKey = `${item.user}/${item.repo}`;
-    const latest = repoVersions[repoKey] || {};
-    const latestInfo = { tag: latest.tag || '', updated_at: latest.updated_at || item.updated_at || '' };
-    const latestLabel = versionLabel(latestInfo);
-    const installedLabel = item.installed ? versionLabel(item.meta) : '';
-    const outdated = item.installed && versionOutdated(item.meta, latestInfo);
 
     const versionParts = [];
     if (installedLabel) versionParts.push(`${t('mp_version_installed')}: ${installedLabel}`);
@@ -2162,24 +2154,22 @@ function renderMarketplaceCatalog() {
       });
     }
 
-    const actionBtn = card.querySelector('.btn-mp-action');
-    if (actionBtn) {
-      actionBtn.addEventListener('click', async () => {
-        actionBtn.disabled = true;
-        actionBtn.classList.add('is-busy');
-        actionBtn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span class="btn-busy-label">...</span>';
+    card.querySelectorAll('.btn-mp-action').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const action = btn.dataset.action;
+        btn.disabled = true;
+        btn.classList.add('is-busy');
+        btn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span class="btn-busy-label">...</span>';
         if (window.lucide) lucide.createIcons();
         try {
-          if (item.installed) {
-            await uninstallMarketplaceItem(item);
-          } else {
-            await installMarketplaceItem(item);
-          }
+          if (action === 'uninstall') await uninstallMarketplaceItem(item);
+          else if (action === 'update') await updateMarketplaceItem(item);
+          else await installMarketplaceItem(item);
         } finally {
-          actionBtn.classList.remove('is-busy');
+          btn.classList.remove('is-busy');
         }
       });
-    }
+    });
 
     grid.appendChild(card);
   });
@@ -2205,9 +2195,9 @@ function renderMarketplaceCatalog() {
   if (window.lucide) window.lucide.createIcons();
 }
 
-async function installMarketplaceItem(item) {
+function marketplaceInstallBody(item) {
   const cached = repoVersions[`${item.user}/${item.repo}`] || {};
-  const res = await apiFetch('/api/marketplace/install', 'POST', {
+  return {
     type: item.type,
     filename: item.filename,
     url: item.url,
@@ -2219,15 +2209,27 @@ async function installMarketplaceItem(item) {
     include: item.include,
     updated_at: cached.updated_at || item.updated_at || '',
     tag: cached.tag || '',
-  });
+  };
+}
+
+async function runMarketplaceInstall(item, okMsg, errMsg) {
+  const res = await apiFetch('/api/marketplace/install', 'POST', marketplaceInstallBody(item));
   if (res && res.status === 'ok') {
-    appendConsole(`${item.title} ${t('mp_installed_ok')}`);
-    pollStatus();
-    await loadMarketplaceCatalog(true);
+    appendConsole(`${item.title} ${okMsg}`);
+    toast(`${item.title} ${okMsg}`);
   } else {
-    appendConsole(`${t('mp_installed_err')} ${item.title}: ${res?.error || t('mp_failed')}`);
-    await loadMarketplaceCatalog(true);
+    appendConsole(`${errMsg} ${item.title}: ${res?.error || t('mp_failed')}`);
   }
+  pollStatus();
+  await loadMarketplaceCatalog(true);
+}
+
+async function installMarketplaceItem(item) {
+  await runMarketplaceInstall(item, t('mp_installed_ok'), t('mp_installed_err'));
+}
+
+async function updateMarketplaceItem(item) {
+  await runMarketplaceInstall(item, t('mp_updated_ok'), t('mp_update_err'));
 }
 
 async function uninstallMarketplaceItem(item) {
