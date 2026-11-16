@@ -1238,9 +1238,11 @@ button .gh-icon,
   background: var(--accent-color) !important;
 }
 
-/* Lighter backdrop so dialogs feel less intrusive */
+/* No full-screen veil: the app behind stays fully visible and sharp. The
+   dialog relies on its own accent border and shadow to stand out. */
 .swal2-container.swal2-backdrop-show {
-  background: rgba(8, 9, 13, 0.55) !important;
+  background: transparent !important;
+  backdrop-filter: none !important;
 }
 
 .cyber-versions {
