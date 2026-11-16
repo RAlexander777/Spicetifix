@@ -1,9 +1,55 @@
 import os
+import re
 import struct
 import subprocess
 import sys
 import zipfile
 from pathlib import Path
+
+
+def _read_app_version(project_root: Path) -> str:
+    """Read __version__ from the package without importing it."""
+    init = project_root / "spicetifix" / "__init__.py"
+    match = re.search(r'__version__\s*=\s*"([^"]+)"', init.read_text(encoding="utf-8"))
+    return match.group(1) if match else "0.0.0"
+
+
+def _write_version_file(project_root: Path, version: str) -> Path:
+    """Write a PyInstaller version resource so the EXE's Properties show a version."""
+    parts = [int(p) if p.isdigit() else 0 for p in version.split(".")]
+    parts += [0] * (4 - len(parts))
+    ver_tuple = f"({parts[0]}, {parts[1]}, {parts[2]}, {parts[3]})"
+    content = f"""VSVersionInfo(
+  ffi=FixedFileInfo(
+    filevers={ver_tuple},
+    prodvers={ver_tuple},
+    mask=0x3f,
+    flags=0x0,
+    OS=0x40004,
+    fileType=0x1,
+    subtype=0x0,
+    date=(0, 0)
+  ),
+  kids=[
+    StringFileInfo([
+      StringTable('040904B0', [
+        StringStruct('CompanyName', 'RAlexander777'),
+        StringStruct('FileDescription', 'Spicetifix - Spotify & Spicetify setup'),
+        StringStruct('FileVersion', '{version}'),
+        StringStruct('InternalName', 'Spicetifix'),
+        StringStruct('OriginalFilename', 'Spicetifix.exe'),
+        StringStruct('ProductName', 'Spicetifix'),
+        StringStruct('ProductVersion', '{version}')
+      ])
+    ]),
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
+  ]
+)
+"""
+    path = project_root / "build" / "version_info.txt"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(content, encoding="utf-8")
+    return path
 
 
 def _add_file_to_zip(zf, file, arcname):
@@ -36,6 +82,9 @@ def build_standalone_exe(console=False):
         print("Installing PyInstaller...")
         subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
 
+    version = _read_app_version(project_root)
+    version_file = _write_version_file(project_root, version)
+
     cmd = [
         sys.executable, "-m", "PyInstaller",
         "--noconfirm",
@@ -44,6 +93,7 @@ def build_standalone_exe(console=False):
         "--noupx",
         f"--name={app_name}",
         f"--add-data={web_dir}{os.pathsep}web",
+        f"--version-file={version_file}",
         "--hidden-import=tkinter",
         "--hidden-import=tkinter.filedialog",
         "--collect-all=spicetifix",

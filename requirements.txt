@@ -1,4 +1,4 @@
-requests>=2.31.0
-PyYAML>=6.0
-pywebview>=6.0
-pyinstaller>=6.0
+requests==2.34.2
+PyYAML==6.0.3
+pywebview==6.2.1
+pyinstaller==6.21.0

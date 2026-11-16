@@ -26,6 +26,17 @@ jobs:
       - name: Run unit tests
         run: python -m unittest discover -s tests
 
+      - name: Verify tag matches the app version
+        shell: python
+        run: |
+          import os, re
+          from pathlib import Path
+          tag = os.environ.get("GITHUB_REF_NAME", "").lstrip("v")
+          init = Path("spicetifix/__init__.py").read_text(encoding="utf-8")
+          version = re.search(r'__version__\s*=\s*"([^"]+)"', init).group(1)
+          if tag != version:
+              raise SystemExit(f"tag v{tag} does not match __version__ {version}")
+
   build:
     needs: test
     runs-on: windows-latest

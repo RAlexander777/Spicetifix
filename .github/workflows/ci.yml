@@ -23,6 +23,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Run unit tests
+      - name: Run unit tests with coverage
         run: |
-          python -m unittest discover -s tests
+          python -m pip install coverage
+          python -m coverage run --source=spicetifix -m unittest discover -s tests
+          python -m coverage report --skip-covered
