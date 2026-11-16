@@ -1155,40 +1155,92 @@ button .gh-icon,
   color: var(--danger-color) !important;
 }
 
-/* SWEETALERT2 CYBERPUNK THEME */
+/* SWEETALERT2 CYBER TERMINAL THEME (compact) */
 .cyber-swal-popup {
   background-color: var(--card-bg) !important;
   border: 1px solid var(--card-border) !important;
-  border-radius: 10px !important;
+  border-top: 2px solid var(--accent-color) !important;
+  border-radius: 8px !important;
   color: var(--text-main) !important;
   font-family: var(--font-mono) !important;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7) !important;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.75) !important;
+  width: min(92vw, 440px) !important;
+  padding: 16px 18px 12px !important;
 }
 
 .cyber-swal-title {
-  color: var(--danger-color) !important;
+  color: var(--accent-color) !important;
   font-family: var(--font-mono) !important;
-  font-size: 1.1rem !important;
+  font-size: 0.98rem !important;
   font-weight: bold !important;
+  letter-spacing: 0.3px;
+  margin: 0 0 4px !important;
+  padding: 0 !important;
 }
 
 .cyber-swal-html {
   color: var(--text-main) !important;
   font-family: var(--font-mono) !important;
-  font-size: 0.88rem !important;
+  font-size: 0.82rem !important;
+  line-height: 1.45;
+  margin: 6px 0 0 !important;
 }
 
 .cyber-swal-popup .swal2-actions {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 10px 12px;
+  gap: 8px 10px;
   width: 100%;
-  margin-top: 1.2em;
+  margin-top: 14px !important;
 }
 
 .cyber-swal-popup .swal2-actions button {
   margin: 0 !important;
+  font-size: 0.78rem !important;
+  padding: 6px 14px !important;
+}
+
+/* Small, themed toasts (bottom-right) */
+.cyber-toast {
+  /* Sit above the fixed console strip + player dock instead of on top of them */
+  margin-bottom: 104px !important;
+  background-color: var(--card-bg) !important;
+  border: 1px solid var(--card-border) !important;
+  border-left: 3px solid var(--accent-color) !important;
+  border-radius: 6px !important;
+  color: var(--text-main) !important;
+  font-family: var(--font-mono) !important;
+  padding: 10px 14px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+}
+
+.cyber-toast .swal2-title {
+  font-family: var(--font-mono) !important;
+  font-size: 0.82rem !important;
+  color: var(--text-main) !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.cyber-toast .swal2-icon {
+  width: 1.9em !important;
+  height: 1.9em !important;
+  margin: 0 0.6em 0 0 !important;
+  border-width: 2px !important;
+}
+
+.cyber-toast .swal2-icon .swal2-icon-content {
+  font-size: 0.65em !important;
+}
+
+.cyber-toast .swal2-timer-progress-bar {
+  background: var(--accent-color) !important;
+}
+
+/* Lighter backdrop so dialogs feel less intrusive */
+.swal2-container.swal2-backdrop-show {
+  background: rgba(8, 9, 13, 0.55) !important;
 }
 
 .cyber-versions {
