@@ -366,6 +366,13 @@ async function applyLanguage(lang) {
   setTxt('sec-title-status', t.sec_status);
   setTxt('sec-title-health', t.sec_health);
   setTxt('lbl-card-theme-title', t.card_theme_title);
+  // Initial "checking" placeholders, shown until the first status poll replaces them.
+  setTxt('tag-spotify', t.tag_checking);
+  setTxt('tag-spicetify', t.tag_checking);
+  setTxt('tag-theme', t.tag_checking);
+  setTxt('sub-spotify', t.card_checking_spotify);
+  setTxt('sub-spicetify', t.card_checking_spicetify);
+  setTxt('sub-theme', t.card_checking_theme);
   setTxt('sec-title-actions', t.sec_actions);
   setTxt('lbl-btn-install', t.btn_install);
   setTxt('lbl-btn-recover', t.btn_recover);

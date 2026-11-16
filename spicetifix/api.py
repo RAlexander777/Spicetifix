@@ -134,11 +134,54 @@ def _end_work():
     global _is_working
     with _state_lock:
         _is_working = False
+    # The operation changed on-disk state; drop the cached status core.
+    _invalidate_status_core()
 
 
 def _get_state() -> tuple[bool, float, list]:
     with _state_lock:
         return _is_working, _install_progress, list(_install_logs)
+
+
+_status_core_cache: tuple[float, dict] | None = None
+_STATUS_CORE_TTL = 2.0
+
+
+def _status_core() -> dict:
+    """Compute the heavy /api/status fields, cached briefly.
+
+    ``load_user_config``/``check_config_health``/``read_spicetify_config`` touch
+    the disk and the now-playing query walks the window list, so recomputing
+    them on every 1.5s poll is wasteful. Any POST or finished operation
+    invalidates the cache.
+    """
+    global _status_core_cache
+    now = time.time()
+    if _status_core_cache is not None and (now - _status_core_cache[0]) < _STATUS_CORE_TTL:
+        return _status_core_cache[1]
+
+    cfg = load_user_config()
+    health = check_config_health()
+    now_playing = spotify_control.get_spotify_now_playing()
+    sc = read_spicetify_config()
+
+    theme_name = i18n.t("none")
+    if sc and "Setting" in sc:
+        theme_name = sc["Setting"].get("current_theme", i18n.t("none"))
+
+    core = {
+        "config": cfg,
+        "health": health,
+        "now_playing": now_playing,
+        "current_theme": theme_name,
+    }
+    _status_core_cache = (now, core)
+    return core
+
+
+def _invalidate_status_core() -> None:
+    global _status_core_cache
+    _status_core_cache = None
 
 
 def _resolve_static_file(path: str):
@@ -307,22 +350,11 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/status":
-            cfg = load_user_config()
-            health = check_config_health()
-            now_playing = spotify_control.get_spotify_now_playing()
-            sc = read_spicetify_config()
-
-            theme_name = i18n.t("none")
-            if sc and "Setting" in sc:
-                theme_name = sc["Setting"].get("current_theme", i18n.t("none"))
-
+            core = _status_core()
             is_working, progress, logs = _get_state()
             self._send_json({
                 "version": __version__,
-                "config": cfg,
-                "health": health,
-                "now_playing": now_playing,
-                "current_theme": theme_name,
+                **core,
                 "is_working": is_working,
                 "progress": progress,
                 "logs": logs,
@@ -411,6 +443,8 @@ class SpicetifixAPIHandler(BaseHTTPRequestHandler):
 
         if path.startswith("/api/"):
             _apply_lang()
+            # A POST may change state; never answer /api/status from a stale cache.
+            _invalidate_status_core()
 
         if path.startswith("/api/") and not self._is_authorized():
             self._send_json({"error": "Unauthorized"}, 401)

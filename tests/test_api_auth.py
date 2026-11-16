@@ -92,6 +92,27 @@ class TestAllowedBackupPath(unittest.TestCase):
                 self.assertTrue(api._is_allowed_backup_path(z))
 
 
+class TestStatusCoreCache(unittest.TestCase):
+    def setUp(self):
+        api._invalidate_status_core()
+
+    def tearDown(self):
+        api._invalidate_status_core()
+
+    def test_recomputes_only_after_invalidation(self):
+        with patch("spicetifix.api.load_user_config", return_value={"language": "en"}) as m_cfg, \
+             patch("spicetifix.api.check_config_health", return_value=[]), \
+             patch("spicetifix.api.read_spicetify_config", return_value=None), \
+             patch("spicetifix.api.spotify_control.get_spotify_now_playing", return_value={}):
+            api._status_core()
+            api._status_core()
+            self.assertEqual(m_cfg.call_count, 1)
+
+            api._invalidate_status_core()
+            api._status_core()
+            self.assertEqual(m_cfg.call_count, 2)
+
+
 class TestStaticFileTraversal(unittest.TestCase):
     def test_index_resolves(self):
         path = api._resolve_static_file("/")

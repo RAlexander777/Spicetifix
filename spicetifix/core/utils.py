@@ -3,6 +3,7 @@ import re
 import subprocess
 import sys
 import shutil
+import time
 from pathlib import Path
 
 from spicetifix.core import i18n
@@ -164,6 +165,8 @@ def get_spicetify_dir() -> Path:
 
 
 _config_dir_cache: Path | None = None
+_config_dir_cache_time = 0.0
+_CONFIG_DIR_CACHE_TTL = 30.0
 
 
 def get_spicetify_config_dir() -> Path:
@@ -173,9 +176,13 @@ def get_spicetify_config_dir() -> Path:
     is %APPDATA%\\spicetify (Roaming), NOT the %LOCALAPPDATA%\\spicetify dir
     where the exe, extensions and themes live. Querying `spicetify -c` is
     authoritative; fall back to APPDATA if the CLI is unavailable.
+
+    The result is cached briefly so a later-installed CLI is picked up while the
+    (subprocess) resolution is not run on every call.
     """
-    global _config_dir_cache
-    if _config_dir_cache is not None:
+    global _config_dir_cache, _config_dir_cache_time
+    now = time.time()
+    if _config_dir_cache is not None and (now - _config_dir_cache_time) < _CONFIG_DIR_CACHE_TTL:
         return _config_dir_cache
 
     resolved: Path | None = None
@@ -188,6 +195,7 @@ def get_spicetify_config_dir() -> Path:
         resolved = Path(os.environ.get("APPDATA", "")) / "spicetify"
 
     _config_dir_cache = resolved
+    _config_dir_cache_time = now
     return resolved
 
 
