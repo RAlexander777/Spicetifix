@@ -188,6 +188,46 @@ class TestInstaller(unittest.TestCase):
         self.assertEqual(cfg["spicetify"]["theme"], "SpicetifyDefault")
         self.assertTrue(mock_save.called)
 
+    def test_configure_spicetify_true_on_success(self):
+        with patch("spicetifix.core.config.write_spicetify_config") as mock_write:
+            self.assertTrue(self.installer._configure_spicetify({"spicetify": {}}))
+        self.assertTrue(mock_write.called)
+
+    def test_configure_spicetify_false_without_spotify(self):
+        with patch("spicetifix.core.config.write_spicetify_config",
+                   side_effect=FileNotFoundError("no spotify")):
+            self.assertFalse(self.installer._configure_spicetify({}))
+
+    def test_run_backup_succeeds_on_first_attempt(self):
+        with patch.object(self.installer, "_close_spotify"), \
+             patch("spicetifix.core.installer.run_spicetify", return_value=(0, "ok", "")) as mock_run:
+            self.assertTrue(self.installer._run_backup())
+        mock_run.assert_called_once_with(["restore", "backup"])
+
+    def test_run_backup_falls_back_to_plain_backup(self):
+        with patch.object(self.installer, "_close_spotify"), \
+             patch("spicetifix.core.installer.run_spicetify",
+                   side_effect=[(1, "", "boom"), (0, "ok", "")]) as mock_run:
+            self.assertTrue(self.installer._run_backup())
+        self.assertEqual(mock_run.call_count, 2)
+        mock_run.assert_called_with(["backup"])
+
+    def test_run_apply_reports_success(self):
+        with patch.object(self.installer, "_close_spotify"), \
+             patch("spicetifix.core.installer.run_spicetify_apply", return_value=(0, "ok", "")):
+            self.assertTrue(self.installer._run_apply())
+
+    def test_run_apply_reports_failure(self):
+        with patch.object(self.installer, "_close_spotify"), \
+             patch("spicetifix.core.installer.run_spicetify_apply", return_value=(1, "", "boom")):
+            self.assertFalse(self.installer._run_apply())
+
+    def test_ensure_spotify_true_when_detected(self):
+        with patch("spicetifix.core.installer.get_spotify_path", return_value="C:/Spotify"), \
+             patch("spicetifix.core.installer.ensure_spotify_prefs") as mock_prefs:
+            self.assertTrue(self.installer._ensure_spotify())
+        self.assertTrue(mock_prefs.called)
+
 
 if __name__ == "__main__":
     unittest.main()
